@@ -6,7 +6,7 @@ const pad=n=>String(n).padStart(2,'0'),hm=m=>pad(m/60|0)+':'+pad(m%60)+':00';
 async function token(env){const rt=await env.TOK.get('rt');if(!rt)throw Error('Not connected: open /auth/start?k=YOURKEY once');
  const r=await fetch('https://oauth2.googleapis.com/token',{method:'POST',body:new URLSearchParams({client_id:env.CID,client_secret:env.CSECRET,refresh_token:rt,grant_type:'refresh_token'})});
  const j=await r.json();if(!j.access_token)throw Error('Token error: '+JSON.stringify(j));return j.access_token}
-function body(t){const done=t.done,e={summary:(done?'✓ ':'')+t.title,description:'Life OS to-do #lifeos-todo',colorId:done?'8':'11',reminders:{useDefault:false}};
+function body(t){const done=t.done,e={summary:(done?'✓ ':'')+t.title,description:(t.desc?t.desc+'\n\n':'')+'Life OS to-do #lifeos-todo',colorId:done?'8':'11',reminders:{useDefault:false}};
  if(t.time){const s=+t.time.slice(0,2)*60+ +t.time.slice(3),en=Math.min(s+(+t.dur||30),1439);e.start={dateTime:`${t.date}T${hm(s)}`,timeZone:t.tz};e.end={dateTime:`${t.date}T${hm(en)}`,timeZone:t.tz}}
  else{const d=new Date(t.date+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+1);e.start={date:t.date};e.end={date:d.toISOString().slice(0,10)}}return e}
 export default{async fetch(req,env){

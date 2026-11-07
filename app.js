@@ -1,5 +1,5 @@
 'use strict';
-const BUILD='1794074493';
+const BUILD='1794074931';
 const $=s=>document.querySelector(s);
 const D=(d=new Date())=>new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
 const dow=s=>new Date(s+'T12:00').getDay()||7;
@@ -18,8 +18,8 @@ const base=()=>location.origin+location.pathname;
 const td=()=>D();
 
 /* ---------- defaults (everything is editable in Life > Settings) ---------- */
-const VER=7;
-const DEF={v:VER,start:D(),mode:{},wmode:{},short:{},chk:{},water:{},steps:{},port:{},ing:{},z:.75,bcol:{},nl:{},own:0,tdel:[],bind:{},notes:{},gcal:{url:'',proxy:'',key:'',tds:0,t:0,evs:[],err:''},supp:{},hab:{},jr:{},med:{},todo:[],log:[],active:null,tx:[],paid:{},rev:{},wx:{},timer:null,ctx:null,
+const VER=8;
+const DEF={v:VER,start:D(),mode:{},wmode:{},short:{},chk:{},water:{},steps:{},port:{},ing:{},z:.75,tcol:{},bname:{},bcol:{},nl:{},own:0,tdel:[],bind:{},notes:{},gcal:{url:'',proxy:'',key:'',tds:0,t:0,evs:[],err:''},supp:{},hab:{},jr:{},med:{},todo:[],log:[],active:null,tx:[],paid:{},rev:{},wx:{},timer:null,ctx:null,
 cfg:{
 income:0,invest:0,waterT:2500,stepsT:10000,stepsMin:8000,
 themes:`1|Money: investing basics, tax, index funds. Check auto-invest.|Finance and business|Push|
@@ -131,7 +131,7 @@ function load(o){o=o||{};if((o.v||0)<2){if(o.cfg){delete o.cfg.blocks;delete o.c
  if((o.v||0)<7){o.z=.75;o.nl=o.nl||{};Object.entries(o.notes||{}).forEach(([k,t])=>{if(t&&t.trim())o.nl[k]=[{d:o.start||D(),t:t.trim()}]})}
  if((o.v||0)<6&&o.cfg){o.cfg.routines='';delete o.cfg.day}
  if((o.v||0)<5&&o.cfg&&o.cfg.cats){let c=o.cfg.cats;['Investing','Savings'].forEach(n=>{if(!c.includes(n))c+='\n'+n+'|0'});o.cfg.cats=c;if(+o.cfg.invest&&!/Investing\|[1-9]/.test(c))o.cfg.cats=c.replace('Investing|0','Investing|'+(+o.cfg.invest))}
- const s=Object.assign(structuredClone(DEF),o);s.cfg=Object.assign({},DEF.cfg,o.cfg);s.v=VER;return s}
+ const s=Object.assign(structuredClone(DEF),o);s.cfg=Object.assign({},DEF.cfg,o.cfg); s.todo.forEach(x=>{x.id=x.id||Date.now().toString(32)+Math.random().toString(32).slice(2,6)});if((o.v||0)<8&&s.gcal)s.gcal.t=0;s.v=VER;return s}
 let S;try{S=load(JSON.parse(localStorage.lifeos1))}catch(e){S=load()}
 const save=()=>{try{localStorage.lifeos1=JSON.stringify(S)}catch(e){}};
 
@@ -236,8 +236,8 @@ const Zv=()=>S.z||.75,clampZ=z=>Math.min(4,Math.max(.4,z));
 const hmm=m=>String(m/60|0).padStart(2,'0')+':'+String(Math.round(m%60)).padStart(2,'0');
 function extOn(ds){const a=new Date(ds+'T00:00').getTime(),b=a+864e5;return(S.gcal.evs||[]).filter(e=>e.s<b&&e.e>a).map(e=>({...e,sm:Math.max(0,(Math.max(e.s,a)-a)/6e4),em:(Math.min(e.e,b)-a)/6e4}))}
 const TR='#c0392b';
-function todoBar(ds,t){const l=S.todo.map((x,i)=>({...x,i})).filter(x=>x.due&&(x.due===ds||(ds===t&&x.due<ds&&!x.done)));if(!l.length)return'';
- return`<div class=card style="border-left:4px solid ${TR}"><small>To-dos</small>`+l.map(x=>`<div class=row style="padding:6px 0"><button class="ck ${x.done?'on':''}" data-a=todotog data-i=${x.i}></button><span style="flex:1;${x.done?'opacity:.5;text-decoration:line-through':''}">${esc(x.t)}<small style="${x.due<ds&&!x.done?'color:var(--r)':''}">${x.due<ds?'overdue · '+x.due:x.time||'all day'}</small></span></div>`).join('')+`</div>`}
+function todoBar(ds,t){const l=S.todo.filter(x=>x.due&&(x.due===ds||(ds===t&&x.due<ds&&!x.done)));if(!l.length)return'';
+ return`<div style="border-left:4px solid ${TR};background:var(--c);border-radius:10px;padding:4px 10px;margin:4px 0;max-height:88px;overflow-y:auto">`+l.map(x=>`<a href="#/t/${x.id}" style="display:flex;justify-content:space-between;gap:8px;color:inherit;text-decoration:none;font-size:14px;padding:3px 0;${x.done?'opacity:.5;text-decoration:line-through':''}"><span>${x.done?'✓ ':''}${esc(x.t)}</span><small style="${x.due<ds&&!x.done?'color:var(--r)':''}">${x.due<ds?'overdue':x.time||'all day'}</small></a>`).join('')+`</div>`}
 function conflicts(ds){return[];const o=[],xs=extOn(ds).filter(e=>!e.ad);occ(ds).forEach(r=>{const a=+r.start.slice(0,2)*60+ +r.start.slice(3),b=a+r.dur;xs.forEach(y=>{if(a<y.em&&y.sm<b)o.push(`${r.name} (${r.start}) overlaps "${y.t}" (${hmm(y.sm)}-${hmm(y.em)})`)})});return o}
 function grid(days){const t=D(),wk=days.length>1,nm=new Date(),nowM=nm.getHours()*60+nm.getMinutes(),z=Zv(),pos=q=>`left:calc(${q.c/q.n*100}% + 1px);width:calc(${100/q.n}% - 2px);top:calc(var(--z)*${q.s-360}px);height:max(calc(var(--z)*${q.e0-q.s}px - 1px),20px)`;
  let gut='';for(let i=0;i<=18;i++){gut+=`<span style="top:calc(var(--z)*${i*60}px)">${String(6+i).padStart(2,'0')}:00</span>`;if(z>=2&&i<18)gut+=`<span style="top:calc(var(--z)*${i*60+30}px);opacity:.6">${String(6+i).padStart(2,'0')}:30</span>`}
@@ -248,8 +248,8 @@ function grid(days){const t=D(),wk=days.length>1,nm=new Date(),nowM=nm.getHours(
  ev.forEach(q=>{q.cf=xs.some(y=>q.s<y.e0&&y.s<q.e0)});layout([...ev,...xs,...tds]);
  return`<div class=col>`+ev.map(q=>{const r=q.r,st=stepsOf(r,ds),dn=st.filter(s=>isDone(ds,r,s)).length,all=st.length&&dn===st.length;
  return`<a class="ev ${all?'dn':''}" href="#/r/${r.id}/${ds}" style="${pos(q)};background:hsl(${r.hue} 45% 24%);border-color:hsl(${r.hue} 70% 60%)"><b>${all?'✓ ':''}${q.cf?'⚠ ':''}${esc(r.name)}</b>${wk?'':`<br>${r.start} · ${dn}/${st.length}`}</a>`}).join('')
- +tds.map(q=>`<div class="ev ${q.x.done?'dn':''}" data-a=todotog data-i=${q.i} style="${pos(q)};background:${TR};border-color:#ff8a7a"><b>${q.x.done?'✓ ':''}${esc(q.x.t)}</b>${wk?'':`<br>${q.x.time} · ${q.x.dur||30} min`}</div>`).join('')
- +xs.map(q=>{const h=evHue(q.x.t);return`<a class="ev ${h==null?'ext':''}" href="#/x/${encodeURIComponent(q.x.t)}/${ds}" style="${pos(q)}${h==null?'':`;background:hsl(${h} 45% 28%);border-color:hsl(${h} 70% 60%);color:#fff`}"><b>${h==null?'':'🔗 '}${esc(q.x.t)}</b>${wk?'':`<br>${hmm(q.x.sm)}-${hmm(q.x.em)}`}</a>`}).join('')+(ds===t?`<i class=now style="top:calc(var(--z)*${nowM-360}px)"></i>`:'')+`</div>`}).join('')+`</div></div>`}
+ +tds.map(q=>`<a class="ev ${q.x.done?'dn':''}" href="#/t/${q.x.id}" style="${pos(q)};background:${TR};border-color:#ff8a7a"><b>${q.x.done?'✓ ':''}${esc(q.x.t)}</b>${wk?'':`<br>${q.x.time} · ${q.x.dur||30} min`}</a>`).join('')
+ +xs.map(q=>{const h=evHue(q.x);return`<a class="ev ${h==null?'ext':''}" href="#/xd/${encodeURIComponent(evKey(q.x))}/${ds}" style="${pos(q)}${h==null?'':`;background:hsl(${h} 45% 28%);border-color:hsl(${h} 70% 60%);color:#fff`}"><b>${h==null?'':'🔗 '}${esc(q.x.t)}</b>${wk?'':`<br>${hmm(q.x.sm)}-${hmm(q.x.em)}`}</a>`}).join('')+(ds===t?`<i class=now style="top:calc(var(--z)*${nowM-360}px)"></i>`:'')+`</div>`}).join('')+`</div></div>`}
 
 const dv=(src,ds)=>src==='steps'?(S.steps[ds]||0):src==='water'?(S.water[ds]||0):src==='diet'?Math.round(dietPct(ds)*100):src==='med'?(S.med[ds]||0):src==='jr'?(S.jr[ds]&&(S.jr[ds].g||S.jr[ds].w||S.jr[ds].t)?1:0):src==='lift'?S.log.filter(l=>l.date===ds).length:0;
 const dayRows=()=>lines(S.cfg.day).map(l=>{const[n,f,m,src]=l.split('|').map(x=>x.trim());return{n,f:+f||0,m:+m||0,src}});
@@ -261,10 +261,10 @@ let CTA='';
 function vPlan(){const t=D(),ws=weekStart(sel),g=S.gcal,gon=g.url&&g.proxy;
  let h=`<div class=stick><div class=top><h1>${new Date(sel+'T12:00').toLocaleDateString('en-GB',{month:'long',year:'numeric'})}</h1><div><button class="chip ${view==='day'?'on':''}" data-a=view data-v=day>Day</button> <button class="chip ${view==='week'?'on':''}" data-a=view data-v=week>Week</button> <button class=chip data-a=gotoday>Today</button></div></div>
  <div class=strip><button data-a=wk data-v=-7>‹</button>`+wdays(ws).map(d=>`<button class="dd ${d===sel?'on':''} ${d===t?'td':''}" data-a=sel data-v=${d}><small>${DN[dow(d)]}</small><b>${+d.slice(8)}</b></button>`).join('')+`<button data-a=wk data-v=7>›</button></div>
- <button class=chip data-a=zoom data-v=-1>🔍 −</button> <button class=chip data-a=zoom data-v=1>🔍 +</button> <small style="display:inline">pinch to zoom · swipe for next day</small> `+(gon?`<button class=chip data-a=gsync>↻ ${g.t?new Date(g.t).toTimeString().slice(0,5):'sync'}</button>`:'')+`</div>`;
- if(sel===t){h+=warns().map(([k,x])=>`<div class="w ${k}">${esc(x)}</div>`).join('')}
- const ad=extOn(sel).filter(e=>e.ad);if(ad.length)h+=`<div class=card><small>All day (Google Calendar)</small>${ad.map(e=>esc(e.t)).join(', ')}</div>`;
- h+=todoBar(sel,t);
+ <button class=chip data-a=zoom data-v=-1>🔍 −</button> <button class=chip data-a=zoom data-v=1>🔍 +</button> <small style="display:inline">pinch to zoom · swipe for next day</small> `+(gon?`<button class=chip data-a=gsync>↻ ${g.t?new Date(g.t).toTimeString().slice(0,5):'sync'}</button>`:'');
+ if(sel===t){const w=warns();if(w.length)h+=`<div class="w ${w[0][0]}" style="padding:4px 10px;font-size:13px;margin:4px 0">${esc(w[0][1])}${w.length>1?' (+'+(w.length-1)+' more)':''}</div>`}
+ const ad=extOn(sel).filter(e=>e.ad);if(ad.length)h+=`<div style="font-size:13px;color:var(--m);margin:4px 0">All day: ${ad.map(e=>esc(e.t)).join(', ')}</div>`;
+ h+=todoBar(sel,t)+`</div>`;
  return h+grid(view==='week'?wdays(ws):[sel])}
 
 const LBL={fuel:'Diet',train:'Workout',money:'Budget',mind:'Mind',skill:'Skill',rel:'Relationships',meaning:'Meaning',week:'Weeks',todo:'To-dos'};
@@ -342,20 +342,30 @@ function vWeek(w){const t=D(),cw=weekStart(t),ws=w||cw,sm=wsum(ws),r=S.rev[ws]||
  return h}
 
 function vTodo(){const t=D(),a=S.todo.map((x,i)=>({...x,i})).sort((p,q)=>(p.done-q.done)||((p.due||'9')<(q.due||'9')?-1:1));
- return`<h1>To-dos</h1><div class=card><input id=ta placeholder="New task"><small>Date (leave empty for no date)</small><input id=td class=dt type=date><small>Time (optional; empty = all-day)</small><input id=tt2 class=dt type=time><small>Estimated duration</small><select id=tdu><option value=15>15 min</option><option value=30 selected>30 min</option><option value=60>1 hour</option><option value=90>1.5 hours</option><option value=120>2 hours</option></select><button class="btn pri" data-a=todoadd>Add</button><small>Open to-dos also show on the Calendar, in red, on their day.</small></div>`+a.map(x=>`<div class=row><button class="ck ${x.done?'on':''}" data-a=todotog data-i=${x.i}></button><span style="flex:1;${x.done?'opacity:.4;text-decoration:line-through':''}">${esc(x.t)}<small style="${x.due&&x.due<t&&!x.done?'color:var(--r)':''}">${x.due||''}${x.time?' '+x.time:''}</small></span><button class=btn data-a=tododel data-i=${x.i}>✕</button></div>`).join('')}
+ return`<h1>To-dos</h1><div class=card><input id=ta placeholder="New task"><small>Date (leave empty for no date)</small><input id=td class=dt type=date><small>Description (optional)</small><textarea id=tde rows=3 style="font-family:inherit"></textarea><small>Time (optional; empty = all-day)</small><input id=tt2 class=dt type=time><small>Estimated duration</small><select id=tdu><option value=15>15 min</option><option value=30 selected>30 min</option><option value=60>1 hour</option><option value=90>1.5 hours</option><option value=120>2 hours</option></select><button class="btn pri" data-a=todoadd>Add</button><small>Open to-dos also show on the Calendar, in red, on their day.</small></div>`+a.map(x=>`<div class=row><button class="ck ${x.done?'on':''}" data-a=todotog data-i=${x.i}></button><a href="#/t/${x.id}" style="flex:1;${x.done?'opacity:.4;text-decoration:line-through':''}">${esc(x.t)}<small style="${x.due&&x.due<t&&!x.done?'color:var(--r)':''}">${x.due||''}${x.time?' '+x.time:''}</small></a><button class=btn data-a=tododel data-i=${x.i}>✕</button></div>`).join('')}
 
 const DH={train:8,fuel:130,money:48,mind:270,skill:210,rel:330,meaning:170,week:190,todo:0},HUES=[0,25,45,95,150,185,215,255,290,330];
-const evHue=t=>{const b=bnd(t);if(!b)return null;const k=bkey(t);if(S.bcol&&S.bcol[k]!=null)return S.bcol[k];if(b.startsWith('r/')){const r=routines().find(x=>'r/'+x.id===b);return r?r.hue:200}return DH[b]??200};
+const evKey=e=>e.u?'u:'+e.u:'n:'+bkey(e.t),bndE=e=>{const b=S.bind||{};return b[evKey(e)]||b[bkey(e.t)]};
+const typeHue=b=>S.tcol&&S.tcol[b]!=null?S.tcol[b]:b.startsWith('r/')?((routines().find(x=>'r/'+x.id===b)||{}).hue??200):(DH[b]??200);
+const evHue=e=>{const b=bndE(e);return b?typeHue(b):null};
 const bkey=t=>String(t).trim().toLowerCase(),bnd=t=>(S.bind||{})[bkey(t)];
 const TG=()=>[['train','Workout (gym tracker)'],['fuel','Diet and water'],['money','Budget'],['mind','Mind'],['skill','Skill'],['rel','Relationships'],['meaning','Meaning'],['week','Weeks'],['todo','To-dos'],...routines().map(r=>['r/'+r.id,'My routine: '+r.name])];
 const tgName=v=>(TG().find(x=>x[0]===v)||[0,v])[1];
-function vExt(t,ds,edit){const b=bnd(t);if(b&&!edit){setTimeout(()=>location.replace('#/'+b),0);return'<p>Opening…</p>'}
- const e=extOn(ds||D()).find(x=>x.t===t),when=e?(e.ad?'All day':hmm(e.sm)+'-'+hmm(e.em)):'';
- return`<a href="#/plan">‹ Calendar</a><h1>${esc(t)}</h1><small>Google Calendar event${when?' · '+when:''}. Read only: nothing is ever written to Google Calendar.</small>
- <h3>Link this event to</h3><small>Applies to every event called "${esc(t)}".</small>`+TG().map(x=>`<div class=row><span style="flex:1">${esc(x[1])}</span><button class="btn ${b===x[0]?'pri':''}" data-a=bind data-t="${esc(t)}" data-v="${x[0]}">${b===x[0]?'✓ Linked':'Link'}</button></div>`).join('')
- +`<h3>Colour on the calendar</h3><div class=chips>`+HUES.map(h=>`<button data-a=bcol data-t="${esc(t)}" data-h=${h} style="background:hsl(${h} 50% 35%);${evHue(t)===h?'outline:2px solid #fff':''}">&nbsp; &nbsp;</button>`).join('')+`</div><small>Colour applies to every event called "${esc(t)}" once it is linked.</small>`
- +(b?`<button class=btn data-a=unbind data-t="${esc(t)}">Remove link</button> <a class=btn href="#/${b}">Open ${esc(tgName(b))} ›</a>`:'')
- +`<h3>Open it from Google Calendar</h3><small>Copy this link and paste it into the event's description in Google Calendar yourself. Opening it goes straight to the linked page.</small><button class="btn pri" data-a=copy data-v="${base()}#/x/${encodeURIComponent(t)}">Copy link</button>`}
+function vExt(k,ds,rd){const e=extOn(ds||D()).find(x=>evKey(x)===k)||(S.gcal.evs||[]).find(x=>evKey(x)===k)||{t:(S.bname||{})[k]||k.replace(/^[un]:/,''),u:k.startsWith('u:')?k.slice(2):''},b=(S.bind||{})[k]||bndE(e);
+ if(b&&rd){setTimeout(()=>location.replace('#/'+b),0);return'<p>Opening…</p>'}
+ const when=e.sm!=null?(e.ad?'All day':hmm(e.sm)+'-'+hmm(e.em)):'',t=esc(e.t),kk=esc(k);
+ return`<a href="#/plan">‹ Calendar</a><h1>${t}</h1><small>Google Calendar event${when?' · '+when:''}${e.rc?' · repeats: a link applies to this whole repeating event, nothing else':''}. Life OS never changes it.</small>`
+ +(e.d?`<div class=card style="white-space:pre-wrap;font-size:14px">${esc(e.d)}</div>`:'')
+ +(b?`<div class=card style="border-left:4px solid hsl(${typeHue(b)} 70% 55%)">Linked to <b>${esc(tgName(b))}</b><br><a class="btn pri" href="#/${b}">Open ${esc(tgName(b))} ›</a><button class=btn data-a=unbind data-k="${kk}" data-n="${t}">Remove link</button></div>`:'<small>Not linked yet. Pick a type below. Its colour then shows on the calendar.</small>')
+ +`<h3>${b?'Change link':'Link this event to'}</h3>`+TG().map(x=>`<div class=row><span style="flex:1">${esc(x[1])}</span><button class="btn ${b===x[0]?'pri':''}" data-a=bind data-k="${kk}" data-n="${t}" data-v="${x[0]}">${b===x[0]?'✓ Linked':'Link'}</button></div>`).join('')
+ +`<h3>Open it from Google Calendar</h3><small>Paste this link in the event's description in Google Calendar yourself. Opening it goes straight to the linked page.</small><button class="btn pri" data-a=copy data-v="${base()}#/x/${encodeURIComponent(k)}">Copy link</button>`}
+function vTodoD(id){const x=S.todo.find(y=>y.id===id);if(!x)return'<a href="#/plan">‹ Calendar</a><p>To-do not found.</p>';
+ const f=(k,ty,v)=>`<input data-c=tf data-id="${x.id}" data-k=${k} class=dt type=${ty} value="${esc(v||'')}">`,du=[15,30,45,60,90,120,180];if(!du.includes(+x.dur))du.push(+x.dur||30);
+ return`<a href="#/plan">‹ Calendar</a><h1 style="${x.done?'text-decoration:line-through;opacity:.6':''}">${esc(x.t)}</h1><small>${x.due?x.due+(x.time?' at '+x.time+' · '+(x.dur||30)+' min':' · all day'):'No date'}${x.done?' · ✓ done':''}</small>
+ <button class="btn ${x.done?'':'pri'}" data-a=todotogid data-id="${x.id}" style="display:block;width:100%;margin:10px 0">${x.done?'↩ Mark as not done':'✓ Mark as done'}</button>
+ <h3>Description</h3><textarea data-c=tf data-id="${x.id}" data-k=desc rows=6 placeholder="Add details, links, notes..." style="font-family:inherit">${esc(x.desc||'')}</textarea>
+ <h3>Edit</h3><small>Title</small><input data-c=tf data-id="${x.id}" data-k=t value="${esc(x.t)}"><small>Date</small>${f('due','date',x.due)}<small>Time (empty = all day)</small>${f('time','time',x.time)}<small>Duration</small><select data-c=tf data-id="${x.id}" data-k=dur>${du.sort((a,b)=>a-b).map(m=>`<option value=${m} ${m===+(x.dur||30)?'selected':''}>${m} min</option>`).join('')}</select>
+ <button class=btn data-a=tododelid data-id="${x.id}" style="margin-top:14px">Delete to-do</button>`}
 function vRtn(){return`<h1>My routines</h1><small>A routine is a list of steps you tick off, with an optional timer per step. Make one here, then link it to a Google Calendar event by tapping that event in the calendar.</small>`
  +routines().map(r=>`<div class=row><a href="#/r/${r.id}"><b>${esc(r.name)}</b><small>${r.steps.length} steps · ${r.dur} min</small></a><button class=btn data-a=rtndel data-n="${esc(r.name)}">✕</button></div>`).join('')
  +`<h3>New routine</h3><div class=card><input id=rn placeholder="Name, e.g. Evening routine"><small>One step per line: title|minutes|page (minutes and page are optional). Pages you can open from a step: train fuel money mind skill rel meaning week todo</small><textarea id=rs rows=7 placeholder="Brush teeth|3\nBox breathing|5|mind\nPlan tomorrow|5|todo\nRead|20"></textarea><button class="btn pri" data-a=rtnadd>Add routine</button></div><small>Want more control (days, colour, short versions)? Edit the text in Settings › Routines.</small>`}
@@ -381,8 +391,8 @@ function vLinks(){const g=S.gcal,bs=Object.entries(S.bind||{});
  <input data-c=gc data-k=url value="${esc(g.url)}" placeholder="Secret address in iCal format"><input data-c=gc data-k=proxy value="${esc(g.proxy)}" placeholder="Proxy address, e.g. https://lifeos-cal.yourname.workers.dev/">
  <button class=btn data-a=gsync>↻ Sync now</button><small>${g.t?'Last synced '+new Date(g.t).toTimeString().slice(0,5)+' · '+g.evs.length+' upcoming events':'Not synced yet'}${g.err?' · Error: '+esc(g.err):''}</small>
  <h3>To-dos → Google Calendar</h3><small>Your to-dos with a date are written to your main Google Calendar, in red, and kept in step: done ones get a ✓ and turn grey. <a href="#/guide">Step-by-step setup guide ›</a> Only to-dos are written, never anything else.</small><input data-c=gc data-k=key type=password value="${esc(g.key)}" placeholder="To-do sync key"><button class="btn ${g.tds?'pri':''}" data-a=tds>${g.tds?'✓ To-do sync on':'Turn on to-do sync'}</button>${g.terr?'<small style="color:var(--r)">Error: '+esc(g.terr)+'</small>':''}
- <h3>Linked events</h3><small>Tap a grey Google event on the calendar to link it to a routine or page. Linked events show 🔗 and open that page when tapped.</small>`
- +(bs.length?bs.map(([k,v])=>`<div class=row><span style="width:14px;height:14px;border-radius:50%;background:hsl(${evHue(k)} 55% 45%);flex:none"></span><span style="flex:1">${esc(k)}<small>→ ${esc(tgName(v))}</small></span><a class=btn href="#/xe/${encodeURIComponent(k)}">Change</a></div>`).join(''):'<small>None yet.</small>')
+ <h3>Colours by type</h3><small>Every linked event takes the colour of its type.</small>`+TG().map(x=>`<div style="margin:6px 0"><small>${esc(x[1])}</small><div class=chips>`+HUES.map(h=>`<button data-a=tcol data-v="${x[0]}" data-h=${h} style="background:hsl(${h} 50% 35%);${typeHue(x[0])===h?'outline:2px solid #fff':''}">&nbsp; &nbsp;</button>`).join('')+`</div></div>`).join('')+`<h3>Linked events</h3><small>Tap a grey Google event on the calendar to open it, then link it to a page or routine. Remove or change a link from its page.</small>`
+ +(bs.length?bs.map(([k,v])=>`<div class=row><span style="width:14px;height:14px;border-radius:50%;background:hsl(${typeHue(v)} 55% 45%);flex:none"></span><span style="flex:1">${esc((S.bname||{})[k]||k.replace(/^[un]:/,''))}<small>→ ${esc(tgName(v))}</small></span><a class=btn href="#/xd/${encodeURIComponent(k)}/${D()}">Change</a></div>`).join(''):'<small>None yet.</small>')
  +`<h3>Copy a link for any routine</h3>`+routines().map(r=>`<div class=row><span style="flex:1">${r.start} ${esc(r.name)}<small>${r.days.split('').map(d=>DN[d]).join(' ')}</small></span><button class=btn data-a=copy data-v="${base()}#/r/${r.id}">Copy</button></div>`).join('')}
 
 
@@ -422,7 +432,7 @@ timer:({s,l})=>{startTimer(+s,l)},
 paid:()=>{const m=td().slice(0,7);S.paid[m]=!S.paid[m]},
 spend:()=>{const a=parseFloat($('#sa').value);if(!a)return false;{const k=$('#sk').value;S.tx.push({d:$('#sdt').value||td(),c:k==='i'?'Income':$('#sc').value,a,n:$('#sn').value,k})}},
 txdel:({i})=>{S.tx.splice(+i,1)},
-todoadd:()=>{const t=$('#ta').value.trim();if(!t)return false;setTimeout(tflush,50);S.todo.push({id:tid(),sy:0,t,due:$('#td').value,time:$('#tt2').value,dur:+$('#tdu').value||30,done:0})},
+todoadd:()=>{const t=$('#ta').value.trim();if(!t)return false;setTimeout(tflush,50);S.todo.push({id:tid(),sy:0,desc:($('#tde')||{}).value||'',t,due:$('#td').value,time:$('#tt2').value,dur:+$('#tdu').value||30,done:0})},
 todotog:({i})=>{const x=S.todo[+i];x.done=x.done?0:1;x.sy=0;setTimeout(tflush,50)},
 tododel:({i})=>{const x=S.todo[+i];if(x.id&&x.sy)S.tdel.push(x.id);S.todo.splice(+i,1);setTimeout(tflush,50)},
 wx:({l,v,w})=>{S.wx[w]=S.wx[w]||{};S.wx[w][l]=Math.max(0,(S.wx[w][l]||0)+ +v)},
@@ -440,11 +450,11 @@ cancel:()=>{if(confirm('Discard this workout?')){S.active=null;T=null;S.timer=nu
 logdel:({i})=>{if(confirm('Delete this workout?'))S.log.splice(+i,1)},
 runback:()=>{R.i=Math.max(0,R.i-1);runStep()},
 runstop:()=>{R=null;T=null;S.timer=null;wake(false);location.hash=S.ctx?'#/r/'+S.ctx.r+'/'+S.ctx.d:'#/plan'},
-bind:({t,v})=>{(S.bind||(S.bind={}))[bkey(t)]=v;save();location.replace('#/'+v);return false},
-nadd:({k})=>{const t=$('#ne').value.trim();if(!t)return false;(S.nl[k]=S.nl[k]||[]).push({d:$('#nd').value||td(),t})},
-ndel:({k,i})=>{if(confirm('Delete this entry?'))S.nl[k].splice(+i,1)},
-bcol:({t,h})=>{(S.bcol=S.bcol||{})[bkey(t)]=+h},
-unbind:({t})=>{delete S.bind[bkey(t)];save()},
+bind:({k,n,v})=>{(S.bind=S.bind||{})[k]=v;(S.bname=S.bname||{})[k]=n},
+unbind:({k,n})=>{delete S.bind[k];delete S.bind[bkey(n)]},
+tcol:({v,h})=>{(S.tcol=S.tcol||{})[v]=+h},
+todotogid:({id})=>{const x=S.todo.find(y=>y.id===id);x.done=x.done?0:1;x.sy=0;setTimeout(tflush,50)},
+tododelid:({id})=>{const i=S.todo.findIndex(y=>y.id===id);if(i<0)return false;const x=S.todo[i];if(x.sy)S.tdel.push(x.id);S.todo.splice(i,1);save();setTimeout(tflush,50);location.hash='#/plan';return false},
 tds:()=>{S.gcal.tds=S.gcal.tds?0:1;if(S.gcal.tds)S.todo.forEach(x=>x.sy=0)},
 copy:({v})=>{(navigator.clipboard?.writeText(v)||Promise.reject()).then(()=>alert('Link copied')).catch(()=>prompt('Copy this link',v));return false},
 cfgreset:({k})=>{if(confirm('Reset this section to defaults?'))S.cfg[k]=DEF.cfg[k]},
@@ -452,7 +462,9 @@ export:()=>{dl('lifeos-backup-'+td()+'.json',JSON.stringify(S),'application/json
 refresh:async()=>{try{(await navigator.serviceWorker.getRegistrations()).forEach(r=>r.unregister());(await caches.keys()).forEach(k=>caches.delete(k))}catch(e){}location.replace(location.pathname+'?u='+Date.now()+location.hash);return false}};
 const dl=(n,t,ty)=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:ty}));a.download=n;a.click()};
 
-const I={
+let tft=0;
+const I={tf:el=>{const x=S.todo.find(y=>y.id===el.dataset.id);if(!x)return;const k=el.dataset.k;x[k]=k==='dur'?+el.value:el.value;x.sy=0;clearTimeout(tft);tft=setTimeout(tflush,1500)},
+
 w:el=>{S.active.ex[+el.dataset.x].s[+el.dataset.s].w=el.value},
 r:el=>{S.active.ex[+el.dataset.x].s[+el.dataset.s].r=el.value},
 steps:el=>{S.steps[td()]=+el.value},
@@ -476,14 +488,14 @@ function toLocal(t){return t.isDate||!t.zone||t.zone===ICAL.Timezone.localTimezo
 function parseICS(txt){const comp=new ICAL.Component(ICAL.parse(txt));comp.getAllSubcomponents('vtimezone').forEach(z=>{try{ICAL.TimezoneService.register(z)}catch(e){}});
  const a=ICAL.Time.fromJSDate(new Date(Date.now()-7*864e5)),b=ICAL.Time.fromJSDate(new Date(Date.now()+70*864e5)),out=[],all=comp.getAllSubcomponents('vevent').map(v=>new ICAL.Event(v)),ms={};
  all.forEach(e=>{if(!e.isRecurrenceException())ms[e.uid]=e});all.forEach(e=>{if(e.isRecurrenceException()&&ms[e.uid])ms[e.uid].relateException(e)});
- const push=(st,en,e)=>{if(/#\/r\/|#lifeos-todo/.test(e.description||''))return;out.push({t:e.summary||'(no title)',s:toLocal(st).getTime(),e:toLocal(en).getTime(),ad:!!st.isDate})};
- Object.values(ms).forEach(e=>{if(e.isRecurring()){const it=e.iterator();let n,k=0;while((n=it.next())&&k++<800){if(n.compare(b)>0)break;if(n.compare(a)<0)continue;const d=e.getOccurrenceDetails(n);push(d.startDate,d.endDate,d.item)}}else if(e.startDate.compare(b)<=0&&e.endDate.compare(a)>=0)push(e.startDate,e.endDate,e)});
+ const push=(st,en,e,u,rc)=>{if(/#\/r\/|#lifeos-todo/.test(e.description||''))return;out.push({t:e.summary||'(no title)',s:toLocal(st).getTime(),e:toLocal(en).getTime(),ad:!!st.isDate,u,rc,d:(e.description||'').slice(0,600)})};
+ Object.values(ms).forEach(e=>{if(e.isRecurring()){const it=e.iterator();let n,k=0;while((n=it.next())&&k++<800){if(n.compare(b)>0)break;if(n.compare(a)<0)continue;const d=e.getOccurrenceDetails(n);push(d.startDate,d.endDate,d.item,e.uid,1)}}else if(e.startDate.compare(b)<=0&&e.endDate.compare(a)>=0)push(e.startDate,e.endDate,e,e.uid,0)});
  return out}
 const tid=()=>Date.now().toString(32)+Math.random().toString(32).slice(2,6);let tbusy=0;
 async function tflush(){const g=S.gcal;if(tbusy||!g.proxy||!g.key||!g.tds)return;tbusy=1;
  try{const u=new URL('todo',g.proxy.endsWith('/')?g.proxy:g.proxy+'/').href,H={'x-key':g.key,'content-type':'application/json'};
   for(const d of (S.tdel||[]).slice()){const r=await fetch(u+'?id='+d,{method:'DELETE',headers:H});if(!r.ok&&r.status!==404)throw Error('HTTP '+r.status);S.tdel=S.tdel.filter(x=>x!==d);save()}
-  for(const x of S.todo){x.id=x.id||tid();if(x.due&&!x.sy){const r=await fetch(u,{method:'POST',headers:H,body:JSON.stringify({id:x.id,title:x.t,date:x.due,time:x.time||'',dur:x.dur||30,done:x.done?1:0,tz:Intl.DateTimeFormat().resolvedOptions().timeZone})});if(!r.ok)throw Error('HTTP '+r.status+' '+await r.text());x.sy=1;save()}}
+  for(const x of S.todo){x.id=x.id||tid();if(x.due&&!x.sy){const r=await fetch(u,{method:'POST',headers:H,body:JSON.stringify({id:x.id,title:x.t,desc:x.desc||'',date:x.due,time:x.time||'',dur:x.dur||30,done:x.done?1:0,tz:Intl.DateTimeFormat().resolvedOptions().timeZone})});if(!r.ok)throw Error('HTTP '+r.status+' '+await r.text());x.sy=1;save()}}
   g.terr=''}catch(e){g.terr=String(e.message||e)}tbusy=0;save();if(location.hash.includes('links'))go()}
 setTimeout(tflush,2500);
 async function gsync(force){const g=S.gcal;if(gbusy||!g.url||!g.proxy||(!force&&Date.now()-g.t<9e5))return;gbusy=true;
@@ -498,7 +510,7 @@ document.addEventListener('touchstart',e=>{sw=e.touches.length===1&&e.target.clo
 document.addEventListener('touchmove',e=>{if(!pz||e.touches.length!==2)return;e.preventDefault();S.z=clampZ(pz.z*pd(e.touches)/pz.d);document.documentElement.style.setProperty('--z',S.z);scrollTo(0,$('.grid').offsetTop+pz.m*S.z-pz.my)},{passive:false});
 document.addEventListener('touchend',e=>{if(sw&&!pz&&e.changedTouches.length===1){const dx=e.changedTouches[0].clientX-sw.x,dy=e.changedTouches[0].clientY-sw.y;sw=null;if(Math.abs(dx)>70&&Math.abs(dx)>1.6*Math.abs(dy)){swipe(dx<0?1:-1);return}}if(pz&&e.touches.length<2){pz=null;save();go()}});
 
-const V={rtn:vRtn,guide:vGuide,x:(t,d)=>vExt(t,d),xe:(t,d)=>vExt(t,d,1),plan:vPlan,today:vPlan,b:vPlan,train:vTrain,fuel:vFuel,money:vMoney,more:vMore,life:vMore,mind:vMind,skill:vSkill,rel:()=>vNotes('Relationships and play','rel','Log time with people and things to remember: date ideas, who to call, gifts, how an evening went.'),meaning:()=>vNotes('Meaning','meaning','Reflections, gratitude, what matters to you, ways you helped someone.',`<button class=btn data-a=timer data-s=900 data-l="Quiet moment">⏱ 15-min quiet</button>`),week:vWeek,todo:vTodo,links:vLinks,set:vSet,r:vRoutine,run:vRun,day:vDay};
+const V={rtn:vRtn,guide:vGuide,x:(k,d)=>vExt(k,d,1),xd:(k,d)=>vExt(k,d),xe:(k,d)=>vExt(k,d),t:vTodoD,plan:vPlan,today:vPlan,b:vPlan,train:vTrain,fuel:vFuel,money:vMoney,more:vMore,life:vMore,mind:vMind,skill:vSkill,rel:()=>vNotes('Relationships and play','rel','Log time with people and things to remember: date ideas, who to call, gifts, how an evening went.'),meaning:()=>vNotes('Meaning','meaning','Reflections, gratitude, what matters to you, ways you helped someone.',`<button class=btn data-a=timer data-s=900 data-l="Quiet moment">⏱ 15-min quiet</button>`),week:vWeek,todo:vTodo,links:vLinks,set:vSet,r:vRoutine,run:vRun,day:vDay};
 const SUB=['rtn','guide','train','fuel','money','mind','skill','rel','meaning','week','todo','links','set'];
 function scrollPlan(){const g=$('.grid');if(!g)return;const n=new Date(),m=sel===D()?n.getHours()*60+n.getMinutes():420;const hh=($('.stick')||{}).offsetHeight||0;scrollTo(0,g.offsetTop-hh+Math.max(0,m-360-60)*Zv())}
 function go(){const[p,...a]=(location.hash.slice(2)||'plan').split('/'),v=$('#v'),st=scrollY;CTA='';document.documentElement.style.setProperty('--z',Zv());
