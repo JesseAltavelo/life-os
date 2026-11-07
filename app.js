@@ -17,8 +17,8 @@ const base=()=>location.origin+location.pathname;
 const td=()=>D();
 
 /* ---------- defaults (everything is editable in Life > Settings) ---------- */
-const VER=2;
-const DEF={v:VER,start:D(),mode:{},wmode:{},short:{},chk:{},water:{},steps:{},port:{},supp:{},hab:{},jr:{},med:{},todo:[],log:[],active:null,tx:[],paid:{},rev:{},wx:{},timer:null,ctx:null,
+const VER=3;
+const DEF={v:VER,start:D(),mode:{},wmode:{},short:{},chk:{},water:{},steps:{},port:{},ing:{},supp:{},hab:{},jr:{},med:{},todo:[],log:[],active:null,tx:[],paid:{},rev:{},wx:{},timer:null,ctx:null,
 cfg:{
 income:0,invest:0,waterT:2500,stepsT:10000,stepsMin:8000,pg:20,
 themes:`1|Money: investing basics, tax, index funds. Check auto-invest.|Finance and business|Push|
@@ -54,10 +54,26 @@ Lateral raises|4|15|60
 DB curls|3|12|60
 Triceps pushdown|3|12|60
 Face pulls|3|15|60`,
-meals:`Breakfast|Protein:2,Carb:2,Fruit:2
-Lunch|Protein:2,Veg:2,Carb:1
-Snack|Protein:1,Fruit:1
-Dinner|Protein:2,Veg:3,Carb:1,Fat:1`,
+diet:`# Breakfast|07:30
+Eggs (2)|12|1|10
+Skyr or Greek yoghurt (150g)|17|6|0
+Oats (70g dry)|9|42|5
+Berries (100g)|1|10|0
+Banana (1)|1|27|0
+# Lunch|12:30
+Chicken breast, cooked (120g)|37|0|4
+Rice, cooked (200g)|5|56|1
+Mixed vegetables (200g)|4|12|1
+Olive oil (1 tbsp)|0|0|14
+Wholegrain bread (2 slices)|7|30|2
+# Snack|15:30
+Apple or other fruit (1)|0|25|0
+Almonds (30g)|6|4|16
+# Dinner|17:30
+Salmon or lean meat (130g)|28|0|18
+Potatoes or rice, cooked (300g)|6|52|0
+Vegetables (250g)|5|15|1
+Olive oil (1 tbsp)|0|0|14`,
 supps:`Creatine 5g
 Vitamin D
 Omega-3
@@ -89,11 +105,12 @@ Other|0`,
 wk:`Lift sessions|5|3|lift
 Days at step target|7|7|steps
 Days at water target|7|5|water
+Days on diet plan|7|5|diet
 Days meditated|7|5|med
 Days journaled|5|3|jr
 Learn blocks|4|3|r:learn-block
 Commute audio days|5|5|r:commute-audio
-Cardio sessions (Zone 2 / VO2)|3|1|x
+Cardio (VO2 + long Zone 2)|2|1|r:vo2-session+r:long-zone-2-quiet-hour
 Date night|1|1|r:date-night
 Social / humour|2|1|h:Social / humour activity
 Nature / quiet time|1|1|h:Nature time
@@ -152,7 +169,7 @@ routines:`# Morning routine|07:00|70|12345||1|40
 # Together time|21:00|60|1234||0|330
 ❤️ Phone-free time together (cook lunch, walk, talk)|60|rel|*
 # Evening routine|22:00|20|12345||0|270
-🍽️ Log portions, water + steps|3|fuel|*
+🍽️ Tick diet items, water + steps|3|fuel|*
 💶 Log today's spending|2|money|*
 ✅ Set tomorrow's top 3 tasks|3|todo|
 🧴 Skin routine (retinoid 3 nights a week)|8||
@@ -206,6 +223,7 @@ routines:`# Morning routine|07:00|70|12345||1|40
 🛏️ Lights out by 22:30|5||*`
 }};
 function load(o){o=o||{};if((o.v||0)<2){if(o.cfg){delete o.cfg.blocks;delete o.cfg.mvd;delete o.cfg.wk}Object.keys(o.mode||{}).forEach(k=>o.mode[k]=o.mode[k]==='mvd'?'min':'')}
+ if((o.v||0)<3&&o.cfg){delete o.cfg.meals;delete o.cfg.wk;if(o.cfg.routines)o.cfg.routines=o.cfg.routines.replace('Log portions, water + steps','Tick diet items, water + steps')}
  const s=Object.assign(structuredClone(DEF),o);s.cfg=Object.assign({},DEF.cfg,o.cfg);s.v=VER;return s}
 let S;try{S=load(JSON.parse(localStorage.lifeos1))}catch(e){S=load()}
 const save=()=>{try{localStorage.lifeos1=JSON.stringify(S)}catch(e){}};
@@ -217,14 +235,16 @@ const flows=()=>{const o={};let c;lines(S.cfg.flows).forEach(l=>{if(l[0]=='#'){c
 const themes=()=>Object.fromEntries(lines(S.cfg.themes).map(l=>{const[d,learn,audio,train,sp]=l.split('|').map(x=>x.trim());return[+d,{learn,audio,train,sp}]}));
 const themeOf=ds=>themes()[dow(ds)]||{};
 const tpls=()=>{const o={};let c;lines(S.cfg.tpl).forEach(l=>{if(l[0]=='#'){c=l.slice(1).trim();o[c]=[]}else if(c){const[n,s,r,rest]=l.split('|').map(x=>x.trim());o[c].push({n,s:+s||3,r:r||'8-12',rest:+rest||90})}});return o};
-const meals=()=>lines(S.cfg.meals).map(l=>{const[n,t]=l.split('|');return{n:n.trim(),t:Object.fromEntries((t||'').split(',').filter(Boolean).map(x=>{const[k,v]=x.split(':');return[k.trim(),+v||0]}))}});
+const diet=()=>{const o=[];let c;lines(S.cfg.diet).forEach(l=>{if(l[0]=='#'){const[n,t]=l.slice(1).split('|').map(x=>x.trim());c={n,t:t||'',items:[]};o.push(c)}else if(c){const[n,p,cb,f]=l.split('|').map(x=>x.trim());c.items.push({n,p:+p||0,c:+cb||0,f:+f||0})}});return o};
+const tot=a=>a.reduce((x,i)=>({p:x.p+i.p,c:x.c+i.c,f:x.f+i.f,k:x.k+i.p*4+i.c*4+i.f*9}),{p:0,c:0,f:0,k:0});
+function dietPct(ds){const all=diet().flatMap(m=>m.items.map(i=>m.n+'|'+i.n)),g=S.ing[ds]||{};return all.length?all.filter(k=>g[k]).length/all.length:0}
 const cats=()=>lines(S.cfg.cats).map(l=>{const[n,v]=l.split('|');return{n:n.trim(),l:+v||0}});
 const mode=ds=>S.mode[ds]||'';
 
 /* occurrences, steps, progress */
 const isShort=(r,ds)=>(mode(ds)==='min'&&r.ess)||!!S.short[ds]?.[r.id];
-function occ(ds){const mw=S.wmode[weekStart(ds)]==='mvw',d=dow(ds),min=mode(ds)==='min';
- return routines().filter(r=>r.days.includes(d)&&(!mw||(r.mw||r.days).includes(d))&&(!min||r.ess))}
+function occ(ds){const d=dow(ds),min=mode(ds)==='min';
+ return routines().filter(r=>r.days.includes(d)&&(!min||r.ess))}
 function stepsOf(r,ds){const sh=isShort(r,ds),th=themeOf(ds);
  return r.steps.filter(s=>!sh||s.short).map(s=>({...s,full:s.min,min:sh&&+s.short>0?+s.short:s.min,title:s.raw.replace(/\{(\w+)\}/g,(m,k)=>th[k]||'')}))}
 const key=(r,s)=>r.id+'|'+s.raw;
@@ -237,13 +257,15 @@ const rdone=(ds,id)=>{const r=routines().find(x=>x.id===id);if(!r||!r.days.inclu
 const prevOf=(n,tpl)=>{for(let i=S.log.length-1;i>=0;i--){const l=S.log[i];if(l.tpl!==tpl)continue;const e=l.ex.find(x=>x.n===n);if(e&&e.s.length)return e.s}return null};
 const topOf=r=>+String(r).split('-').pop()||0;
 
-function cnt(src,ws,lab){const ds=wdays(ws),mv=S.wmode[ws]==='mvw';
+function cnt(src,ws,lab,mv){const ds=wdays(ws);
+ if(src.startsWith('r:')&&src.includes('+'))return src.split('+').reduce((a,x)=>a+cnt(x,ws,lab,mv),0);
  if(src==='lift')return S.log.filter(l=>l.date>=ws&&l.date<=ds[6]).length;
  if(src==='steps')return ds.filter(d=>(S.steps[d]||0)>=(mv?S.cfg.stepsMin:S.cfg.stepsT)).length;
  if(src==='water')return ds.filter(d=>(S.water[d]||0)>=S.cfg.waterT).length;
  if(src==='med')return ds.filter(d=>S.med[d]>0).length;
  if(src==='jr')return ds.filter(d=>S.jr[d]&&(S.jr[d].g||S.jr[d].w||S.jr[d].t)).length;
  if(src==='rev')return S.rev[ws]?.done?1:0;
+ if(src==='diet')return ds.filter(d=>dietPct(d)>=.9).length;
  if(src.startsWith('r:'))return ds.filter(d=>rdone(d,src.slice(2))).length;
  if(src.startsWith('h:'))return ds.filter(d=>S.hab[d]?.[src.slice(2)]).length;
  return(S.wx[ws]||{})[lab]||0}
@@ -255,8 +277,8 @@ function warns(){const w=[],t=D(),y=addD(t,-1),y2=addD(t,-2),ok=d=>d<S.start||pc
  else if(!ok(y))w.push(['a','Yesterday slipped. Never miss twice. Protect today.']);
  let n=0;for(let i=1;i<=7;i++){const d=addD(t,-i);if(d>=S.start&&mode(d)==='min')n++;else break}
  if(n>=3)w.push(['a',`${n} days in a row on Minimum Day. Fine for a rough patch. Try one full routine today to climb back.`]);
- const ws=weekStart(t),dw=dow(t),L=cnt('lift',ws),mv=S.wmode[ws]==='mvw';
- if(ws>=S.start||dw>2){if(dw>=3&&L===0)w.push(['r','No workout logged this week yet.']);else if(dw>=5&&L<(mv?2:3))w.push(['a',`Only ${L} workout${L==1?'':'s'} logged this week.`])}
+ const ws=weekStart(t),dw=dow(t),L=cnt('lift',ws);
+ if(ws>=S.start||dw>2){if(dw>=3&&L===0)w.push(['r','No workout logged this week yet.']);else if(dw>=5&&L<3)w.push(['a',`Only ${L} workout${L==1?'':'s'} logged this week.`])}
  if(S.steps[y]!==undefined&&S.steps[y]<S.cfg.stepsMin)w.push(['a',`Yesterday's steps: ${S.steps[y]} (minimum ${S.cfg.stepsMin}).`]);
  const pw=addD(ws,-7);if(dw===1&&pw>=S.start&&!S.rev[pw]?.done)w.push(['a','Sunday review not done. Do it before the week gets away.']);
  const ms=monthStats();cats().forEach(c=>{if(c.l&&(ms.by[c.n]||0)>c.l)w.push(['a',`Over budget: ${c.n} (${eur(ms.by[c.n])} / ${eur(c.l)}).`])});
@@ -273,7 +295,7 @@ function tick(){const b=$('#tb'),el=$('#el');if(el&&S.active)el.textContent=fmt(
  const left=Math.ceil((T.end-Date.now())/1e3);
  if(left<=0){const t=T;T=null;S.timer=null;save();beep(2);t.cb?.();if(!T){wake(false);b.style.display='none'}return}
  b.style.display='flex';$('#tl').textContent=T.label;$('#tt').textContent=fmt(left);const big=$('#big');if(big)big.textContent=fmt(left)}
-const PAT={Box:[['Inhale',4],['Hold',4],['Exhale',4],['Hold',4]],'Physiological sigh':[['Inhale',2],['Top-up',1],['Exhale',6]],'4-7-8':[['Inhale',4],['Hold',7],['Exhale',8]]};
+const PAT={Box:[['Inhale',4],['Hold',4],['Exhale',4],['Hold',4]]};
 function breath(){if(!B)return;const el=(Date.now()-B.start)/1e3;
  if(el>=B.dur*60)return bend(true);
  const ph=PAT[B.pat],cyc=ph.reduce((a,p)=>a+p[1],0);let x=el%cyc,k=0;while(x>=ph[k][1]){x-=ph[k][1];k++}
@@ -314,23 +336,29 @@ function grid(days){const t=D(),wk=days.length>1,nowM=new Date().getHours()*60+n
  return`<div class=col>`+ev.map(x=>{const r=x.r,st=stepsOf(r,ds),dn=st.filter(s=>isDone(ds,r,s)).length,all=st.length&&dn===st.length;
  return`<a class="ev ${all?'dn':''}" href="#/r/${r.id}/${ds}" style="top:${x.s-360}px;height:${x.e-x.s-1}px;left:calc(${x.c/x.n*100}% + 1px);width:calc(${100/x.n}% - 2px);background:hsl(${r.hue} 45% 24%);border-color:hsl(${r.hue} 70% 60%)"><b>${all?'✓ ':''}${esc(r.name)}</b>${wk?'':`<br>${r.start} · ${dn}/${st.length}`}</a>`}).join('')+(ds===t?`<i class=now style="top:${nowM-360}px"></i>`:'')+`</div>`}).join('')+`</div></div>`}
 
-function vPlan(){const t=D(),ws=weekStart(sel),m=mode(sel),mw=S.wmode[ws]==='mvw';
+function minOk(ds){const d=dow(ds);return routines().filter(r=>r.ess&&r.days.includes(d)).every(r=>r.steps.filter(s=>s.short).every(x=>S.chk[ds]?.[key(r,x)]))}
+function wsum(ws){const t=D(),ds=wdays(ws).filter(d=>d<=t&&d>=S.start),rows=lines(S.cfg.wk).map(l=>{const[n,c,m,src]=l.split('|').map(x=>x.trim());return{n,c:+c||0,m:+m||0,src:src||'x',v:cnt(src||'x',ws,n),vm:cnt(src||'x',ws,n,true)}});
+ return{ds,ok:ds.filter(minOk).length,rows,met:rows.filter(r=>r.c&&r.v>=r.c).length,n:rows.filter(r=>r.c).length}}
+let CTA='';
+function vPlan(){const t=D(),ws=weekStart(sel),m=mode(sel);
  let h=`<div class=top><h1>${new Date(sel+'T12:00').toLocaleDateString('en-GB',{month:'long',year:'numeric'})}</h1><div><button class="chip ${view==='day'?'on':''}" data-a=view data-v=day>Day</button> <button class="chip ${view==='week'?'on':''}" data-a=view data-v=week>Week</button> <button class=chip data-a=gotoday>Today</button></div></div>
  <div class=strip><button data-a=wk data-v=-7>‹</button>`+wdays(ws).map(d=>`<button class="dd ${d===sel?'on':''} ${d===t?'td':''}" data-a=sel data-v=${d}><small>${DN[dow(d)]}</small><b>${+d.slice(8)}</b></button>`).join('')+`<button data-a=wk data-v=7>›</button></div>`;
  if(sel===t){h+=warns().map(([k,x])=>`<div class="w ${k}">${esc(x)}</div>`).join('');
   if(!m)h+=`<div class=card><b>How do you feel today?</b><small>This picks your plan for today. You can change it any time.</small><button class="btn pri" data-a=mode data-v=full>💪 Full day</button><button class=btn data-a=mode data-v=min>🪫 Minimum day</button></div>`}
- h+=`<div class=card><div class=ctl><span>Day</span>${seg([['full','Full'],['min','Minimum']],m||'full','mode')}</div><small>${m==='min'?'Minimum day: only the essential routines, in their short versions. Doing just this counts as a good day.':'Full day: every routine for this day, all steps.'}</small>
- <div class=ctl style="margin-top:8px"><span>Week</span>${seg([['','Full'],['mvw','Minimum']],mw?'mvw':'','wmodeset')}</div><small>${mw?'Minimum week: a lighter calendar (e.g. training only Mon/Wed/Fri, fewer learn blocks) and lower weekly targets (e.g. 3 workouts, 8k steps).':'Full week: every routine on its normal days and the full weekly targets (e.g. 5 workouts, 10k steps).'}</small></div>`;
+ h+=`<div class=card><div class=ctl><span>Day</span>${seg([['full','Full'],['min','Minimum']],m||'full','mode')}</div><small>${m==='min'?'Minimum day: only the essential routines, in short versions. Doing just this counts as a good day.':'Full day: every routine for this day, all steps.'}</small></div>`;
+ if(ws<=t){const sm=wsum(ws),past=addD(ws,6)<t,beh=sm.ds.filter(d=>d<t).some(d=>!minOk(d)),bad=past?sm.ok<7:beh;
+  h+=`<a class=chip href="#/week/${ws}" style="${bad?'background:#46380f':''}">Minimum week ${sm.ok}/7 · ${past?(sm.ok===7?'achieved ✓':'missed'):beh?'behind':'on track'} ›</a>`}
  return h+grid(view==='week'?wdays(ws):[sel])}
 
+const LBL={fuel:'Diet',train:'Workout',money:'Budget',mind:'Mind',skill:'Skill',rel:'Relationships',meaning:'Meaning',week:'Weeks',todo:'To-dos'};
 function vRoutine(id,ds){ds=ds||D();const r=routines().find(x=>x.id===id);if(!r)return'<p>Routine not found.</p><a href="#/plan">Back</a>';
  const forced=mode(ds)==='min'&&r.ess,sh=isShort(r,ds),st=stepsOf(r,ds),done=st.filter(s=>isDone(ds,r,s)).length,left=st.filter(s=>!isDone(ds,r,s)).reduce((a,s)=>a+s.min,0),
  end=new Date(Date.now()+left*6e4).toTimeString().slice(0,5),cur=st.findIndex(s=>!isDone(ds,r,s)),run=RUN&&RUN.rid===id;
  const e=+r.start.slice(0,2)*60+ +r.start.slice(3)+r.dur,endT=String(Math.min(e,1439)/60|0).padStart(2,'0')+':'+String(Math.min(e,1439)%60).padStart(2,'0');
- return`<a href="#/plan" onclick="sel='${ds}'">‹ Calendar</a><h1>${esc(r.name)}</h1><small>${r.start} – ${endT} (${r.dur}m) · ${new Date(ds+'T12:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})} · ${done}/${st.length} done</small>
+ const H=`<a href="#/plan" onclick="sel='${ds}'">‹ Calendar</a><h1>${esc(r.name)}</h1><small>${r.start} – ${endT} (${r.dur}m) · ${new Date(ds+'T12:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})} · ${done}/${st.length} done</small>
  ${forced?`<span class="dash on">Short version (Minimum day)</span>`:`<button class="dash ${sh?'on':''}" data-a=short data-r="${id}" data-d="${ds}">${sh?'✓ Short version':'+ Short version'}</button>`}`
- +st.map((s,i)=>{const d=isDone(ds,r,s);return`<div class="step ${d?'dn':''} ${i===cur?'cur':''}"><span class=n>${i+1}</span><span class=em>${emo(s.title)}</span><a data-a=stepgo data-r="${id}" data-d="${ds}" data-i=${i}>${esc(stripE(s.title))}${s.link?'<small>'+(s.link.startsWith('flow:')?'Guided flow':s.link==='spotify'?'Opens Spotify':'Opens '+esc(s.link))+' ›</small>':''}</a><span class=mn>${s.min}m</span><button class="ck ${d?'on':''}" data-a=stepchk data-r="${id}" data-d="${ds}" data-i=${i}></button></div>`}).join('')
- +(done===st.length&&st.length?`<button class=cta data-a=rback data-d="${ds}">✓ Routine complete · Back to calendar</button>`:run?`<button class=cta data-a=rstop>■ Stop timer</button>`:`<button class=cta data-a=rstart data-r="${id}" data-d="${ds}">▶ Start Timer<br><small style="color:#06251a">Ends at ${end}</small></button>`)}
+ +st.map((s,i)=>{const d=isDone(ds,r,s);return`<div class="step ${d?'dn':''} ${i===cur?'cur':''}"><span class=n>${i+1}</span><span class=em>${emo(s.title)}</span><a data-a=stepgo data-r="${id}" data-d="${ds}" data-i=${i}>${esc(stripE(s.title))}${s.link?'<small>'+(s.link.startsWith('flow:')?'Guided flow':s.link==='spotify'?'Opens Spotify':'Opens '+esc(LBL[s.link]||s.link))+' ›</small>':''}</a><span class=mn>${s.min}m</span><button class="ck ${d?'on':''}" data-a=stepchk data-r="${id}" data-d="${ds}" data-i=${i}></button></div>`}).join('')
+;CTA=done===st.length&&st.length?`<button class=cta data-a=rback data-d="${ds}">✓ Routine complete · Back to calendar</button>`:run?`<button class=cta data-a=rstop>■ Stop timer</button>`:`<button class=cta data-a=rstart data-r="${id}" data-d="${ds}">▶ Start Timer<br><small style="color:#06251a">Ends at ${end}</small></button>`;return H}
 
 function vRun(){if(!R)return'<p>No guided flow running.</p><a href="#/plan">Back</a>';const s=R.steps;
  return`<small>${esc(R.name)} · step ${R.i+1} / ${s.length}</small><h1>${esc(s[R.i][0])}</h1><div class=big id=big>${fmt(s[R.i][1])}</div>
@@ -349,14 +377,12 @@ function vActive(){const a=S.active;
  return`<div class=set><small>${i+1}</small><small>${q?q.w+'×'+q.r:'-'}</small><input inputmode=decimal data-c=w data-x=${x} data-s=${i} value="${esc(s.w)}" placeholder="${q?q.w:'kg'}"><input inputmode=numeric data-c=r data-x=${x} data-s=${i} value="${esc(s.r)}" placeholder="${q?q.r:e.r}"><button class="ck ${s.d?'on':''}" data-a=setdone data-x=${x} data-s=${i}></button></div>`}).join('')
  +`<button class=btn data-a=addset data-x=${x}>+ Set</button><button class=btn data-a=rmex data-x=${x}>Remove</button></div>`}).join('')+`<button class=btn data-a=addex>+ Exercise</button>`}
 
-function vFuel(){const t=D(),ml=meals(),P=S.port[t]||{},tot={},tg={};
- ml.forEach(m=>Object.entries(m.t).forEach(([k,v])=>{tg[k]=(tg[k]||0)+v;tot[k]=(tot[k]||0)+Math.min(P[m.n+'.'+k]||0,9)}));
- let h=`<h1>Fuel</h1><div class=card><b>Water</b> ${S.water[t]||0} / ${S.cfg.waterT} ml${bar(S.water[t]||0,S.cfg.waterT)}<button class=btn data-a=water data-v=250>+250</button><button class=btn data-a=water data-v=500>+500</button><button class=btn data-a=water data-v=-250>−250</button>
+function vFuel(){const t=D(),dd=diet(),g=S.ing[t]||{},all=dd.flatMap(m=>m.items.map(i=>({...i,k:m.n+'|'+i.n}))),plan=tot(all),got=tot(all.filter(i=>g[i.k])),pc=all.filter(i=>g[i.k]).length;
+ let h=`<h1>Diet</h1><div class=card><b>${pc}/${all.length}</b> items eaten today<div class=bar><i style="width:${all.length?pc/all.length*100:0}%"></i></div><small>This plan hits about ${Math.round(plan.p)}g protein, ${Math.round(plan.c)}g carbs, ${Math.round(plan.f)}g fat (≈ ${Math.round(plan.k)} kcal). Tick each item once you've had enough of it. Everything ticked = targets hit.</small><small>So far ≈ ${Math.round(got.p)}g protein · ${Math.round(got.k)} kcal. Edit the plan in More › Settings.</small></div>`;
+ dd.forEach(m=>{const on=m.items.every(i=>g[m.n+'|'+i.n]);h+=`<div class=card><div class=top><b>${esc(m.n)} <small style="display:inline">${esc(m.t)}</small></b><button class=btn data-a=ingall data-m="${esc(m.n)}">${on?'Untick all':'Tick all'}</button></div>`+m.items.map(i=>`<div class=row><button class="ck ${g[m.n+'|'+i.n]?'on':''}" data-a=ing data-k="${esc(m.n+'|'+i.n)}"></button><span style="flex:1">${esc(i.n)}</span><small style="width:auto">${i.p}P</small></div>`).join('')+`</div>`});
+ h+=`<div class=card><b>Water</b> ${S.water[t]||0} / ${S.cfg.waterT} ml${bar(S.water[t]||0,S.cfg.waterT)}<button class=btn data-a=water data-v=250>+250</button><button class=btn data-a=water data-v=500>+500</button><button class=btn data-a=water data-v=-250>−250</button>
  <input type=number inputmode=numeric data-c=steps value="${S.steps[t]||''}" placeholder="Steps today (target ${S.cfg.stepsT})"></div>
- <div class=card><b>Daily portions</b><small>Protein ≈ ${S.cfg.pg}g per portion · ${tot.Protein||0} portions ≈ ${(tot.Protein||0)*S.cfg.pg}g (goal ≈ 128g)</small>`
- +Object.keys(tg).map(k=>`<div>${k} ${tot[k]||0}/${tg[k]}${bar(tot[k]||0,tg[k])}</div>`).join('')+`</div>`;
- ml.forEach(m=>{h+=`<div class=card><b>${esc(m.n)}</b><small>Tap to add a portion</small><div class=chips>`+Object.entries(m.t).map(([k,v])=>{const n=P[m.n+'.'+k]||0;return`<button class="${n>v?'over':n>=v?'on':''}" data-a=port data-k="${esc(m.n+'.'+k)}" data-t=${v}>${k} ${n}/${v}</button>`}).join('')+`</div></div>`});
- h+=`<h3>Supplements</h3>`+lines(S.cfg.supps).map(n=>`<div class=row><button class="ck ${S.supp[t]?.[n]?'on':''}" data-a=supp data-n="${esc(n)}"></button><span>${esc(n)}</span></div>`).join('')+`<h3>Body</h3>`+habs('Body');return h}
+ <h3>Supplements</h3>`+lines(S.cfg.supps).map(n=>`<div class=row><button class="ck ${S.supp[t]?.[n]?'on':''}" data-a=supp data-n="${esc(n)}"></button><span>${esc(n)}</span></div>`).join('')+`<h3>Body</h3>`+habs('Body');return h}
 
 function vMoney(){const s=monthStats(),inc=+S.cfg.income||0,inv=+S.cfg.invest||0,cs=cats();
  return`<h1>Money</h1><small>${s.mo} · EUR</small><div class=card>Income ${eur(inc)}<br>Auto-invest ${eur(inv)} <button class="ck ${S.paid[s.mo]?'on':''}" data-a=paid style="vertical-align:middle"></button><br>Spent ${eur(s.sp)}<br><b>Left ${eur(inc-inv-s.sp)}</b><small>Set income, invest and category limits in Life › Settings.</small></div>
@@ -366,7 +392,7 @@ function vMoney(){const s=monthStats(),inc=+S.cfg.income||0,inv=+S.cfg.invest||0
 
 function vMind(){const t=D(),ws=weekStart(t);let h=`<h1>Mind training</h1><small>Meditated today ${S.med[t]||0} min · this week ${wdays(ws).reduce((a,d)=>a+(S.med[d]||0),0)} min</small>`;
  if(B)h+=`<div class=big id=bl></div><div id=bc></div><div class=big id=br style="font-size:28px"></div><button class=btn data-a=bstop>Stop</button>`;
- else h+=seg(Object.keys(PAT).map(k=>[k,k]),bp,'bp')+seg([[3,'3 min'],[5,'5 min'],[10,'10 min']],bd,'bd')+`<button class="btn pri" data-a=bstart>▶ Start breathing</button>`;
+ else h+=`<small>Box breathing: 4 in, 4 hold, 4 out, 4 hold</small>`+seg([[3,'3 min'],[5,'5 min'],[10,'10 min']],bd,'bd')+`<button class="btn pri" data-a=bstart>▶ Start box breathing</button>`;
  const j=S.jr[t]||{};
  h+=`<h3>3-line journal</h3><input data-c=jr data-k=g value="${esc(j.g)}" placeholder="Gratitude"><input data-c=jr data-k=w value="${esc(j.w)}" placeholder="One win"><input data-c=jr data-k=t value="${esc(j.t)}" placeholder="Tomorrow's #1">
  <h3>Search journal</h3><input data-c=js placeholder="Search..."><div id=jl>${jlist('')}</div><h3>Habits</h3>`+habs('Mind');return h}
@@ -377,15 +403,15 @@ function vSkill(d){d=+d||dow(D());const th=themes()[d]||{};
  <h3>Habits</h3>${habs('Skill')}<h3>Week themes</h3>`+Object.entries(themes()).map(([k,v])=>`<div class=row><b style="width:40px">${DN[k]}</b><span style="flex:1">${esc(v.learn)}<small>🎧 ${esc(v.audio)}</small></span></div>`).join('')}
 const vHab=(title,sec,extra='')=>`<h1>${title}</h1>${extra}${habs(sec)}`;
 
-function vWeek(){const t=D(),ws=weekStart(t),mv=S.wmode[ws]==='mvw',r=S.rev[ws]||{};
- let h=`<h1>Week review</h1><small>Targets below follow the week plan you picked on the calendar.</small>`+seg([['','Full week'],['mvw','Minimum week']],S.wmode[ws]||'','wmodeset')+`<h3>Days</h3><div class=chips>`+wdays(ws).map(d=>{const p=Math.round(pct(d)*100),pt=d<=t;return`<button class="${pt&&p>=50?'on':''}" style="${pt&&p<50&&d<t?'background:#4a1d1d':''}">${DN[dow(d)]} ${pt?p+'%':'-'}</button>`}).join('')+`</div><h3>Targets</h3>`;
- lines(S.cfg.wk).forEach(l=>{const[n,c,m,src]=l.split('|').map(x=>x.trim()),tg=+(mv?m:c)||0,v=cnt(src||'x',ws,n);
- h+=`<div>${esc(n)} <small style="display:inline">${v}/${tg}</small>${src==='x'?` <button class=btn data-a=wx data-l="${esc(n)}" data-v=1>+</button><button class=btn data-a=wx data-l="${esc(n)}" data-v=-1>−</button>`:''}<div class=bar><i style="width:${tg?Math.min(100,v/tg*100):0}%"></i></div></div>`});
- return h+`<h3>Notes for next week</h3><textarea data-c=rev placeholder="Money, goals, calendar, what to fix">${esc(r.n)}</textarea><div class=row><button class="ck ${r.done?'on':''}" data-a=revdone></button><span>Review done</span></div>`}
-
-function vWeekend(){const sat=addD(weekStart(D()),5),sun=addD(sat,1);let h='<h1>Weekend</h1><small>These are the Saturday and Sunday routines. Tap one to open it.</small>';
- [[6,sat,'Saturday: move, enjoy, build'],[7,sun,'Sunday: reset and deepen']].forEach(([d,ds,n])=>{h+=`<h3>${n}</h3>`+routines().filter(r=>r.days.includes(d)).map(r=>`<a class=lc href="#/r/${r.id}/${ds}"><b>${r.start} ${esc(r.name)}</b><small>${r.steps.length} steps</small></a>`).join('')});
- return h+`<h3>Weekend habits</h3>${habs('Weekend')}`}
+function vWeek(w){const t=D(),cw=weekStart(t),ws=w||cw,sm=wsum(ws),r=S.rev[ws]||{},past=addD(ws,6)<t,fd=d=>new Date(d+'T12:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+ let h=`<div class=top><a class=btn href="#/week/${addD(ws,-7)}">‹</a><h2 style="margin:0">${fd(ws)} – ${fd(addD(ws,6))}</h2><a class=btn href="#/week/${addD(ws,7)}">›</a></div>
+ <div class=card><b>Minimum week: ${sm.ok}/7 days</b> ${past?(sm.ok===7?'✓ achieved':'✗ missed'):'(in progress)'}<small>Achieved when the Minimum Day was done every day (essential routines, short versions).</small></div>
+ <div class=card><b>Full week: ${sm.met}/${sm.n} targets met</b></div><div class=chips>`+wdays(ws).map(d=>{const f=d<=t&&d>=S.start,p=Math.round(pct(d)*100),ok=f&&minOk(d);return`<button class="${ok?'on':''}" style="${f&&!ok&&d<t?'background:#4a1d1d':''}">${DN[dow(d)]} ${f?(ok?'✓ ':'')+p+'%':'-'}</button>`}).join('')+`</div><small>✓ = minimum day done · % = steps done on that day's plan</small><h3>Targets</h3>`;
+ sm.rows.forEach(x=>{h+=`<div>${esc(x.n)} <small style="display:inline">${x.v}/${x.c} · minimum ${x.m} ${x.vm>=x.m?'✓':''}</small>${x.src==='x'?` <button class=btn data-a=wx data-w="${ws}" data-l="${esc(x.n)}" data-v=1>+</button><button class=btn data-a=wx data-w="${ws}" data-l="${esc(x.n)}" data-v=-1>−</button>`:''}<div class=bar><i style="width:${x.c?Math.min(100,x.v/x.c*100):0}%"></i></div></div>`});
+ h+=`<h3>Notes</h3><textarea data-c=rev data-w="${ws}" placeholder="Money, goals, what to fix next week">${esc(r.n)}</textarea><div class=row><button class="ck ${r.done?'on':''}" data-a=revdone data-w="${ws}"></button><span>Review done</span></div>`;
+ if(ws===cw)h+=`<h3>Weekend habits</h3>`+habs('Weekend');
+ h+=`<h3>All weeks</h3>`;for(let x=cw,i=0;x>=weekStart(S.start)&&i<26;x=addD(x,-7),i++){const q=wsum(x),pw=addD(x,6)<t;h+=`<a class=lc href="#/week/${x}" style="padding:10px 14px"><b style="font-size:15px">${fd(x)} – ${fd(addD(x,6))}</b><small>Minimum ${q.ok}/7${pw?(q.ok===7?' ✓':' ✗'):''} · Full ${q.met}/${q.n}</small></a>`}
+ return h}
 
 function vTodo(){const t=D(),a=S.todo.map((x,i)=>({...x,i})).sort((p,q)=>(p.done-q.done)||((p.due||'9')<(q.due||'9')?-1:1));
  return`<h1>To-dos</h1><div class=card><input id=ta placeholder="New task"><input id=td type=date><button class="btn pri" data-a=todoadd>Add</button></div>`+a.map(x=>`<div class=row><button class="ck ${x.done?'on':''}" data-a=todotog data-i=${x.i}></button><span style="flex:1;${x.done?'opacity:.4;text-decoration:line-through':''}">${esc(x.t)}<small style="${x.due&&x.due<t&&!x.done?'color:var(--r)':''}">${x.due||''}</small></span><button class=btn data-a=tododel data-i=${x.i}>✕</button></div>`).join('')}
@@ -395,16 +421,14 @@ function vLinks(){return`<h1>Google Calendar</h1><small>Your plan lives in this 
  <h3>Copy a link for any routine</h3>`+routines().map(r=>`<div class=row><span style="flex:1">${r.start} ${esc(r.name)}<small>${r.days.split('').map(d=>DN[d]).join(' ')}</small></span><button class=btn data-a=copy data-v="${base()}#/r/${r.id}">Copy</button></div>`).join('')
  +`<h3>Other links</h3>`+[['Calendar','plan'],['Train','train'],['Fuel','fuel'],['Money','money'],['Mind','mind'],['Skill','skill'],['Week review','week']].map(([n,r])=>`<div class=row><span style="flex:1">${n}</span><button class=btn data-a=copy data-v="${base()}#/${r}">Copy</button></div>`).join('')}
 
-const CF=[['routines','Routines (calendar events)','# name|start|minutes|days 1-7|days in minimum week (blank = same)|essential 1/0|colour 0-360, then steps: title|minutes|link|short version (* = keep, number = minutes, blank = skipped). Links: fuel money mind skill rel meaning train week todo spotify flow:Name. Titles can use {learn} {audio} {train}.'],['flows','Guided flows','# Name, then step|seconds'],['themes','Day themes','day 1-7|learn|audio|train template name|spotify link'],['tpl','Workout templates','# Name, then exercise|sets|reps|rest sec'],['meals','Meals and portions','Meal|Type:n,Type:n'],['supps','Supplements (one per line)',''],['habits','Habits','Section|Name|target per week. Sections: Body, Mind, Skill, Relationships, Meaning, Weekend'],['cats','Budget categories','Name|monthly limit €'],['wk','Weekly targets','label|full|minimum|source: lift steps water med jr rev r:routine-id h:HabitName x(manual)']];
+const CF=[['routines','Routines (calendar events)','# name|start|minutes|days 1-7|unused, leave blank|essential 1/0|colour 0-360, then steps: title|minutes|link|short version (* = keep, number = minutes, blank = skipped). Links: fuel money mind skill rel meaning train week todo spotify flow:Name. Titles can use {learn} {audio} {train}.'],['flows','Guided flows','# Name, then step|seconds'],['themes','Day themes','day 1-7|learn|audio|train template name|spotify link'],['tpl','Workout templates','# Name, then exercise|sets|reps|rest sec'],['diet','Diet plan','# Meal|time, then ingredient|protein g|carbs g|fat g (kcal is calculated)'],['supps','Supplements (one per line)',''],['habits','Habits','Section|Name|target per week. Sections: Body, Mind, Skill, Relationships, Meaning, Weekend'],['cats','Budget categories','Name|monthly limit €'],['wk','Weekly targets','label|full target|minimum target|source: lift steps water diet med jr rev r:routine-id (join several with +) h:HabitName x(manual +/- counter)']];
 const NF=[['income','Monthly income €'],['invest','Auto-invest €/month'],['waterT','Water target ml'],['stepsT','Steps target'],['stepsMin','Steps minimum'],['pg','Protein g per portion']];
 function vSet(){return`<h1>Settings</h1><small>Everything is editable. Use | to separate fields and never use | inside text.</small><h3>Numbers</h3>`+NF.map(([k,l])=>`<small>${l}</small><input type=number inputmode=decimal data-c=num data-k=${k} value="${S.cfg[k]}">`).join('')
  +CF.map(([k,l,h])=>`<h3>${l}</h3><small>${esc(h)}</small><textarea data-c=cfg data-k=${k} rows=8>${esc(S.cfg[k])}</textarea><button class=btn data-a=cfgreset data-k=${k}>Reset to default</button>`).join('')
  +`<h3>Data</h3><button class=btn data-a=export>Export backup (JSON)</button><label class=btn>Import backup<input id=imp type=file accept=".json" hidden></label>`}
 
-function vLife(){const L=(r,t,d)=>`<a class=lc href="#/${r}"><b>${t}</b><small>${d}</small></a>`;
- return`<h1>Life</h1><h3>Grow</h3>`+L('mind','🧘 Mind training','Breathing exercises and your 3-line journal')+L('skill','📚 Skill and money','Today\'s learn theme, podcast link, build blocks')+L('rel','❤️ Relationships and play','Time together, social and humour habits')+L('meaning','🌿 Meaning','Quiet moment, gratitude, nature, service')
- +`<h3>Plan</h3>`+L('week','📊 Week review','Weekly targets, how each day went, notes')+L('weekend','🏖️ Weekend','Saturday and Sunday routines')+L('todo','✅ To-dos','Tasks and due dates')
- +`<h3>Tools</h3>`+L('links','🔗 Google Calendar links','Import your routines into Google Calendar with links back here')+L('set','⚙️ Settings','Edit routines, workouts, meals, budget, targets, backup')}
+function vMore(){const L=(r,t)=>`<a class=lr href="#/${r}"><span>${t}</span><span>›</span></a>`;
+ return`<h1>More</h1><h3>Track</h3>`+L('train','🏋️ Workouts')+L('fuel','🍽️ Diet, water, steps')+L('money','💶 Budget')+`<h3>Grow</h3>`+L('mind','🧘 Mind: box breathing, journal')+L('skill','📚 Skill and money')+L('rel','❤️ Relationships and play')+L('meaning','🌿 Meaning')+`<h3>Review and plan</h3>`+L('week','📊 Weeks')+L('todo','✅ To-dos')+`<h3>App</h3>`+L('links','📅 Google Calendar sync')+L('set','⚙️ Settings')}
 
 function vDay(d,w){const i=DN.map(x=>x.toLowerCase()).indexOf(String(d).toLowerCase());return w==='learn'?vSkill(i>0?i:d):w==='train'?vTrain():vPlan()}
 
@@ -412,7 +436,6 @@ function vDay(d,w){const i=DN.map(x=>x.toLowerCase()).indexOf(String(d).toLowerC
 const A={
 view:({v})=>{view=v},gotoday:()=>{sel=D()},wk:({v})=>{sel=addD(sel,+v)},sel:({v})=>{sel=v},
 mode:({v})=>{S.mode[sel]=v==='min'?'min':'full'},
-wmodeset:({v})=>{S.wmode[weekStart(sel)]=v},
 short:({r,d})=>{const s=S.short[d]=S.short[d]||{};s[r]=!s[r]},
 stepchk:({r,d,i})=>{const rr=routines().find(x=>x.id===r),s=stepsOf(rr,d)[+i];setDone(d,rr,s,!isDone(d,rr,s))},
 stepgo:({r,d,i})=>{stepGo(r,d,+i);return false},
@@ -424,7 +447,8 @@ ctxx:()=>{S.ctx=null},
 water:({v})=>{S.water[td()]=Math.max(0,(S.water[td()]||0)+ +v)},
 hab:({n})=>{const h=S.hab[td()]=S.hab[td()]||{};h[n]=!h[n]},
 supp:({n})=>{const h=S.supp[td()]=S.supp[td()]||{};h[n]=!h[n]},
-port:({k,t})=>{const p=S.port[td()]=S.port[td()]||{};p[k]=(p[k]||0)>= +t+1?0:(p[k]||0)+1},
+ing:({k})=>{const g=S.ing[td()]=S.ing[td()]||{};g[k]=!g[k]},
+ingall:({m})=>{const dm=diet().find(x=>x.n===m),g=S.ing[td()]=S.ing[td()]||{},on=dm.items.every(i=>g[m+'|'+i.n]);dm.items.forEach(i=>g[m+'|'+i.n]=!on)},
 tadd:({s})=>{if(T){T.end+= +s*1e3;if(S.timer)S.timer.end=T.end}},
 tskip:()=>{if(T)T.end=Date.now()-1;tick();return false},
 timer:({s,l})=>{startTimer(+s,l)},
@@ -434,8 +458,8 @@ txdel:({i})=>{S.tx.splice(+i,1)},
 todoadd:()=>{const t=$('#ta').value.trim();if(!t)return false;S.todo.push({t,due:$('#td').value,done:0})},
 todotog:({i})=>{S.todo[+i].done=S.todo[+i].done?0:1},
 tododel:({i})=>{S.todo.splice(+i,1)},
-wx:({l,v})=>{const w=weekStart(td());S.wx[w]=S.wx[w]||{};S.wx[w][l]=Math.max(0,(S.wx[w][l]||0)+ +v)},
-revdone:()=>{const w=weekStart(td());S.rev[w]=S.rev[w]||{};S.rev[w].done=!S.rev[w].done},
+wx:({l,v,w})=>{S.wx[w]=S.wx[w]||{};S.wx[w][l]=Math.max(0,(S.wx[w][l]||0)+ +v)},
+revdone:({w})=>{S.rev[w]=S.rev[w]||{};S.rev[w].done=!S.rev[w].done},
 bp:({v})=>{bp=v},bd:({v})=>{bd=+v},
 bstart:()=>{B={pat:bp,dur:bd,start:Date.now()};unlock();wake(true)},
 bstop:()=>{bend(false);return false},
@@ -466,7 +490,7 @@ r:el=>{S.active.ex[+el.dataset.x].s[+el.dataset.s].r=el.value},
 steps:el=>{S.steps[td()]=+el.value},
 jr:el=>{(S.jr[td()]=S.jr[td()]||{})[el.dataset.k]=el.value},
 js:el=>{$('#jl').innerHTML=jlist(el.value)},
-rev:el=>{const w=weekStart(td());S.rev[w]=S.rev[w]||{};S.rev[w].n=el.value},
+rev:el=>{const w=el.dataset.w;S.rev[w]=S.rev[w]||{};S.rev[w].n=el.value},
 cfg:el=>{S.cfg[el.dataset.k]=el.value},
 num:el=>{S.cfg[el.dataset.k]=+el.value}};
 document.addEventListener('click',e=>{unlock();const el=e.target.closest('[data-a]');if(!el)return;const f=A[el.dataset.a];if(f&&f(el.dataset,el)!==false){save();go()}});
@@ -475,16 +499,18 @@ document.addEventListener('change',e=>{if(e.target.id!=='imp')return;const f=e.t
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){tick();if(T||B)wake(true)}});
 
 /* ---------- router ---------- */
-const V={plan:vPlan,today:vPlan,b:vPlan,train:vTrain,fuel:vFuel,money:vMoney,life:vLife,more:vLife,mind:vMind,skill:vSkill,rel:()=>vHab('Relationships and play','Relationships'),meaning:()=>vHab('Meaning','Meaning',`<button class=btn data-a=timer data-s=900 data-l="Quiet moment">⏱ 15-min quiet</button>`),weekend:vWeekend,week:vWeek,todo:vTodo,links:vLinks,set:vSet,r:vRoutine,run:vRun,day:vDay};
-function scrollPlan(){const g=$('.grid');if(!g)return;const n=new Date(),m=sel===D()?n.getHours()*60+n.getMinutes():420;scrollTo(0,g.offsetTop+Math.max(0,m-360-80))}
-function go(){const[p,...a]=(location.hash.slice(2)||'plan').split('/');
+const V={plan:vPlan,today:vPlan,b:vPlan,train:vTrain,fuel:vFuel,money:vMoney,more:vMore,life:vMore,mind:vMind,skill:vSkill,rel:()=>vHab('Relationships and play','Relationships'),meaning:()=>vHab('Meaning','Meaning',`<button class=btn data-a=timer data-s=900 data-l="Quiet moment">⏱ 15-min quiet</button>`),week:vWeek,todo:vTodo,links:vLinks,set:vSet,r:vRoutine,run:vRun,day:vDay};
+const SUB=['train','fuel','money','mind','skill','rel','meaning','week','todo','links','set'];
+function scrollPlan(){const g=$('.grid');if(!g)return;const n=new Date(),m=sel===D()?n.getHours()*60+n.getMinutes():420;$('#v').scrollTop=g.offsetTop+Math.max(0,m-360-80)}
+function go(){const[p,...a]=(location.hash.slice(2)||'plan').split('/'),v=$('#v'),st=v.scrollTop;CTA='';
  if(p==='r'&&S.ctx){S.ctx=null;save()}
- try{$('#v').innerHTML=(V[p]||vPlan)(...a.map(decodeURIComponent))}catch(e){$('#v').innerHTML=`<h1>Error</h1><p>${esc(e.message)}</p><a href="#/set">Open Settings to fix a config</a>`}
- const nav=['plan','today','b',''].includes(p)?'plan':['train','fuel','money'].includes(p)?p:'life';
+ try{v.innerHTML=(SUB.includes(p)?'<a href="#/more">‹ More</a>':'')+(V[p]||vPlan)(...a.map(decodeURIComponent))}catch(e){v.innerHTML=`<h1>Error</h1><p>${esc(e.message)}</p><a href="#/set">Open Settings to fix a config</a>`}
+ v.scrollTop=st;$('#ctaw').innerHTML=CTA;
+ const nav=['plan','today','b','r','run','day'].includes(p)?'plan':'more';
  document.querySelectorAll('nav a').forEach(x=>x.classList.toggle('on',x.dataset.p===nav));
- const cx=$('#cx');cx.style.display=S.ctx?'flex':'none';document.body.classList.toggle('hascx',!!S.ctx);if(S.ctx)$('#cxl').textContent=S.ctx.label;
+ $('#cx').style.display=S.ctx?'flex':'none';if(S.ctx)$('#cxl').textContent=S.ctx.label;
  tick();breath()}
-addEventListener('hashchange',()=>{scrollTo(0,0);go();scrollPlan()});
+addEventListener('hashchange',()=>{go();$('#v').scrollTop=0;scrollPlan()});
 setInterval(tick,250);setInterval(breath,100);
 
 /* data safety + silent updates */
