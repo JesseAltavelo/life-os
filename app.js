@@ -1,5 +1,5 @@
 'use strict';
-const BUILD='1794072247';
+const BUILD='1794072835';
 const $=s=>document.querySelector(s);
 const D=(d=new Date())=>new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
 const dow=s=>new Date(s+'T12:00').getDay()||7;
@@ -344,6 +344,9 @@ function vExt(t,ds,edit){const b=bnd(t);if(b&&!edit){setTimeout(()=>location.rep
  <h3>Link this event to</h3><small>Applies to every event called "${esc(t)}".</small>`+TG().map(x=>`<div class=row><span style="flex:1">${esc(x[1])}</span><button class="btn ${b===x[0]?'pri':''}" data-a=bind data-t="${esc(t)}" data-v="${x[0]}">${b===x[0]?'✓ Linked':'Link'}</button></div>`).join('')
  +(b?`<button class=btn data-a=unbind data-t="${esc(t)}">Remove link</button> <a class=btn href="#/${b}">Open ${esc(tgName(b))} ›</a>`:'')
  +`<h3>Open it from Google Calendar</h3><small>Copy this link and paste it into the event's description in Google Calendar yourself. Opening it goes straight to the linked page.</small><button class="btn pri" data-a=copy data-v="${base()}#/x/${encodeURIComponent(t)}">Copy link</button>`}
+function vRtn(){return`<h1>My routines</h1><small>A routine is a list of steps you tick off, with an optional timer per step. Make one here, then link it to a Google Calendar event by tapping that event in the calendar.</small>`
+ +routines().map(r=>`<div class=row><a href="#/r/${r.id}"><b>${esc(r.name)}</b><small>${r.steps.length} steps · ${r.dur} min</small></a><button class=btn data-a=rtndel data-n="${esc(r.name)}">✕</button></div>`).join('')
+ +`<h3>New routine</h3><div class=card><input id=rn placeholder="Name, e.g. Evening routine"><small>One step per line: title|minutes|page (minutes and page are optional). Pages you can open from a step: train fuel money mind skill rel meaning week todo</small><textarea id=rs rows=7 placeholder="Brush teeth|3\nBox breathing|5|mind\nPlan tomorrow|5|todo\nRead|20"></textarea><button class="btn pri" data-a=rtnadd>Add routine</button></div><small>Want more control (days, colour, short versions)? Edit the text in Settings › Routines.</small>`}
 function vGuide(){const g=S.gcal,w=(g.proxy||'https://YOUR-WORKER.workers.dev/').replace(/\/?$/,'/'),n=(t,b)=>`<div class=card><b>${t}</b><small style="color:var(--t)">${b}</small></div>`;
  return`<h1>Connect Google Calendar</h1><small>Do this on a computer, once. There are two separate things, and you can do only the first.</small>
  <h2>Part 1 · See Google events in Life OS</h2><small>You already did this if grey events show up. It needs a free Cloudflare worker address and your calendar's secret address.</small>
@@ -378,7 +381,7 @@ function vSet(){return`<h1>Settings</h1><small>Everything is editable. Use | to 
  +`<h3>Data</h3><button class=btn data-a=export>Export backup (JSON)</button><label class=btn>Import backup<input id=imp type=file accept=".json" hidden></label>`}
 
 function vMore(){const L=(r,t)=>`<a class=lr href="#/${r}"><span>${t}</span><span>›</span></a>`;
- return`<h1>More</h1><h3>Track</h3>`+L('train','🏋️ Workouts')+L('fuel','🍽️ Diet, water, steps')+L('money','💶 Budget')+`<h3>Grow</h3>`+L('mind','🧘 Mind: box breathing, journal')+L('skill','📚 Skill and money')+L('rel','❤️ Relationships and play')+L('meaning','🌿 Meaning')+`<h3>Review and plan</h3>`+L('week','📊 Weeks')+L('todo','✅ To-dos')+`<h3>App</h3>`+L('links','📅 Google Calendar sync')+L('set','⚙️ Settings')+`<div class=row><span>Version ${BUILD}</span><button class=btn data-a=refresh>Update app now</button></div><small>Your data stays on the phone when you update.</small>`}
+ return`<h1>More</h1><h3>Track</h3>`+L('train','🏋️ Workouts')+L('fuel','🍽️ Diet, water, steps')+L('money','💶 Budget')+`<h3>Grow</h3>`+L('mind','🧘 Mind: box breathing, journal')+L('skill','📚 Skill and money')+L('rel','❤️ Relationships and play')+L('meaning','🌿 Meaning')+`<h3>Review and plan</h3>`+L('week','📊 Weeks')+L('todo','✅ To-dos')+L('rtn','🔁 My routines')+`<h3>App</h3>`+L('links','📅 Google Calendar sync')+L('set','⚙️ Settings')+`<div class=row><span>Version ${BUILD}</span><button class=btn data-a=refresh>Update app now</button></div><small>Your data stays on the phone when you update.</small>`}
 
 function vDay(d,w){const i=DN.map(x=>x.toLowerCase()).indexOf(String(d).toLowerCase());return w==='learn'?vSkill(i>0?i:d):w==='train'?vTrain():vPlan()}
 
@@ -389,6 +392,8 @@ mode:({v})=>{S.mode[sel]=v==='min'?'min':'full'},
 short:({r,d})=>{const s=S.short[d]=S.short[d]||{};s[r]=!s[r]},
 stepchk:({r,d,i})=>{const rr=routines().find(x=>x.id===r),s=stepsOf(rr,d)[+i];setDone(d,rr,s,!isDone(d,rr,s))},
 stepgo:({r,d,i})=>{stepGo(r,d,+i);return false},
+rtnadd:()=>{const n=$('#rn').value.replace(/\|/g,' ').trim(),st=$('#rs').value.split('\n').map(x=>x.trim()).filter(Boolean);if(!n||!st.length)return false;const m=st.reduce((a,x)=>a+(+x.split('|')[1]||0),0)||5;S.cfg.routines=(S.cfg.routines?S.cfg.routines.trim()+'\n':'')+`# ${n}|08:00|${m}|1234567||0|${Math.floor(Math.random()*360)}\n`+st.join('\n')},
+rtndel:({n})=>{const o=[];let skip=0;lines(S.cfg.routines).forEach(l=>{if(l[0]==='#')skip=l.slice(1).split('|')[0].trim()===n;if(!skip)o.push(l)});S.cfg.routines=o.join('\n')},
 rstart:({r,d})=>{rnext(r,d)},
 rstop:()=>{RUN=null;T=null;S.timer=null;wake(false)},
 rback:({d})=>{sel=d;location.hash='#/plan';return false},
@@ -476,8 +481,8 @@ document.addEventListener('touchstart',e=>{const g=$('.grid');if(g&&e.touches.le
 document.addEventListener('touchmove',e=>{if(!pz||e.touches.length!==2)return;e.preventDefault();S.z=clampZ(pz.z*pd(e.touches)/pz.d);document.documentElement.style.setProperty('--z',S.z);scrollTo(0,$('.grid').offsetTop+pz.m*S.z-pz.my)},{passive:false});
 document.addEventListener('touchend',e=>{if(pz&&e.touches.length<2){pz=null;save();go()}});
 
-const V={guide:vGuide,x:(t,d)=>vExt(t,d),xe:(t,d)=>vExt(t,d,1),plan:vPlan,today:vPlan,b:vPlan,train:vTrain,fuel:vFuel,money:vMoney,more:vMore,life:vMore,mind:vMind,skill:vSkill,rel:()=>vNotes('Relationships and play','rel','Date ideas, things to talk about, friends to call, gift ideas. Your time together lives in the calendar routines.'),meaning:()=>vNotes('Meaning','meaning','What matters to you, reflections, gratitude, ways to help others.',`<button class=btn data-a=timer data-s=900 data-l="Quiet moment">⏱ 15-min quiet</button>`),week:vWeek,todo:vTodo,links:vLinks,set:vSet,r:vRoutine,run:vRun,day:vDay};
-const SUB=['guide','train','fuel','money','mind','skill','rel','meaning','week','todo','links','set'];
+const V={rtn:vRtn,guide:vGuide,x:(t,d)=>vExt(t,d),xe:(t,d)=>vExt(t,d,1),plan:vPlan,today:vPlan,b:vPlan,train:vTrain,fuel:vFuel,money:vMoney,more:vMore,life:vMore,mind:vMind,skill:vSkill,rel:()=>vNotes('Relationships and play','rel','Date ideas, things to talk about, friends to call, gift ideas. Your time together lives in the calendar routines.'),meaning:()=>vNotes('Meaning','meaning','What matters to you, reflections, gratitude, ways to help others.',`<button class=btn data-a=timer data-s=900 data-l="Quiet moment">⏱ 15-min quiet</button>`),week:vWeek,todo:vTodo,links:vLinks,set:vSet,r:vRoutine,run:vRun,day:vDay};
+const SUB=['rtn','guide','train','fuel','money','mind','skill','rel','meaning','week','todo','links','set'];
 function scrollPlan(){const g=$('.grid');if(!g)return;const n=new Date(),m=sel===D()?n.getHours()*60+n.getMinutes():420;scrollTo(0,g.offsetTop+Math.max(0,m-360-80))}
 function go(){const[p,...a]=(location.hash.slice(2)||'plan').split('/'),v=$('#v'),st=scrollY;CTA='';document.documentElement.style.setProperty('--z',Zv());
  if(p==='r'&&S.ctx){S.ctx=null;save()}
