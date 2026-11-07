@@ -17,7 +17,7 @@ export default{async fetch(req,env){
  if(p==='/auth/cb'){if(url.searchParams.get('state')!==env.KEY)return new Response('bad state',{status:403});
   const r=await fetch('https://oauth2.googleapis.com/token',{method:'POST',body:new URLSearchParams({code:url.searchParams.get('code'),client_id:env.CID,client_secret:env.CSECRET,redirect_uri:url.origin+'/auth/cb',grant_type:'authorization_code'})}),j=await r.json();
   if(!j.refresh_token)return new Response('No refresh token: '+JSON.stringify(j),{status:400});await env.TOK.put('rt',j.refresh_token);
-  return new Response('<meta name=viewport content="width=device-width"><body style="font:20px system-ui;padding:30px">Connected ✓ You can close this and return to Life OS.',{headers:{'Content-Type':'text/html'}})}
+  return new Response('<meta name=viewport content="width=device-width"><body style="font:20px system-ui;padding:30px">Connected ✓ You can close this and return to Life OS.',{headers:{'Content-Type':'text/html; charset=utf-8'}})}
  if(p==='/todo'){if(req.headers.get('x-key')!==env.KEY)return new Response('wrong key',{status:403,headers:h});
   try{const at=await token(env),A={Authorization:'Bearer '+at,'Content-Type':'application/json'};
    if(req.method==='DELETE'){const r=await fetch(CAL+'lo'+url.searchParams.get('id'),{method:'DELETE',headers:A});return new Response(null,{status:r.status===410?404:r.status,headers:h})}
