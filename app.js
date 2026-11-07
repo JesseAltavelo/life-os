@@ -1,5 +1,5 @@
 'use strict';
-const BUILD='1794078738';
+const BUILD='1794078987';
 const $=s=>document.querySelector(s);
 const D=(d=new Date())=>new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
 const dow=s=>new Date(s+'T12:00').getDay()||7;
@@ -303,7 +303,7 @@ function vRun(){if(!R)return'<p>No timed workout running.</p><a href="#/plan">Ba
 
 function vTrain(){if(S.active)return vActive();const th=themeOf(D()),tp=tpls(),tn=th.train,last=S.log.filter(l=>l.tpl===tn).pop();
  let h=`<h1>Train</h1>`+(tp[tn]?`<div class=card><small>Today's session</small><b style="font-size:20px">${esc(tn)}</b><small>${tp[tn].length} exercises${last?' · last time '+last.date:''}</small><button class="btn pri" data-a=start data-n="${esc(tn)}">${ic('play')} Start ${esc(tn)}</button></div>`:(flows()[tn]?`<div class=card><small>Today's session</small><b style="font-weight:500;font-size:17px">${esc(tn)}</b><small>Timed workout · ${Math.round(flows()[tn].reduce((a,x)=>a+x[1],0)/60)} min</small><button class="btn pri" data-a=flowgo data-n="${esc(tn)}">${ic('play')} Start ${esc(tn)}</button></div>`:`<div class=card><small>Today's session</small><b>${esc(tn||'Rest day')}</b><small>Not a workout template. Start a free workout if you want to log something.</small></div>`))
- +`<h3>Timed workouts</h3><small>Mobility, a hard session, a long Zone 2 session</small>`+Object.keys(flows()).map(n=>`<button class=btn data-a=flowgo data-n="${esc(n)}">${esc(n)}</button>`).join('')+`<a class=btn href="#/flows">Edit</a><h3>Other workouts</h3>`+Object.keys(tp).filter(n=>n!==tn).map(n=>`<button class=btn data-a=start data-n="${esc(n)}">${esc(n)}</button>`).join('')+`<button class=btn data-a=start data-n="">Empty workout</button><small>Empty workout: no exercises prepared, you add them as you go.</small><h3>History (saved on this phone)</h3>`;
+ +`<h3>Timed workouts</h3><small>Mobility, a hard session, a long Zone 2 session</small>`+Object.keys(flows()).map(n=>`<button class=btn data-a=flowgo data-n="${esc(n)}">${esc(n)}</button>`).join('')+`<a class=btn href="#/flows">Edit</a><h3>Strength workouts</h3>`+Object.keys(tp).filter(n=>n!==tn).map(n=>`<button class=btn data-a=start data-n="${esc(n)}">${esc(n)}</button>`).join('')+`<button class=btn data-a=start data-n="">Empty workout</button><small>Empty workout: no exercises prepared, you add them as you go.</small><h3>History (saved on this phone)</h3>`;
  return h+(S.log.slice(-15).reverse().map((l,i)=>{const sets=l.ex.reduce((a,e)=>a+e.s.length,0),vol=l.ex.reduce((a,e)=>a+e.s.reduce((b,s)=>b+(+s.w||0)*(+s.r||0),0),0);
  return`<details class=card><summary><b>${esc(l.tpl)}</b> <small style="display:inline">${l.date} · ${l.dur} min · ${sets} sets · ${Math.round(vol)} kg</small></summary>${l.ex.map(e=>`<small>${esc(e.n)}: ${e.s.map(s=>s.w+'×'+s.r).join(', ')}</small>`).join('')}<button class=btn data-a=logdel data-i="${S.log.length-1-i}">Delete</button></details>`}).join('')||'<small>No workouts yet.</small>')}
 function vActive(){const a=S.active;
