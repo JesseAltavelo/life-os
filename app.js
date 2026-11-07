@@ -1,5 +1,5 @@
 'use strict';
-const BUILD='1794070643';
+const BUILD='1794071523';
 const $=s=>document.querySelector(s);
 const D=(d=new Date())=>new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
 const dow=s=>new Date(s+'T12:00').getDay()||7;
@@ -18,8 +18,8 @@ const base=()=>location.origin+location.pathname;
 const td=()=>D();
 
 /* ---------- defaults (everything is editable in Life > Settings) ---------- */
-const VER=4;
-const DEF={v:VER,start:D(),mode:{},wmode:{},short:{},chk:{},water:{},steps:{},port:{},ing:{},z:1,bind:{},notes:{},gcal:{url:'',proxy:'',t:0,evs:[],err:''},supp:{},hab:{},jr:{},med:{},todo:[],log:[],active:null,tx:[],paid:{},rev:{},wx:{},timer:null,ctx:null,
+const VER=5;
+const DEF={v:VER,start:D(),mode:{},wmode:{},short:{},chk:{},water:{},steps:{},port:{},ing:{},z:1,own:0,tdel:[],bind:{},notes:{},gcal:{url:'',proxy:'',key:'',tds:0,t:0,evs:[],err:''},supp:{},hab:{},jr:{},med:{},todo:[],log:[],active:null,tx:[],paid:{},rev:{},wx:{},timer:null,ctx:null,
 cfg:{
 income:0,invest:0,waterT:2500,stepsT:10000,stepsMin:8000,
 themes:`1|Money: investing basics, tax, index funds. Check auto-invest.|Finance and business|Push|
@@ -82,7 +82,9 @@ Transport|0
 Health / gym|0
 Subscriptions|0
 Fun|0
-Other|0`,
+Other|0
+Investing|0
+Savings|0`,
 wk:`Lift sessions|5|3|lift
 Days at step target|7|7|steps
 Days at water target|7|5|water
@@ -206,6 +208,7 @@ routines:`# Morning routine|07:00|70|12345||1|40
 function load(o){o=o||{};if((o.v||0)<2){if(o.cfg){delete o.cfg.blocks;delete o.cfg.mvd;delete o.cfg.wk}Object.keys(o.mode||{}).forEach(k=>o.mode[k]=o.mode[k]==='mvd'?'min':'')}
  if((o.v||0)<4&&o.cfg){delete o.cfg.diet;delete o.cfg.habits;delete o.cfg.supps;delete o.cfg.wk}
  if((o.v||0)<3&&o.cfg){delete o.cfg.meals;delete o.cfg.wk;if(o.cfg.routines)o.cfg.routines=o.cfg.routines.replace('Log portions, water + steps','Tick diet items, water + steps')}
+ if((o.v||0)<5&&o.cfg&&o.cfg.cats){let c=o.cfg.cats;['Investing','Savings'].forEach(n=>{if(!c.includes(n))c+='\n'+n+'|0'});o.cfg.cats=c;if(+o.cfg.invest&&!/Investing\|[1-9]/.test(c))o.cfg.cats=c.replace('Investing|0','Investing|'+(+o.cfg.invest))}
  const s=Object.assign(structuredClone(DEF),o);s.cfg=Object.assign({},DEF.cfg,o.cfg);s.v=VER;return s}
 let S;try{S=load(JSON.parse(localStorage.lifeos1))}catch(e){S=load()}
 const save=()=>{try{localStorage.lifeos1=JSON.stringify(S)}catch(e){}};
@@ -220,7 +223,7 @@ const tpls=()=>{const o={};let c;lines(S.cfg.tpl).forEach(l=>{if(l[0]=='#'){c=l.
 const diet=()=>{const o=[];let c;lines(S.cfg.diet).forEach(l=>{if(l[0]=='#'){const[n,t]=l.slice(1).split('|').map(x=>x.trim());c={n,t:t||'',items:[]};o.push(c)}else if(c){const[n,a,p,cb,f]=l.split('|').map(x=>x.trim());c.items.push({n,a:a||'',p:+p||0,c:+cb||0,f:+f||0})}});return o};
 const tot=a=>a.reduce((x,i)=>({p:x.p+i.p,c:x.c+i.c,f:x.f+i.f,k:x.k+i.p*4+i.c*4+i.f*9}),{p:0,c:0,f:0,k:0});
 function dietPct(ds){const all=diet().flatMap(m=>m.items.map(i=>m.n+'|'+i.n)),g=S.ing[ds]||{};return all.length?all.filter(k=>g[k]).length/all.length:0}
-const cats=()=>lines(S.cfg.cats).map(l=>{const[n,v]=l.split('|');return{n:n.trim(),l:+v||0}});
+const cats=()=>lines(S.cfg.cats).map(l=>{const[n,v,m]=l.split('|');return{n:n.trim(),l:+v||0,m:+m||0}});
 const mode=ds=>S.mode[ds]||'';
 
 /* occurrences, steps, progress */
@@ -315,11 +318,11 @@ function extOn(ds){const a=new Date(ds+'T00:00').getTime(),b=a+864e5;return(S.gc
 const TR='#c0392b';
 function todoBar(ds,t){const l=S.todo.map((x,i)=>({...x,i})).filter(x=>x.due&&(x.due===ds||(ds===t&&x.due<ds&&!x.done)));if(!l.length)return'';
  return`<div class=card style="border-left:4px solid ${TR}"><small>To-dos</small>`+l.map(x=>`<div class=row style="padding:6px 0"><button class="ck ${x.done?'on':''}" data-a=todotog data-i=${x.i}></button><span style="flex:1;${x.done?'opacity:.5;text-decoration:line-through':''}">${esc(x.t)}<small style="${x.due<ds&&!x.done?'color:var(--r)':''}">${x.due<ds?'overdue · '+x.due:x.time||'all day'}</small></span></div>`).join('')+`</div>`}
-function conflicts(ds){const o=[],xs=extOn(ds).filter(e=>!e.ad);occ(ds).forEach(r=>{const a=+r.start.slice(0,2)*60+ +r.start.slice(3),b=a+r.dur;xs.forEach(y=>{if(a<y.em&&y.sm<b)o.push(`${r.name} (${r.start}) overlaps "${y.t}" (${hmm(y.sm)}-${hmm(y.em)})`)})});return o}
+function conflicts(ds){if(!S.own)return[];const o=[],xs=extOn(ds).filter(e=>!e.ad);occ(ds).forEach(r=>{const a=+r.start.slice(0,2)*60+ +r.start.slice(3),b=a+r.dur;xs.forEach(y=>{if(a<y.em&&y.sm<b)o.push(`${r.name} (${r.start}) overlaps "${y.t}" (${hmm(y.sm)}-${hmm(y.em)})`)})});return o}
 function grid(days){const t=D(),wk=days.length>1,nm=new Date(),nowM=nm.getHours()*60+nm.getMinutes(),z=Zv(),pos=q=>`left:calc(${q.c/q.n*100}% + 1px);width:calc(${100/q.n}% - 2px);top:calc(var(--z)*${q.s-360}px);height:max(calc(var(--z)*${q.e0-q.s}px - 1px),20px)`;
  let gut='';for(let i=0;i<=18;i++){gut+=`<span style="top:calc(var(--z)*${i*60}px)">${String(6+i).padStart(2,'0')}:00</span>`;if(z>=2&&i<18)gut+=`<span style="top:calc(var(--z)*${i*60+30}px);opacity:.6">${String(6+i).padStart(2,'0')}:30</span>`}
  return`<div class="grid ${wk?'wk':''}"><div class=gut>${gut}</div><div class=cols>`
- +days.map(ds=>{const ev=occ(ds).map(r=>{const s=+r.start.slice(0,2)*60+ +r.start.slice(3);return{r,s,e0:s+r.dur,e:Math.max(s+r.dur,s+Math.ceil(22/z))}}),
+ +days.map(ds=>{const ev=(S.own?occ(ds):[]).map(r=>{const s=+r.start.slice(0,2)*60+ +r.start.slice(3);return{r,s,e0:s+r.dur,e:Math.max(s+r.dur,s+Math.ceil(22/z))}}),
  tds=S.todo.map((x,i)=>({x,i})).filter(q=>q.x.due===ds&&q.x.time).map(q=>{const s=+q.x.time.slice(0,2)*60+ +q.x.time.slice(3);return{...q,s,e0:s+(q.x.dur||30),e:Math.max(s+(q.x.dur||30),s+Math.ceil(22/z))}}),
  xs=extOn(ds).filter(e=>!e.ad&&e.em>360).map(e=>({x:e,s:Math.max(e.sm,360),e0:e.em,e:Math.max(e.em,e.sm+Math.ceil(22/z))}));
  ev.forEach(q=>{q.cf=xs.some(y=>q.s<y.e0&&y.s<q.e0)});layout([...ev,...xs,...tds]);
@@ -335,15 +338,15 @@ let CTA='';
 function vPlan(){const t=D(),ws=weekStart(sel),m=mode(sel),g=S.gcal,gon=g.url&&g.proxy;
  let h=`<div class=top><h1>${new Date(sel+'T12:00').toLocaleDateString('en-GB',{month:'long',year:'numeric'})}</h1><div><button class="chip ${view==='day'?'on':''}" data-a=view data-v=day>Day</button> <button class="chip ${view==='week'?'on':''}" data-a=view data-v=week>Week</button> <button class=chip data-a=gotoday>Today</button></div></div>
  <div class=strip><button data-a=wk data-v=-7>‹</button>`+wdays(ws).map(d=>`<button class="dd ${d===sel?'on':''} ${d===t?'td':''}" data-a=sel data-v=${d}><small>${DN[dow(d)]}</small><b>${+d.slice(8)}</b></button>`).join('')+`<button data-a=wk data-v=7>›</button></div>`;
- if(sel===t){h+=warns().map(([k,x])=>`<div class="w ${k}">${esc(x)}</div>`).join('');
+ if(sel===t&&S.own){h+=warns().map(([k,x])=>`<div class="w ${k}">${esc(x)}</div>`).join('');
   if(!m)h+=`<div class=card><b>How do you feel today?</b><small>This picks your plan for today. You can change it any time.</small><button class="btn pri" data-a=mode data-v=full>💪 Full day</button><button class=btn data-a=mode data-v=min>🪫 Minimum day</button></div>`}
  h+=conflicts(sel).map(x=>`<div class="w a">⚠ ${esc(x)}. Move one of them.</div>`).join('');
  const ad=extOn(sel).filter(e=>e.ad);if(ad.length)h+=`<div class=card><small>All day (Google Calendar)</small>${ad.map(e=>esc(e.t)).join(', ')}</div>`;
  h+=todoBar(sel,t);
- h+=`<div class=card><div class=ctl><span>Day</span>${seg([['full','Full'],['min','Minimum']],m||'full','mode')}</div><small>${m==='min'?'Minimum day: only the essential routines, in short versions. Doing just this counts as a good day.':'Full day: every routine for this day, all steps.'}</small></div>`;
- h+=`<button class=chip data-a=zoom data-v=-1>🔍 −</button> <button class=chip data-a=zoom data-v=1>🔍 +</button> <small style="display:inline">pinch the calendar to zoom</small> `+(gon?`<button class=chip data-a=gsync>↻ Google ${g.t?new Date(g.t).toTimeString().slice(0,5):'not synced'}</button>`:'')+'<br>';
- if(ws<=t){const sm=wsum(ws),past=addD(ws,6)<t,ds=wdays(ws),beh=ds.some(d=>d<t&&d>=S.start&&!minOk(d)),bad=past?sm.ok<7:beh,left=ds.filter(d=>d>=t).length;
-  h+=`<a class=card href="#/week/${ws}" style="display:block;color:inherit;text-decoration:none;border-left:4px solid ${bad?'var(--r)':'var(--g)'}"><b>Minimum week · ${sm.ok}/7 days</b> <span style="color:${bad?'var(--r)':'var(--g)'}">${past?(sm.ok===7?'achieved ✓':'missed'):bad?'broken: a minimum day was missed':'on track'}</span><br>`+ds.map(d=>{const f=d>=S.start,ok=f&&minOk(d);return`<span style="display:inline-block;width:13%;text-align:center;font-size:12px"><small style="text-align:center">${DN[dow(d)]}</small>${d>t?'·':ok?'✓':d===t?'○':'✗'}</span>`}).join('')+`<small>${past?'':bad?'You can still do the minimum day on the days left, but this week will not count as minimum.':minOk(t)?'Today\'s minimum day is done.':'Do today\'s minimum day (essential routines, short versions) to stay on track.'}</small></a>`}
+ if(S.own)h+=`<div class=card><div class=ctl><span>Day</span>${seg([['full','Full'],['min','Minimum']],m||'full','mode')}</div><small>${m==='min'?'Minimum day: only the essential routines, in short versions. Doing just this counts as a good day.':'Full day: every routine for this day, all steps.'}</small></div>`;
+ h+=`<button class="chip ${S.own?'on':''}" data-a=own>My routine schedule: ${S.own?'on':'off'}</button> <button class=chip data-a=zoom data-v=-1>🔍 −</button> <button class=chip data-a=zoom data-v=1>🔍 +</button> <small style="display:inline">pinch the calendar to zoom</small> `+(gon?`<button class=chip data-a=gsync>↻ Google ${g.t?new Date(g.t).toTimeString().slice(0,5):'not synced'}</button>`:'')+'<br>';
+ if(S.own&&ws<=t){const sm=wsum(ws),past=addD(ws,6)<t,ds=wdays(ws),beh=ds.some(d=>d<t&&d>=S.start&&!minOk(d)),bad=past?sm.ok<7:beh,left=ds.filter(d=>d>=t).length;
+  h+=`<a class=card href="#/week/${ws}" style="display:block;color:inherit;text-decoration:none;border-left:4px solid ${bad?'var(--r)':'var(--g)'}"><b>Minimum days this week: ${sm.ok}/7</b> <span style="color:${bad?'var(--r)':'var(--g)'}">${past?(sm.ok===7?'achieved ✓':'missed'):bad?'a minimum day was missed, so this week will not count as a minimum week':'on track'}</span><br>`+ds.map(d=>{const f=d>=S.start,ok=f&&minOk(d);return`<span style="display:inline-block;width:13%;text-align:center;font-size:12px"><small style="text-align:center">${DN[dow(d)]}</small>${d<S.start?'–':d>t?'·':ok?'✓':d===t?'○':'✗'}</span>`}).join('')+`<small>A minimum week is simply all 7 minimum days done, so it adds up by itself. Days before you started the app show –. ${past?'':bad?'':minOk(t)?'Today\'s minimum day is done.':'Do today\'s minimum day (essential routines, short versions) to stay on track.'}</small></a>`}
  return h+grid(view==='week'?wdays(ws):[sel])}
 
 const LBL={fuel:'Diet',train:'Workout',money:'Budget',mind:'Mind',skill:'Skill',rel:'Relationships',meaning:'Meaning',week:'Weeks',todo:'To-dos'};
@@ -379,10 +382,10 @@ function vFuel(){const t=D(),dd=diet(),g=S.ing[t]||{},all=dd.flatMap(m=>m.items.
  return h+`<div class=card><b>Water</b> ${S.water[t]||0} / ${S.cfg.waterT} ml${bar(S.water[t]||0,S.cfg.waterT)}<button class=btn data-a=water data-v=250>+250 ml</button><button class=btn data-a=water data-v=500>+500 ml</button><button class=btn data-a=water data-v=-250>−250 ml</button>
  <input type=number inputmode=numeric data-c=steps value="${S.steps[t]||''}" placeholder="Steps today (target ${S.cfg.stepsT})"></div>`}
 
-function vMoney(){const s=monthStats(),inc=+S.cfg.income||0,inv=+S.cfg.invest||0,cs=cats();
- return`<h1>Money</h1><small>${s.mo} · EUR</small><div class=card>Income ${eur(inc)}<br>Auto-invest ${eur(inv)} <button class="btn ${S.paid[s.mo]?'pri':''}" data-a=paid>${S.paid[s.mo]?'✓ Invested this month':'Tap when invested'}</button><br>Spent ${eur(s.sp)}<br><b>Left ${eur(inc-inv-s.sp)}</b><small>Set income, invest and category limits in Life › Settings.</small></div>
- <h3>Categories</h3>`+cs.map(c=>{const v=s.by[c.n]||0;return`<div>${esc(c.n)} <small style="display:inline">${eur(v)}${c.l?' / '+eur(c.l):''}</small>${bar(v,c.l)}</div>`}).join('')
- +`<h3>Add expense</h3><div class=card><input id=sa type=number step=0.01 inputmode=decimal placeholder="Amount €"><select id=sc>${cs.map(c=>`<option>${esc(c.n)}</option>`).join('')}</select><input id=sn placeholder="Note"><small>Date</small><input id=sdt type=date value="${D()}"><button class="btn pri" data-a=spend>Add</button></div>
+function vMoney(){const s=monthStats(),inc=+S.cfg.income||0,cs=cats(),bud=cs.reduce((a,c)=>a+c.l,0);
+ return`<h1>Money</h1><small>${s.mo} · EUR</small><div class=card>Income ${eur(inc)}<br>Budgeted in buckets ${eur(bud)}<br>Spent so far ${eur(s.sp)}<br><b>Left to spend ${eur(inc-s.sp)}</b><small>${inc-bud<0?'Your buckets add up to more than your income by '+eur(bud-inc):'Not yet assigned to a bucket: '+eur(inc-bud)}. Change income and bucket amounts in More › Settings.</small></div>
+ <h3>Buckets</h3><small>Each bucket: spent of budget, and what is left. Investing and Savings are buckets too: add an expense in them when you put money away.</small>`+cs.map(c=>{const v=s.by[c.n]||0,left=c.l-v;return`<div style="margin:10px 0"><b>${esc(c.n)}</b> <small style="display:inline">${eur(v)}${c.l?' of '+eur(c.l)+' · '+(left>=0?eur(left)+' left':'<span style="color:var(--r)">'+eur(-left)+' over</span>'):''}${c.m?' · minimum '+eur(c.m)+(v>=c.m?' ✓':', '+eur(c.m-v)+' to go'):''}</small>${bar(v,c.l)}</div>`}).join('')
+ +`<h3>Add expense</h3><div class=card><input id=sa type=number step=0.01 inputmode=decimal placeholder="Amount €"><select id=sc>${cs.map(c=>`<option>${esc(c.n)}</option>`).join('')}</select><input id=sn placeholder="Note"><small>Date</small><input id=sdt class=dt type=date value="${D()}"><button class="btn pri" data-a=spend>Add</button></div>
  <h3>This month</h3><div class=card><b>Total ${eur(s.sp)}</b>${cs.filter(c=>s.by[c.n]).map(c=>`<br>${esc(c.n)} ${eur(s.by[c.n])}`).join('')}</div>`+txByDay(s.tx)+`<h3>Earlier months</h3>`+earlier()}
 const txByDay=tx=>{const g={};tx.forEach(x=>(g[x.d]=g[x.d]||[]).push(x));return Object.keys(g).sort().reverse().map(d=>`<h3>${new Date(d+'T12:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})} · ${eur(g[d].reduce((a,x)=>a+x.a,0))}</h3>`+g[d].map(x=>`<div class=row><span style="flex:1">${esc(x.c)}<small>${esc(x.n)}</small></span><b>${eur(x.a)}</b><button class=btn data-a=txdel data-i="${S.tx.indexOf(x)}">✕</button></div>`).join('')).join('')||'<small>Nothing yet.</small>'};
 const earlier=()=>{const mo=D().slice(0,7),m={};S.tx.filter(x=>!x.d.startsWith(mo)).forEach(x=>m[x.d.slice(0,7)]=(m[x.d.slice(0,7)]||0)+x.a);return Object.keys(m).sort().reverse().map(k=>`<div class=row><span style="flex:1">${k}</span><b>${eur(m[k])}</b></div>`).join('')||'<small>None.</small>'}
@@ -399,7 +402,7 @@ const jlist=q=>{const t=D(),a=Object.entries(S.jr).filter(([d,j])=>d!==t&&(j.g||
 function vSkill(d){d=+d||dow(D());const th=themes()[d]||{};
  return`<h1>Skill and money</h1><div class=card><small>${DN[d]} theme</small><b>Learn:</b> ${esc(th.learn)}<br><b>Audio:</b> ${esc(th.audio)}</div><a class="btn pri" href="${esc(th.sp||'https://open.spotify.com')}" target=_blank>▶ Spotify</a><button class=btn data-a=timer data-s=2400 data-l="Learn block">⏱ 40-min learn</button><button class=btn data-a=timer data-s=5400 data-l="Build block">⏱ 90-min build</button>
  <h3>Week themes</h3>`+Object.entries(themes()).map(([k,v])=>`<div class=row><b style="width:40px">${DN[k]}</b><span style="flex:1">${esc(v.learn)}<small>🎧 ${esc(v.audio)}</small></span></div>`).join('')}
-const vNotes=(title,k,hint,extra='')=>`<h1>${title}</h1>${extra}<small>${hint}</small><textarea data-c=note data-k=${k} rows=12 placeholder="Write here...">${esc(S.notes[k])}</textarea>`;
+const vNotes=(title,k,hint,extra='')=>`<h1>${title}</h1>${extra}<small>${hint}</small><small style="color:var(--g)">✓ This is your notepad. Everything you type is saved automatically on this phone and stays here. It is included when you export a backup.</small><textarea data-c=note data-k=${k} rows=12 placeholder="Write here...">${esc(S.notes[k])}</textarea>`;
 
 function vWeek(w){const t=D(),cw=weekStart(t),ws=w||cw,sm=wsum(ws),r=S.rev[ws]||{},past=addD(ws,6)<t,fd=d=>new Date(d+'T12:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'});
  let h=`<div class=top><a class=btn href="#/week/${addD(ws,-7)}">‹</a><h2 style="margin:0">${fd(ws)} – ${fd(addD(ws,6))}</h2><a class=btn href="#/week/${addD(ws,7)}">›</a></div>
@@ -411,7 +414,7 @@ function vWeek(w){const t=D(),cw=weekStart(t),ws=w||cw,sm=wsum(ws),r=S.rev[ws]||
  return h}
 
 function vTodo(){const t=D(),a=S.todo.map((x,i)=>({...x,i})).sort((p,q)=>(p.done-q.done)||((p.due||'9')<(q.due||'9')?-1:1));
- return`<h1>To-dos</h1><div class=card><input id=ta placeholder="New task"><small>Date (leave empty for no date)</small><input id=td type=date><small>Time (optional; empty = all-day)</small><input id=tt2 type=time><small>Estimated duration</small><select id=tdu><option value=15>15 min</option><option value=30 selected>30 min</option><option value=60>1 hour</option><option value=90>1.5 hours</option><option value=120>2 hours</option></select><button class="btn pri" data-a=todoadd>Add</button><small>Open to-dos also show on the Calendar, in red, on their day.</small></div>`+a.map(x=>`<div class=row><button class="ck ${x.done?'on':''}" data-a=todotog data-i=${x.i}></button><span style="flex:1;${x.done?'opacity:.4;text-decoration:line-through':''}">${esc(x.t)}<small style="${x.due&&x.due<t&&!x.done?'color:var(--r)':''}">${x.due||''}${x.time?' '+x.time:''}</small></span><button class=btn data-a=tododel data-i=${x.i}>✕</button></div>`).join('')}
+ return`<h1>To-dos</h1><div class=card><input id=ta placeholder="New task"><small>Date (leave empty for no date)</small><input id=td class=dt type=date><small>Time (optional; empty = all-day)</small><input id=tt2 class=dt type=time><small>Estimated duration</small><select id=tdu><option value=15>15 min</option><option value=30 selected>30 min</option><option value=60>1 hour</option><option value=90>1.5 hours</option><option value=120>2 hours</option></select><button class="btn pri" data-a=todoadd>Add</button><small>Open to-dos also show on the Calendar, in red, on their day.</small></div>`+a.map(x=>`<div class=row><button class="ck ${x.done?'on':''}" data-a=todotog data-i=${x.i}></button><span style="flex:1;${x.done?'opacity:.4;text-decoration:line-through':''}">${esc(x.t)}<small style="${x.due&&x.due<t&&!x.done?'color:var(--r)':''}">${x.due||''}${x.time?' '+x.time:''}</small></span><button class=btn data-a=tododel data-i=${x.i}>✕</button></div>`).join('')}
 
 const bkey=t=>String(t).trim().toLowerCase(),bnd=t=>(S.bind||{})[bkey(t)];
 const TG=()=>[...routines().map(r=>['r/'+r.id,r.start+' '+r.name]),['train','Workout'],['fuel','Diet and water'],['money','Budget'],['mind','Mind'],['skill','Skill'],['rel','Relationships'],['meaning','Meaning'],['week','Weeks'],['todo','To-dos']];
@@ -428,13 +431,14 @@ function vLinks(){const g=S.gcal,bs=Object.entries(S.bind||{});
  <ol style="color:var(--m);font-size:14px;padding-left:18px"><li>Google Calendar (computer) › Settings › your calendar › Integrate calendar › copy "Secret address in iCal format".</li><li>Paste it below, plus your proxy address (see the setup note).</li></ol>
  <input data-c=gc data-k=url value="${esc(g.url)}" placeholder="Secret address in iCal format"><input data-c=gc data-k=proxy value="${esc(g.proxy)}" placeholder="Proxy address, e.g. https://lifeos-cal.yourname.workers.dev/">
  <button class=btn data-a=gsync>↻ Sync now</button><small>${g.t?'Last synced '+new Date(g.t).toTimeString().slice(0,5)+' · '+g.evs.length+' upcoming events':'Not synced yet'}${g.err?' · Error: '+esc(g.err):''}</small>
+ <h3>To-dos → Google Calendar</h3><small>Your to-dos with a date are written to your main Google Calendar, in red, and kept in step: done ones get a ✓ and turn grey. Needs the one-time setup (see the setup steps I sent). Only to-dos are written, never anything else.</small><input data-c=gc data-k=key type=password value="${esc(g.key)}" placeholder="To-do sync key"><button class="btn ${g.tds?'pri':''}" data-a=tds>${g.tds?'✓ To-do sync on':'Turn on to-do sync'}</button>${g.terr?'<small style="color:var(--r)">Error: '+esc(g.terr)+'</small>':''}
  <h3>Linked events</h3><small>Tap a grey Google event on the calendar to link it to a routine or page. Linked events show 🔗 and open that page when tapped.</small>`
  +(bs.length?bs.map(([k,v])=>`<div class=row><span style="flex:1">${esc(k)}<small>→ ${esc(tgName(v))}</small></span><a class=btn href="#/xe/${encodeURIComponent(k)}">Change</a></div>`).join(''):'<small>None yet.</small>')
  +`<h3>Copy a link for any routine</h3>`+routines().map(r=>`<div class=row><span style="flex:1">${r.start} ${esc(r.name)}<small>${r.days.split('').map(d=>DN[d]).join(' ')}</small></span><button class=btn data-a=copy data-v="${base()}#/r/${r.id}">Copy</button></div>`).join('')}
 
 
 const CF=[['routines','Routines (calendar events)','# name|start|minutes|days 1-7|unused, leave blank|essential 1/0|colour 0-360, then steps: title|minutes|link|short version (* = keep, number = minutes, blank = skipped). Links: fuel money mind skill rel meaning train week todo spotify flow:Name. Titles can use {learn} {audio} {train}.'],['flows','Guided flows','# Name, then step|seconds'],['themes','Day themes','day 1-7|learn|audio|train template name|spotify link'],['tpl','Workout templates','# Name, then exercise|sets|reps|rest sec'],['diet','Diet plan','# Meal|time, then: ingredient|amount (g or ml)|protein g|carbs g|fat g. Calories are calculated.'],['cats','Budget categories','Name|monthly limit €'],['wk','Weekly targets','label|full target|minimum target|source: lift steps water diet med jr rev r:routine-id (join several with +) x(manual +/- counter)']];
-const NF=[['income','Monthly income €'],['invest','Auto-invest €/month'],['waterT','Water target ml'],['stepsT','Steps target'],['stepsMin','Steps minimum']];
+const NF=[['income','Monthly income €'],['waterT','Water target ml'],['stepsT','Steps target'],['stepsMin','Steps minimum']];
 function vSet(){return`<h1>Settings</h1><small>Everything is editable. Use | to separate fields and never use | inside text.</small><h3>Numbers</h3>`+NF.map(([k,l])=>`<small>${l}</small><input type=number inputmode=decimal data-c=num data-k=${k} value="${S.cfg[k]}">`).join('')
  +CF.map(([k,l,h])=>`<h3>${l}</h3><small>${esc(h)}</small><textarea data-c=cfg data-k=${k} rows=8>${esc(S.cfg[k])}</textarea><button class=btn data-a=cfgreset data-k=${k}>Reset to default</button>`).join('')
  +`<h3>Data</h3><button class=btn data-a=export>Export backup (JSON)</button><label class=btn>Import backup<input id=imp type=file accept=".json" hidden></label>`}
@@ -467,9 +471,9 @@ timer:({s,l})=>{startTimer(+s,l)},
 paid:()=>{const m=td().slice(0,7);S.paid[m]=!S.paid[m]},
 spend:()=>{const a=parseFloat($('#sa').value);if(!a)return false;S.tx.push({d:$('#sdt').value||td(),c:$('#sc').value,a,n:$('#sn').value})},
 txdel:({i})=>{S.tx.splice(+i,1)},
-todoadd:()=>{const t=$('#ta').value.trim();if(!t)return false;S.todo.push({t,due:$('#td').value,time:$('#tt2').value,dur:+$('#tdu').value||30,done:0})},
-todotog:({i})=>{S.todo[+i].done=S.todo[+i].done?0:1},
-tododel:({i})=>{S.todo.splice(+i,1)},
+todoadd:()=>{const t=$('#ta').value.trim();if(!t)return false;setTimeout(tflush,50);S.todo.push({id:tid(),sy:0,t,due:$('#td').value,time:$('#tt2').value,dur:+$('#tdu').value||30,done:0})},
+todotog:({i})=>{const x=S.todo[+i];x.done=x.done?0:1;x.sy=0;setTimeout(tflush,50)},
+tododel:({i})=>{const x=S.todo[+i];if(x.id&&x.sy)S.tdel.push(x.id);S.todo.splice(+i,1);setTimeout(tflush,50)},
 wx:({l,v,w})=>{S.wx[w]=S.wx[w]||{};S.wx[w][l]=Math.max(0,(S.wx[w][l]||0)+ +v)},
 revdone:({w})=>{S.rev[w]=S.rev[w]||{};S.rev[w].done=!S.rev[w].done},
 bp:({v})=>{bp=v},bd:({v})=>{bd=+v},
@@ -487,6 +491,8 @@ runback:()=>{R.i=Math.max(0,R.i-1);runStep()},
 runstop:()=>{R=null;T=null;S.timer=null;wake(false);location.hash=S.ctx?'#/r/'+S.ctx.r+'/'+S.ctx.d:'#/plan'},
 bind:({t,v})=>{(S.bind||(S.bind={}))[bkey(t)]=v;save();location.replace('#/'+v);return false},
 unbind:({t})=>{delete S.bind[bkey(t)];save()},
+own:()=>{S.own=S.own?0:1},
+tds:()=>{S.gcal.tds=S.gcal.tds?0:1;if(S.gcal.tds)S.todo.forEach(x=>x.sy=0)},
 copy:({v})=>{(navigator.clipboard?.writeText(v)||Promise.reject()).then(()=>alert('Link copied')).catch(()=>prompt('Copy this link',v));return false},
 cfgreset:({k})=>{if(confirm('Reset this section to defaults?'))S.cfg[k]=DEF.cfg[k]},
 export:()=>{dl('lifeos-backup-'+td()+'.json',JSON.stringify(S),'application/json');return false},
@@ -507,7 +513,7 @@ num:el=>{S.cfg[el.dataset.k]=+el.value}};
 document.addEventListener('click',e=>{unlock();const el=e.target.closest('[data-a]');if(!el)return;const f=A[el.dataset.a];if(f&&f(el.dataset,el)!==false){save();go()}});
 document.addEventListener('input',e=>{const f=I[e.target.dataset.c];if(f){f(e.target);save()}});
 document.addEventListener('change',e=>{if(e.target.id!=='imp')return;const f=e.target.files[0];if(!f)return;f.text().then(t=>{S=load(JSON.parse(t));save();go()}).catch(()=>alert('Invalid backup file'))});
-document.addEventListener('visibilitychange',()=>{if(!document.hidden){tick();if(T||B)wake(true);gsync(false);chk()}});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){tick();if(T||B)wake(true);gsync(false);tflush();chk()}});
 
 /* ---------- router ---------- */
 /* Google Calendar read sync (via your own tiny proxy) */
@@ -517,9 +523,16 @@ function toLocal(t){return t.isDate||!t.zone||t.zone===ICAL.Timezone.localTimezo
 function parseICS(txt){const comp=new ICAL.Component(ICAL.parse(txt));comp.getAllSubcomponents('vtimezone').forEach(z=>{try{ICAL.TimezoneService.register(z)}catch(e){}});
  const a=ICAL.Time.fromJSDate(new Date(Date.now()-7*864e5)),b=ICAL.Time.fromJSDate(new Date(Date.now()+70*864e5)),out=[],all=comp.getAllSubcomponents('vevent').map(v=>new ICAL.Event(v)),ms={};
  all.forEach(e=>{if(!e.isRecurrenceException())ms[e.uid]=e});all.forEach(e=>{if(e.isRecurrenceException()&&ms[e.uid])ms[e.uid].relateException(e)});
- const push=(st,en,e)=>{if((e.description||'').includes('#/r/'))return;out.push({t:e.summary||'(no title)',s:toLocal(st).getTime(),e:toLocal(en).getTime(),ad:!!st.isDate})};
+ const push=(st,en,e)=>{if(/#\/r\/|#lifeos-todo/.test(e.description||''))return;out.push({t:e.summary||'(no title)',s:toLocal(st).getTime(),e:toLocal(en).getTime(),ad:!!st.isDate})};
  Object.values(ms).forEach(e=>{if(e.isRecurring()){const it=e.iterator();let n,k=0;while((n=it.next())&&k++<800){if(n.compare(b)>0)break;if(n.compare(a)<0)continue;const d=e.getOccurrenceDetails(n);push(d.startDate,d.endDate,d.item)}}else if(e.startDate.compare(b)<=0&&e.endDate.compare(a)>=0)push(e.startDate,e.endDate,e)});
  return out}
+const tid=()=>Date.now().toString(32)+Math.random().toString(32).slice(2,6);let tbusy=0;
+async function tflush(){const g=S.gcal;if(tbusy||!g.proxy||!g.key||!g.tds)return;tbusy=1;
+ try{const u=new URL('todo',g.proxy.endsWith('/')?g.proxy:g.proxy+'/').href,H={'x-key':g.key,'content-type':'application/json'};
+  for(const d of (S.tdel||[]).slice()){const r=await fetch(u+'?id='+d,{method:'DELETE',headers:H});if(!r.ok&&r.status!==404)throw Error('HTTP '+r.status);S.tdel=S.tdel.filter(x=>x!==d);save()}
+  for(const x of S.todo){x.id=x.id||tid();if(x.due&&!x.sy){const r=await fetch(u,{method:'POST',headers:H,body:JSON.stringify({id:x.id,title:x.t,date:x.due,time:x.time||'',dur:x.dur||30,done:x.done?1:0,tz:Intl.DateTimeFormat().resolvedOptions().timeZone})});if(!r.ok)throw Error('HTTP '+r.status+' '+await r.text());x.sy=1;save()}}
+  g.terr=''}catch(e){g.terr=String(e.message||e)}tbusy=0;save();if(location.hash.includes('links'))go()}
+setTimeout(tflush,2500);
 async function gsync(force){const g=S.gcal;if(gbusy||!g.url||!g.proxy||(!force&&Date.now()-g.t<9e5))return;gbusy=true;
  try{await loadICAL();const r=await fetch(g.proxy+(g.proxy.includes('?')?'&':'?')+'u='+encodeURIComponent(g.url));if(!r.ok)throw Error('HTTP '+r.status);g.evs=parseICS(await r.text());g.t=Date.now();g.err=''}catch(e){g.err=String(e.message||e)}
  gbusy=false;save();go()}

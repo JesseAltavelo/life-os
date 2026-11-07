@@ -1,3 +1,7 @@
 name = "lifeos-cal"
 main = "worker.js"
 compatibility_date = "2025-01-01"
+
+[[kv_namespaces]]
+binding = "TOK"
+id = "REPLACE_KV"
