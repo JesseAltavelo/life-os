@@ -1,5 +1,5 @@
 'use strict';
-const BUILD='1794074931';
+const BUILD='1794075172';
 const $=s=>document.querySelector(s);
 const D=(d=new Date())=>new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
 const dow=s=>new Date(s+'T12:00').getDay()||7;
@@ -237,7 +237,7 @@ const hmm=m=>String(m/60|0).padStart(2,'0')+':'+String(Math.round(m%60)).padStar
 function extOn(ds){const a=new Date(ds+'T00:00').getTime(),b=a+864e5;return(S.gcal.evs||[]).filter(e=>e.s<b&&e.e>a).map(e=>({...e,sm:Math.max(0,(Math.max(e.s,a)-a)/6e4),em:(Math.min(e.e,b)-a)/6e4}))}
 const TR='#c0392b';
 function todoBar(ds,t){const l=S.todo.filter(x=>x.due&&(x.due===ds||(ds===t&&x.due<ds&&!x.done)));if(!l.length)return'';
- return`<div style="border-left:4px solid ${TR};background:var(--c);border-radius:10px;padding:4px 10px;margin:4px 0;max-height:88px;overflow-y:auto">`+l.map(x=>`<a href="#/t/${x.id}" style="display:flex;justify-content:space-between;gap:8px;color:inherit;text-decoration:none;font-size:14px;padding:3px 0;${x.done?'opacity:.5;text-decoration:line-through':''}"><span>${x.done?'✓ ':''}${esc(x.t)}</span><small style="${x.due<ds&&!x.done?'color:var(--r)':''}">${x.due<ds?'overdue':x.time||'all day'}</small></a>`).join('')+`</div>`}
+ return`<div style="margin:4px 0;max-height:96px;overflow-y:auto">`+l.map(x=>`<a href="#/t/${x.id}" style="display:flex;justify-content:space-between;align-items:center;gap:8px;color:inherit;text-decoration:none;font-size:14px;padding:6px 10px;margin:0 0 4px;background:var(--c);border-radius:10px;border-left:4px solid ${x.done?'#6b7280':TR};${x.done?'opacity:.55':''}"><span style="${x.done?'text-decoration:line-through':''}">${x.done?'✓ ':''}${esc(x.t)}</span><small style="display:inline;white-space:nowrap;${x.due<ds&&!x.done?'color:var(--r)':''}">${x.due<ds?'overdue':x.time||'all day'}</small></a>`).join('')+`</div>`}
 function conflicts(ds){return[];const o=[],xs=extOn(ds).filter(e=>!e.ad);occ(ds).forEach(r=>{const a=+r.start.slice(0,2)*60+ +r.start.slice(3),b=a+r.dur;xs.forEach(y=>{if(a<y.em&&y.sm<b)o.push(`${r.name} (${r.start}) overlaps "${y.t}" (${hmm(y.sm)}-${hmm(y.em)})`)})});return o}
 function grid(days){const t=D(),wk=days.length>1,nm=new Date(),nowM=nm.getHours()*60+nm.getMinutes(),z=Zv(),pos=q=>`left:calc(${q.c/q.n*100}% + 1px);width:calc(${100/q.n}% - 2px);top:calc(var(--z)*${q.s-360}px);height:max(calc(var(--z)*${q.e0-q.s}px - 1px),20px)`;
  let gut='';for(let i=0;i<=18;i++){gut+=`<span style="top:calc(var(--z)*${i*60}px)">${String(6+i).padStart(2,'0')}:00</span>`;if(z>=2&&i<18)gut+=`<span style="top:calc(var(--z)*${i*60+30}px);opacity:.6">${String(6+i).padStart(2,'0')}:30</span>`}
@@ -363,8 +363,8 @@ function vTodoD(id){const x=S.todo.find(y=>y.id===id);if(!x)return'<a href="#/pl
  const f=(k,ty,v)=>`<input data-c=tf data-id="${x.id}" data-k=${k} class=dt type=${ty} value="${esc(v||'')}">`,du=[15,30,45,60,90,120,180];if(!du.includes(+x.dur))du.push(+x.dur||30);
  return`<a href="#/plan">‹ Calendar</a><h1 style="${x.done?'text-decoration:line-through;opacity:.6':''}">${esc(x.t)}</h1><small>${x.due?x.due+(x.time?' at '+x.time+' · '+(x.dur||30)+' min':' · all day'):'No date'}${x.done?' · ✓ done':''}</small>
  <button class="btn ${x.done?'':'pri'}" data-a=todotogid data-id="${x.id}" style="display:block;width:100%;margin:10px 0">${x.done?'↩ Mark as not done':'✓ Mark as done'}</button>
- <h3>Description</h3><textarea data-c=tf data-id="${x.id}" data-k=desc rows=6 placeholder="Add details, links, notes..." style="font-family:inherit">${esc(x.desc||'')}</textarea>
  <h3>Edit</h3><small>Title</small><input data-c=tf data-id="${x.id}" data-k=t value="${esc(x.t)}"><small>Date</small>${f('due','date',x.due)}<small>Time (empty = all day)</small>${f('time','time',x.time)}<small>Duration</small><select data-c=tf data-id="${x.id}" data-k=dur>${du.sort((a,b)=>a-b).map(m=>`<option value=${m} ${m===+(x.dur||30)?'selected':''}>${m} min</option>`).join('')}</select>
+ <h3>Description</h3><textarea data-c=tf data-id="${x.id}" data-k=desc rows=6 placeholder="Add details, links, notes..." style="font-family:inherit">${esc(x.desc||'')}</textarea>
  <button class=btn data-a=tododelid data-id="${x.id}" style="margin-top:14px">Delete to-do</button>`}
 function vRtn(){return`<h1>My routines</h1><small>A routine is a list of steps you tick off, with an optional timer per step. Make one here, then link it to a Google Calendar event by tapping that event in the calendar.</small>`
  +routines().map(r=>`<div class=row><a href="#/r/${r.id}"><b>${esc(r.name)}</b><small>${r.steps.length} steps · ${r.dur} min</small></a><button class=btn data-a=rtndel data-n="${esc(r.name)}">✕</button></div>`).join('')
