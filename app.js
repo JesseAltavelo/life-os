@@ -1,5 +1,5 @@
 'use strict';
-const BUILD='1794078609';
+const BUILD='1794078694';
 const $=s=>document.querySelector(s);
 const D=(d=new Date())=>new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
 const dow=s=>new Date(s+'T12:00').getDay()||7;
@@ -598,7 +598,6 @@ function go(){const[p,...a]=(location.hash.slice(2)||'plan').split('/'),v=$('#v'
  $('#cx').style.display=S.ctx?'flex':'none';if(S.ctx)$('#cxl').textContent=S.ctx.label;
  tick();breath()}
 addEventListener('hashchange',()=>{go();scrollTo(0,0);scrollPlan()});
-try{new ResizeObserver(()=>{$('#v').style.paddingBottom='calc('+$('#dock').offsetHeight+'px + 104px + env(safe-area-inset-bottom))'}).observe($('#dock'))}catch(e){}
 const fixVp=()=>setTimeout(()=>{const y=scrollY;scrollTo(0,y+1);scrollTo(0,y)},120);
 const isTxt=e=>e.target&&/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName);
 document.addEventListener('focusin',e=>{if(isTxt(e))document.body.classList.add('kb')});
