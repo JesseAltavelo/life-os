@@ -1,5 +1,5 @@
 'use strict';
-const BUILD='1794071523';
+const BUILD='1794071539';
 const $=s=>document.querySelector(s);
 const D=(d=new Date())=>new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
 const dow=s=>new Date(s+'T12:00').getDay()||7;
@@ -426,7 +426,7 @@ function vExt(t,ds,edit){const b=bnd(t);if(b&&!edit){setTimeout(()=>location.rep
  +(b?`<button class=btn data-a=unbind data-t="${esc(t)}">Remove link</button> <a class=btn href="#/${b}">Open ${esc(tgName(b))} ›</a>`:'')
  +`<h3>Open it from Google Calendar</h3><small>Copy this link and paste it into the event's description in Google Calendar yourself. Opening it goes straight to the linked page.</small><button class="btn pri" data-a=copy data-v="${base()}#/x/${encodeURIComponent(t)}">Copy link</button>`}
 function vLinks(){const g=S.gcal,bs=Object.entries(S.bind||{});
- return`<h1>Google Calendar</h1><small>Read only. Life OS never creates or changes anything in Google Calendar.</small>
+ return`<h1>Google Calendar</h1><small>Life OS reads your events. The only thing it ever writes is your own to-dos, and only if you turn that on below.</small>
  <h3>Show my Google events here</h3>
  <ol style="color:var(--m);font-size:14px;padding-left:18px"><li>Google Calendar (computer) › Settings › your calendar › Integrate calendar › copy "Secret address in iCal format".</li><li>Paste it below, plus your proxy address (see the setup note).</li></ol>
  <input data-c=gc data-k=url value="${esc(g.url)}" placeholder="Secret address in iCal format"><input data-c=gc data-k=proxy value="${esc(g.proxy)}" placeholder="Proxy address, e.g. https://lifeos-cal.yourname.workers.dev/">
