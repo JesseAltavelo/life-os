@@ -10,10 +10,10 @@
 <style>
 :root{--bg:#0e1014;--c:#181b22;--c2:#262a36;--t:#eceff4;--m:#8b93a7;--g:#6ee7b7;--a:#fbbf24;--r:#f87171}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
-html,body{height:100%;margin:0}
-body{display:flex;flex-direction:column;height:100dvh;overflow:hidden;background:var(--bg);color:var(--t);font:16px/1.4 -apple-system,system-ui,sans-serif;padding-top:env(safe-area-inset-top);-webkit-text-size-adjust:100%}
-#v{flex:1;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;position:relative;padding:14px 14px 24px}
-#dock{flex:none;padding:0 10px}#dock>*{margin-top:6px}#dock>*:last-child{margin-bottom:6px}
+html{height:100%}body{margin:0}
+body{min-height:calc(100% + 2px);background:var(--bg);color:var(--t);font:16px/1.4 -apple-system,system-ui,sans-serif;padding-top:env(safe-area-inset-top);-webkit-text-size-adjust:100%}
+#v{padding:14px 14px 190px;max-width:640px;margin:auto}
+#dock{position:fixed;left:0;right:0;bottom:calc(58px + env(safe-area-inset-bottom));padding:0 10px;z-index:5;pointer-events:none}#dock>*{margin-top:6px;pointer-events:auto}
 a{color:var(--g)}
 h1{font-size:26px;margin:6px 0}h2{font-size:20px;margin:18px 0 8px}
 h3{font-size:13px;color:var(--m);text-transform:uppercase;letter-spacing:.06em;margin:18px 0 4px}
@@ -34,7 +34,7 @@ input,textarea,select{background:var(--c2);color:var(--t);border:0;border-radius
 textarea{font-family:ui-monospace,monospace;min-height:120px}
 .bar{height:8px;background:var(--c2);border-radius:4px;overflow:hidden;margin:4px 0}.bar i{display:block;height:100%;background:var(--g)}.bar i.o{background:var(--r)}
 .w{border-radius:12px;padding:10px 12px;margin:6px 0}.w.r{background:#4a1d1d}.w.a{background:#46380f}.w.i{background:#1c2d4a}
-nav{flex:none;display:flex;background:#12151b;padding-bottom:env(safe-area-inset-bottom);border-top:1px solid var(--c2)}
+nav{position:fixed;left:0;right:0;bottom:0;height:calc(58px + env(safe-area-inset-bottom));display:flex;background:#12151b;padding-bottom:env(safe-area-inset-bottom);z-index:6;border-top:1px solid var(--c2)}
 nav a{flex:1;text-align:center;padding:8px 0 6px;color:var(--m);text-decoration:none;font-size:12px}nav a.on{color:var(--g)}nav a b{display:block;font-size:20px}
 #tb,#cx{display:none;align-items:center;gap:8px;border-radius:14px;padding:8px 12px;font-weight:600}
 #tb{background:var(--g);color:#06251a}#cx{background:var(--a);color:#000}

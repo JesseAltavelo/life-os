@@ -501,16 +501,16 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden){tick();if
 /* ---------- router ---------- */
 const V={plan:vPlan,today:vPlan,b:vPlan,train:vTrain,fuel:vFuel,money:vMoney,more:vMore,life:vMore,mind:vMind,skill:vSkill,rel:()=>vHab('Relationships and play','Relationships'),meaning:()=>vHab('Meaning','Meaning',`<button class=btn data-a=timer data-s=900 data-l="Quiet moment">⏱ 15-min quiet</button>`),week:vWeek,todo:vTodo,links:vLinks,set:vSet,r:vRoutine,run:vRun,day:vDay};
 const SUB=['train','fuel','money','mind','skill','rel','meaning','week','todo','links','set'];
-function scrollPlan(){const g=$('.grid');if(!g)return;const n=new Date(),m=sel===D()?n.getHours()*60+n.getMinutes():420;$('#v').scrollTop=g.offsetTop+Math.max(0,m-360-80)}
-function go(){const[p,...a]=(location.hash.slice(2)||'plan').split('/'),v=$('#v'),st=v.scrollTop;CTA='';
+function scrollPlan(){const g=$('.grid');if(!g)return;const n=new Date(),m=sel===D()?n.getHours()*60+n.getMinutes():420;scrollTo(0,g.offsetTop+Math.max(0,m-360-80))}
+function go(){const[p,...a]=(location.hash.slice(2)||'plan').split('/'),v=$('#v'),st=scrollY;CTA='';
  if(p==='r'&&S.ctx){S.ctx=null;save()}
  try{v.innerHTML=(SUB.includes(p)?'<a href="#/more">‹ More</a>':'')+(V[p]||vPlan)(...a.map(decodeURIComponent))}catch(e){v.innerHTML=`<h1>Error</h1><p>${esc(e.message)}</p><a href="#/set">Open Settings to fix a config</a>`}
- v.scrollTop=st;$('#ctaw').innerHTML=CTA;
+ scrollTo(0,st);$('#ctaw').innerHTML=CTA;
  const nav=['plan','today','b','r','run','day'].includes(p)?'plan':'more';
  document.querySelectorAll('nav a').forEach(x=>x.classList.toggle('on',x.dataset.p===nav));
  $('#cx').style.display=S.ctx?'flex':'none';if(S.ctx)$('#cxl').textContent=S.ctx.label;
  tick();breath()}
-addEventListener('hashchange',()=>{go();$('#v').scrollTop=0;scrollPlan()});
+addEventListener('hashchange',()=>{go();scrollTo(0,0);scrollPlan()});
 setInterval(tick,250);setInterval(breath,100);
 
 /* data safety + silent updates */
