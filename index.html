@@ -45,9 +45,10 @@ nav a{flex:1;text-align:center;padding:8px 0 6px;color:var(--m);text-decoration:
 .strip{display:flex;gap:4px;margin:6px 0}.strip button{flex:1;background:var(--c);border:0;color:var(--t);border-radius:10px;padding:6px 0;font:inherit}
 .strip .dd small{text-align:center;font-size:11px}.strip .dd.on{background:var(--g);color:#06251a}.strip .dd.on small{color:#06251a}.strip .dd.td b{text-decoration:underline}
 .ctl{display:flex;align-items:center;gap:8px}.ctl>span{width:44px;font-weight:600}.ctl .seg{flex:1;margin:4px 0}
-.grid{display:flex;position:relative;height:1080px;margin-top:8px}.gut{width:38px;position:relative;flex:none}.gut span{position:absolute;font-size:10px;color:var(--m);transform:translateY(-6px)}
-.cols{flex:1;display:flex;border-left:1px solid var(--c2);background:repeating-linear-gradient(var(--c2) 0 1px,transparent 1px 60px)}.col{flex:1;position:relative;border-right:1px solid var(--c2)}
+.grid{display:flex;position:relative;height:calc(var(--z,1)*1080px);margin-top:8px;touch-action:pan-y}.gut{width:38px;position:relative;flex:none}.gut span{position:absolute;font-size:10px;color:var(--m);transform:translateY(-6px)}
+.cols{flex:1;display:flex;border-left:1px solid var(--c2);background:repeating-linear-gradient(var(--c2) 0 1px,transparent 1px calc(var(--z,1)*60px))}.col{flex:1;position:relative;border-right:1px solid var(--c2)}
 .ev{position:absolute;border-radius:6px;padding:2px 4px;font-size:11px;overflow:hidden;color:#fff;text-decoration:none;line-height:1.2;border-left:3px solid}.ev.dn{opacity:.45}
+.ev.ext{background:repeating-linear-gradient(45deg,#3a3f4d 0 6px,#2f3340 6px 12px);border-color:#9aa3b8;color:#dde3f0}
 .grid.wk .ev{font-size:9px;padding:1px 2px}
 .now{position:absolute;left:0;right:0;height:2px;background:var(--r);z-index:2}
 .step{display:flex;gap:10px;align-items:center;background:var(--c);border-radius:14px;padding:12px;margin:8px 0}.step.dn{opacity:.45}.step.cur{outline:2px solid var(--g)}
@@ -65,4 +66,4 @@ nav a{flex:1;text-align:center;padding:8px 0 6px;color:var(--m);text-decoration:
 <div id="tb"><span id="tl" style="flex:1"></span><b id="tt"></b><button data-a="tadd" data-s="-15">−15</button><button data-a="tadd" data-s="15">+15</button><button data-a="tskip">Skip</button></div>
 <div id="ctaw"></div></div>
 <nav><a href="#/plan" data-p="plan"><b>📅</b>Calendar</a><a href="#/more" data-p="more"><b>☰</b>More</a></nav>
-<script src="app.js"></script></body></html>
+<script src="app.js?b=1794065066"></script></body></html>
