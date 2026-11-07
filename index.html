@@ -1,0 +1,48 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Life OS">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0e1014">
+<link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" href="icon-180.png">
+<title>Life OS</title>
+<style>
+:root{--bg:#0e1014;--c:#181b22;--c2:#262a36;--t:#eceff4;--m:#8b93a7;--g:#6ee7b7;--a:#fbbf24;--r:#f87171}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--t);font:16px/1.4 -apple-system,system-ui,sans-serif;padding-top:env(safe-area-inset-top)}
+#v{padding:14px 14px 150px;max-width:640px;margin:auto}
+a{color:var(--g)}
+h1{font-size:26px;margin:6px 0}h2{font-size:20px;margin:18px 0 8px}
+h3{font-size:13px;color:var(--m);text-transform:uppercase;letter-spacing:.06em;margin:18px 0 4px}
+.card{background:var(--c);border-radius:14px;padding:12px;margin:8px 0}
+.row{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--c2)}
+.row a{flex:1;color:inherit;text-decoration:none}
+small{color:var(--m);font-size:13px;display:block}
+.ck{width:28px;height:28px;border-radius:50%;border:2px solid var(--m);background:none;flex:none;padding:0;color:#06251a;font-size:16px}
+.ck.on{background:var(--g);border-color:var(--g)}.ck.on::after{content:"✓"}
+.btn{display:inline-block;background:var(--c2);color:var(--t);border:0;border-radius:10px;padding:10px 14px;font:inherit;margin:3px 3px 3px 0;text-decoration:none}
+.btn.pri{background:var(--g);color:#06251a;font-weight:600}
+.chip{display:inline-block;background:var(--c2);border-radius:20px;padding:4px 12px;font-size:13px;margin:2px 0 6px;color:var(--t);text-decoration:none}
+.seg{display:flex;background:var(--c);border-radius:12px;padding:3px;margin:8px 0}
+.seg button{flex:1;background:none;border:0;color:var(--m);padding:9px 2px;border-radius:10px;font:inherit;font-size:14px}
+.seg button.on{background:var(--g);color:#06251a;font-weight:600}
+input,textarea,select{background:var(--c2);color:var(--t);border:0;border-radius:8px;padding:9px;font:inherit;width:100%;margin:2px 0}
+textarea{font:13px/1.35 ui-monospace,monospace;min-height:120px}
+.bar{height:8px;background:var(--c2);border-radius:4px;overflow:hidden;margin:4px 0}.bar i{display:block;height:100%;background:var(--g)}.bar i.o{background:var(--r)}
+.w{border-radius:12px;padding:10px 12px;margin:6px 0}.w.r{background:#4a1d1d}.w.a{background:#46380f}.w.i{background:#1c2d4a}
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:rgba(18,21,27,.95);backdrop-filter:blur(12px);padding-bottom:env(safe-area-inset-bottom);border-top:1px solid var(--c2)}
+nav a{flex:1;text-align:center;padding:8px 0 6px;color:var(--m);text-decoration:none;font-size:11px}nav a.on{color:var(--g)}nav a b{display:block;font-size:20px}
+#tb{position:fixed;left:10px;right:10px;bottom:calc(64px + env(safe-area-inset-bottom));background:var(--g);color:#06251a;border-radius:14px;padding:8px 12px;display:none;align-items:center;gap:8px;font-weight:600;z-index:5}
+#tb button{background:rgba(0,0,0,.15);border:0;border-radius:8px;padding:6px 9px;font:inherit;color:inherit}
+.set{display:grid;grid-template-columns:24px 1fr 1fr 1fr 34px;gap:6px;align-items:center;margin:4px 0;text-align:center}
+.set input{text-align:center}
+.cur{border-left:3px solid var(--g);padding-left:8px}
+.big{font-size:64px;font-weight:700;text-align:center;margin:10px 0}
+#bc{width:200px;height:200px;border-radius:50%;background:var(--g);margin:30px auto;opacity:.85;transform:scale(.6)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chips button{background:var(--c2);border:0;color:var(--t);border-radius:20px;padding:7px 12px;font:inherit;font-size:14px}.chips button.on{background:var(--g);color:#06251a}.chips button.over{background:var(--a);color:#000}
+</style></head><body>
+<div id="v"></div>
+<div id="tb"><span id="tl" style="flex:1"></span><b id="tt"></b><button data-a="tadd" data-s="-15">−15</button><button data-a="tadd" data-s="15">+15</button><button data-a="tskip">Skip</button></div>
+<nav><a href="#/today" data-p="today"><b>🏠</b>Today</a><a href="#/train" data-p="train"><b>🏋️</b>Train</a><a href="#/fuel" data-p="fuel"><b>🍽️</b>Fuel</a><a href="#/money" data-p="money"><b>💶</b>Money</a><a href="#/more" data-p="more"><b>⋯</b>More</a></nav>
+<script src="app.js"></script></body></html>
