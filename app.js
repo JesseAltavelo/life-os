@@ -1,5 +1,5 @@
 'use strict';
-const BUILD='1794065066';
+const BUILD='1794070281';
 const $=s=>document.querySelector(s);
 const D=(d=new Date())=>new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
 const dow=s=>new Date(s+'T12:00').getDay()||7;
@@ -19,7 +19,7 @@ const td=()=>D();
 
 /* ---------- defaults (everything is editable in Life > Settings) ---------- */
 const VER=4;
-const DEF={v:VER,start:D(),mode:{},wmode:{},short:{},chk:{},water:{},steps:{},port:{},ing:{},z:1,notes:{},gcal:{url:'',proxy:'',t:0,evs:[],err:''},supp:{},hab:{},jr:{},med:{},todo:[],log:[],active:null,tx:[],paid:{},rev:{},wx:{},timer:null,ctx:null,
+const DEF={v:VER,start:D(),mode:{},wmode:{},short:{},chk:{},water:{},steps:{},port:{},ing:{},z:1,bind:{},notes:{},gcal:{url:'',proxy:'',t:0,evs:[],err:''},supp:{},hab:{},jr:{},med:{},todo:[],log:[],active:null,tx:[],paid:{},rev:{},wx:{},timer:null,ctx:null,
 cfg:{
 income:0,invest:0,waterT:2500,stepsT:10000,stepsMin:8000,
 themes:`1|Money: investing basics, tax, index funds. Check auto-invest.|Finance and business|Push|
@@ -321,7 +321,7 @@ function grid(days){const t=D(),wk=days.length>1,nm=new Date(),nowM=nm.getHours(
  ev.forEach(q=>{q.cf=xs.some(y=>q.s<y.e0&&y.s<q.e0)});layout([...ev,...xs]);
  return`<div class=col>`+ev.map(q=>{const r=q.r,st=stepsOf(r,ds),dn=st.filter(s=>isDone(ds,r,s)).length,all=st.length&&dn===st.length;
  return`<a class="ev ${all?'dn':''}" href="#/r/${r.id}/${ds}" style="${pos(q)};background:hsl(${r.hue} 45% 24%);border-color:hsl(${r.hue} 70% 60%)"><b>${all?'✓ ':''}${q.cf?'⚠ ':''}${esc(r.name)}</b>${wk?'':`<br>${r.start} · ${dn}/${st.length}`}</a>`}).join('')
- +xs.map(q=>`<div class="ev ext" style="${pos(q)}"><b>${esc(q.x.t)}</b>${wk?'':`<br>${hmm(q.x.sm)}-${hmm(q.x.em)}`}</div>`).join('')+(ds===t?`<i class=now style="top:calc(var(--z)*${nowM-360}px)"></i>`:'')+`</div>`}).join('')+`</div></div>`}
+ +xs.map(q=>`<a class="ev ext" href="#/x/${encodeURIComponent(q.x.t)}/${ds}" style="${pos(q)}"><b>${bnd(q.x.t)?'🔗 ':''}${esc(q.x.t)}</b>${wk?'':`<br>${hmm(q.x.sm)}-${hmm(q.x.em)}`}</a>`).join('')+(ds===t?`<i class=now style="top:calc(var(--z)*${nowM-360}px)"></i>`:'')+`</div>`}).join('')+`</div></div>`}
 
 function minOk(ds){const d=dow(ds);return routines().filter(r=>r.ess&&r.days.includes(d)).every(r=>r.steps.filter(s=>s.short).every(x=>S.chk[ds]?.[key(r,x)]))}
 function wsum(ws){const t=D(),ds=wdays(ws).filter(d=>d<=t&&d>=S.start),rows=lines(S.cfg.wk).map(l=>{const[n,c,m,src]=l.split('|').map(x=>x.trim());return{n,c:+c||0,m:+m||0,src:src||'x',v:cnt(src||'x',ws,n),vm:cnt(src||'x',ws,n,true)}});
@@ -405,15 +405,25 @@ function vWeek(w){const t=D(),cw=weekStart(t),ws=w||cw,sm=wsum(ws),r=S.rev[ws]||
 function vTodo(){const t=D(),a=S.todo.map((x,i)=>({...x,i})).sort((p,q)=>(p.done-q.done)||((p.due||'9')<(q.due||'9')?-1:1));
  return`<h1>To-dos</h1><div class=card><input id=ta placeholder="New task"><input id=td type=date><button class="btn pri" data-a=todoadd>Add</button></div>`+a.map(x=>`<div class=row><button class="ck ${x.done?'on':''}" data-a=todotog data-i=${x.i}></button><span style="flex:1;${x.done?'opacity:.4;text-decoration:line-through':''}">${esc(x.t)}<small style="${x.due&&x.due<t&&!x.done?'color:var(--r)':''}">${x.due||''}</small></span><button class=btn data-a=tododel data-i=${x.i}>✕</button></div>`).join('')}
 
-function vLinks(){const g=S.gcal;
- return`<h1>Google Calendar</h1><h3>Life OS → Google Calendar</h3><small>Puts your routines in Google Calendar. The first line of every event is a link that opens that routine here.</small>
- <ol style="color:var(--m);font-size:14px;padding-left:18px"><li>On a computer: Google Calendar › Settings › Add calendar › Create new calendar. Name it "Life OS".</li><li>Download the file below.</li><li>Settings › Import and export › Import. Choose the file and pick the "Life OS" calendar.</li><li>Changed a routine? Download and import again. Events update instead of duplicating.</li></ol>
- <button class="btn pri" data-a=ics>Download routines (.ics)</button>
- <h3>Google Calendar → Life OS</h3><small>Shows your own events (appointments, one-offs) greyed out on the calendar and warns when one overlaps a routine. Read only.</small>
+const bkey=t=>String(t).trim().toLowerCase(),bnd=t=>(S.bind||{})[bkey(t)];
+const TG=()=>[...routines().map(r=>['r/'+r.id,r.start+' '+r.name]),['train','Workout'],['fuel','Diet and water'],['money','Budget'],['mind','Mind'],['skill','Skill'],['rel','Relationships'],['meaning','Meaning'],['week','Weeks'],['todo','To-dos']];
+const tgName=v=>(TG().find(x=>x[0]===v)||[0,v])[1];
+function vExt(t,ds,edit){const b=bnd(t);if(b&&!edit){setTimeout(()=>location.replace('#/'+b),0);return'<p>Opening…</p>'}
+ const e=extOn(ds||D()).find(x=>x.t===t),when=e?(e.ad?'All day':hmm(e.sm)+'-'+hmm(e.em)):'';
+ return`<a href="#/plan">‹ Calendar</a><h1>${esc(t)}</h1><small>Google Calendar event${when?' · '+when:''}. Read only: nothing is ever written to Google Calendar.</small>
+ <h3>Link this event to</h3><small>Applies to every event called "${esc(t)}".</small>`+TG().map(x=>`<div class=row><span style="flex:1">${esc(x[1])}</span><button class="btn ${b===x[0]?'pri':''}" data-a=bind data-t="${esc(t)}" data-v="${x[0]}">${b===x[0]?'✓ Linked':'Link'}</button></div>`).join('')
+ +(b?`<button class=btn data-a=unbind data-t="${esc(t)}">Remove link</button> <a class=btn href="#/${b}">Open ${esc(tgName(b))} ›</a>`:'')
+ +`<h3>Open it from Google Calendar</h3><small>Copy this link and paste it into the event's description in Google Calendar yourself. Opening it goes straight to the linked page.</small><button class="btn pri" data-a=copy data-v="${base()}#/x/${encodeURIComponent(t)}">Copy link</button>`}
+function vLinks(){const g=S.gcal,bs=Object.entries(S.bind||{});
+ return`<h1>Google Calendar</h1><small>Read only. Life OS never creates or changes anything in Google Calendar.</small>
+ <h3>Show my Google events here</h3>
  <ol style="color:var(--m);font-size:14px;padding-left:18px"><li>Google Calendar (computer) › Settings › your calendar › Integrate calendar › copy "Secret address in iCal format".</li><li>Paste it below, plus your proxy address (see the setup note).</li></ol>
  <input data-c=gc data-k=url value="${esc(g.url)}" placeholder="Secret address in iCal format"><input data-c=gc data-k=proxy value="${esc(g.proxy)}" placeholder="Proxy address, e.g. https://lifeos-cal.yourname.workers.dev/">
  <button class=btn data-a=gsync>↻ Sync now</button><small>${g.t?'Last synced '+new Date(g.t).toTimeString().slice(0,5)+' · '+g.evs.length+' upcoming events':'Not synced yet'}${g.err?' · Error: '+esc(g.err):''}</small>
- <h3>Copy a link for any routine</h3>`+routines().map(r=>`<div class=row><span style="flex:1">${r.start} ${esc(r.name)}<small>${r.days.split('').map(d=>DN[d]).join(' ')}</small></span><button class=btn data-a=copy data-v="${base()}#/r/${r.id}">Copy</button></div>`).join('')}
+ <h3>Linked events</h3><small>Tap a grey Google event on the calendar to link it to a routine or page. Linked events show 🔗 and open that page when tapped.</small>`
+ +(bs.length?bs.map(([k,v])=>`<div class=row><span style="flex:1">${esc(k)}<small>→ ${esc(tgName(v))}</small></span><a class=btn href="#/xe/${encodeURIComponent(k)}">Change</a></div>`).join(''):'<small>None yet.</small>')
+ +`<h3>Copy a link for any routine</h3>`+routines().map(r=>`<div class=row><span style="flex:1">${r.start} ${esc(r.name)}<small>${r.days.split('').map(d=>DN[d]).join(' ')}</small></span><button class=btn data-a=copy data-v="${base()}#/r/${r.id}">Copy</button></div>`).join('')}
+
 
 const CF=[['routines','Routines (calendar events)','# name|start|minutes|days 1-7|unused, leave blank|essential 1/0|colour 0-360, then steps: title|minutes|link|short version (* = keep, number = minutes, blank = skipped). Links: fuel money mind skill rel meaning train week todo spotify flow:Name. Titles can use {learn} {audio} {train}.'],['flows','Guided flows','# Name, then step|seconds'],['themes','Day themes','day 1-7|learn|audio|train template name|spotify link'],['tpl','Workout templates','# Name, then exercise|sets|reps|rest sec'],['diet','Diet plan','# Meal|time, then: ingredient|amount (g or ml)|protein g|carbs g|fat g. Calories are calculated.'],['cats','Budget categories','Name|monthly limit €'],['wk','Weekly targets','label|full target|minimum target|source: lift steps water diet med jr rev r:routine-id (join several with +) x(manual +/- counter)']];
 const NF=[['income','Monthly income €'],['invest','Auto-invest €/month'],['waterT','Water target ml'],['stepsT','Steps target'],['stepsMin','Steps minimum']];
@@ -467,17 +477,13 @@ cancel:()=>{if(confirm('Discard this workout?')){S.active=null;T=null;S.timer=nu
 logdel:({i})=>{if(confirm('Delete this workout?'))S.log.splice(+i,1)},
 runback:()=>{R.i=Math.max(0,R.i-1);runStep()},
 runstop:()=>{R=null;T=null;S.timer=null;wake(false);location.hash=S.ctx?'#/r/'+S.ctx.r+'/'+S.ctx.d:'#/plan'},
+bind:({t,v})=>{(S.bind||(S.bind={}))[bkey(t)]=v;save();location.replace('#/'+v);return false},
+unbind:({t})=>{delete S.bind[bkey(t)];save()},
 copy:({v})=>{(navigator.clipboard?.writeText(v)||Promise.reject()).then(()=>alert('Link copied')).catch(()=>prompt('Copy this link',v));return false},
 cfgreset:({k})=>{if(confirm('Reset this section to defaults?'))S.cfg[k]=DEF.cfg[k]},
 export:()=>{dl('lifeos-backup-'+td()+'.json',JSON.stringify(S),'application/json');return false},
-ics:()=>{ics();return false},
 refresh:async()=>{try{(await navigator.serviceWorker.getRegistrations()).forEach(r=>r.unregister());(await caches.keys()).forEach(k=>caches.delete(k))}catch(e){}location.replace(location.pathname+'?u='+Date.now()+location.hash);return false}};
 const dl=(n,t,ty)=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:ty}));a.download=n;a.click()};
-function ics(){const b0=base(),BY=['','MO','TU','WE','TH','FR','SA','SU'],e=s=>s.replace(/[\\;,]/g,'\\$&').replace(/\n/g,'\\n'),hm=m=>{m=Math.min(m,1439);return String(m/60|0).padStart(2,'0')+String(m%60).padStart(2,'0')+'00'},stamp=new Date().toISOString().replace(/[-:]/g,'').slice(0,15)+'Z';
- let o='BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//LifeOS//EN\r\n';
- routines().forEach(r=>{const ds=[...r.days].map(Number);let a=D();while(!ds.includes(dow(a)))a=addD(a,1);const s=+r.start.slice(0,2)*60+ +r.start.slice(3),link=b0+'#/r/'+r.id,day=a.replace(/-/g,'');
- o+=`BEGIN:VEVENT\r\nUID:${r.id}@lifeos\r\nSEQUENCE:${Math.floor(Date.now()/864e5)}\r\nDTSTAMP:${stamp}\r\nDTSTART:${day}T${hm(s)}\r\nDTEND:${day}T${hm(s+r.dur)}\r\nRRULE:FREQ=WEEKLY;BYDAY=${ds.map(d=>BY[d]).join(',')}\r\nSUMMARY:${e(r.name)}\r\nDESCRIPTION:${e('Open in Life OS: '+link+'\n\n'+r.steps.map(x=>'- '+stripE(x.raw)).join('\n'))}\r\nURL:${link}\r\nEND:VEVENT\r\n`});
- dl('life-os-routines.ics',o+'END:VCALENDAR\r\n','text/calendar')}
 
 const I={
 w:el=>{S.active.ex[+el.dataset.x].s[+el.dataset.s].w=el.value},
@@ -516,7 +522,7 @@ document.addEventListener('touchstart',e=>{const g=$('.grid');if(g&&e.touches.le
 document.addEventListener('touchmove',e=>{if(!pz||e.touches.length!==2)return;e.preventDefault();S.z=clampZ(pz.z*pd(e.touches)/pz.d);document.documentElement.style.setProperty('--z',S.z);scrollTo(0,$('.grid').offsetTop+pz.m*S.z-pz.my)},{passive:false});
 document.addEventListener('touchend',e=>{if(pz&&e.touches.length<2){pz=null;save();go()}});
 
-const V={plan:vPlan,today:vPlan,b:vPlan,train:vTrain,fuel:vFuel,money:vMoney,more:vMore,life:vMore,mind:vMind,skill:vSkill,rel:()=>vNotes('Relationships and play','rel','Date ideas, things to talk about, friends to call, gift ideas. Your time together lives in the calendar routines.'),meaning:()=>vNotes('Meaning','meaning','What matters to you, reflections, gratitude, ways to help others.',`<button class=btn data-a=timer data-s=900 data-l="Quiet moment">⏱ 15-min quiet</button>`),week:vWeek,todo:vTodo,links:vLinks,set:vSet,r:vRoutine,run:vRun,day:vDay};
+const V={x:(t,d)=>vExt(t,d),xe:(t,d)=>vExt(t,d,1),plan:vPlan,today:vPlan,b:vPlan,train:vTrain,fuel:vFuel,money:vMoney,more:vMore,life:vMore,mind:vMind,skill:vSkill,rel:()=>vNotes('Relationships and play','rel','Date ideas, things to talk about, friends to call, gift ideas. Your time together lives in the calendar routines.'),meaning:()=>vNotes('Meaning','meaning','What matters to you, reflections, gratitude, ways to help others.',`<button class=btn data-a=timer data-s=900 data-l="Quiet moment">⏱ 15-min quiet</button>`),week:vWeek,todo:vTodo,links:vLinks,set:vSet,r:vRoutine,run:vRun,day:vDay};
 const SUB=['train','fuel','money','mind','skill','rel','meaning','week','todo','links','set'];
 function scrollPlan(){const g=$('.grid');if(!g)return;const n=new Date(),m=sel===D()?n.getHours()*60+n.getMinutes():420;scrollTo(0,g.offsetTop+Math.max(0,m-360-80))}
 function go(){const[p,...a]=(location.hash.slice(2)||'plan').split('/'),v=$('#v'),st=scrollY;CTA='';document.documentElement.style.setProperty('--z',Zv());
