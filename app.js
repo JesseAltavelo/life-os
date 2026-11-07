@@ -1,5 +1,5 @@
 'use strict';
-const BUILD='1794077088';
+const BUILD='1794077251';
 const $=s=>document.querySelector(s);
 const D=(d=new Date())=>new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
 const dow=s=>new Date(s+'T12:00').getDay()||7;
@@ -425,7 +425,7 @@ function vGuide(){const g=S.gcal,w=(g.proxy||'https://YOUR-WORKER.workers.dev/')
 function vLinks(){const g=S.gcal,bs=Object.entries(S.bind||{});
  return`<h1>Google Calendar</h1><small>Link a Google event to a page, routine or flow. Life OS only reads your events.</small>
  <h3>Colours by type</h3><small>Every linked event takes the colour of its type.</small>`
- +TG().map(x=>`<div style="margin:8px 0"><small>${esc(x[1])}</small><div class=chips>`+HUES.map(h=>`<button data-a=tcol data-v="${x[0]}" data-h=${h} style="background:hsl(${h} 60% 55%);${typeHue(x[0])===h?'outline:2px solid var(--t);outline-offset:1px':''}">&nbsp; &nbsp;</button>`).join('')+`</div></div>`).join('')
+ +TG().map(x=>`<div style="margin:8px 0"><small>${esc(x[1])}</small><div style="display:flex;gap:8px;margin-top:4px">`+HUES.map(h=>`<button data-a=tcol data-v="${x[0]}" data-h=${h} aria-label="Colour ${h}" style="flex:none;width:26px;height:26px;padding:0;border:0;border-radius:50%;background:hsl(${h} 60% 55%);${typeHue(x[0])===h?'outline:2px solid var(--t);outline-offset:2px':''}"></button>`).join('')+`</div></div>`).join('')
  +`<h3>Linked events</h3><small>Tap a grey Google event on the calendar to open it and link it. Change or remove a link there.</small>`
  +(bs.length?bs.map(([k,v])=>`<div class=row><span style="width:12px;height:12px;border-radius:50%;background:hsl(${typeHue(v)} 55% 50%);flex:none"></span><span style="flex:1">${esc((S.bname||{})[k]||k.replace(/^[un]:/,''))}<small>${esc(tgName(v))}</small></span><a class=btn href="#/xd/${encodeURIComponent(k)}/${D()}">Change</a></div>`).join(''):'<small>None yet.</small>')
  +`<h3>Copy a link for any routine</h3>`+(routines().map(r=>`<div class=row><span style="flex:1">${esc(r.name)}</span><button class=btn data-a=copy data-v="${base()}#/r/${r.id}">Copy</button></div>`).join('')||'<small>No routines yet.</small>')
