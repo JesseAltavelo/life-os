@@ -1,5 +1,5 @@
 'use strict';
-const BUILD='1794077251';
+const BUILD='1794077392';
 const $=s=>document.querySelector(s);
 const D=(d=new Date())=>new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
 const dow=s=>new Date(s+'T12:00').getDay()||7;
@@ -373,12 +373,12 @@ const TG=()=>[['train','Workout (gym tracker)'],['fuel','Diet and water'],['mone
 const tgName=v=>(TG().find(x=>x[0]===v)||[0,v])[1];
 function vExt(k,ds,rd){const e=extOn(ds||D()).find(x=>evKey(x)===k)||(S.gcal.evs||[]).find(x=>evKey(x)===k)||{t:(S.bname||{})[k]||k.replace(/^[un]:/,''),u:k.startsWith('u:')?k.slice(2):''},b=(S.bind||{})[k]||bndE(e);
  if(b&&rd){setTimeout(()=>location.replace('#/'+b),0);return'<p>Opening…</p>'}
- const when=e.sm!=null?(e.ad?'All day':hmm(e.sm)+'-'+hmm(e.em)):'',t=esc(e.t),kk=esc(k);
- return`<a href="#/plan">‹ Calendar</a><h1>${t}</h1><small>Google Calendar event${when?' · '+when:''}${e.rc?' · repeats: a link applies to this whole repeating event, nothing else':''}. Life OS never changes it.</small>`
+ const when=e.sm!=null?(e.ad?'All day':hmm(e.sm)+'-'+hmm(e.em)):'',t=esc(e.t),tg=TG(),grp=(l,f)=>{const o=tg.filter(x=>f(x[0]));return o.length?`<optgroup label="${l}">`+o.map(x=>`<option value="${esc(x[0])}" ${b===x[0]?'selected':''}>${esc(x[1].replace(/^(My routine|Guided flow|Workout): /,''))}</option>`).join('')+'</optgroup>':''};
+ return`<a href="#/plan">‹ Calendar</a><h1>${t}</h1><small>Google Calendar event${when?' · '+when:''}${e.rc?' · repeating: the link applies to every occurrence of this event':''}</small>`
  +(e.d?`<div class=card style="white-space:pre-wrap;font-size:14px">${esc(e.d)}</div>`:'')
- +(b?`<div class=card style="border-left:4px solid hsl(${typeHue(b)} 70% 55%)">Linked to <b>${esc(tgName(b))}</b><br><a class="btn pri" href="#/${b}">Open ${esc(tgName(b))} ›</a><button class=btn data-a=unbind data-k="${kk}" data-n="${t}">Remove link</button></div>`:'<small>Not linked yet. Pick a type below. Its colour then shows on the calendar.</small>')
- +`<h3>${b?'Change link':'Link this event to'}</h3>`+TG().map(x=>`<div class=row><span style="flex:1">${esc(x[1])}</span><button class="btn ${b===x[0]?'pri':''}" data-a=bind data-k="${kk}" data-n="${t}" data-v="${x[0]}">${b===x[0]?'✓ Linked':'Link'}</button></div>`).join('')
- +`<h3>Open it from Google Calendar</h3><small>Paste this link in the event's description in Google Calendar yourself. Opening it goes straight to the linked page.</small><button class="btn pri" data-a=copy data-v="${base()}#/x/${encodeURIComponent(k)}">Copy link</button>`}
+ +`<h3>What should this event open?</h3><select data-c=bsel data-k="${esc(k)}" data-n="${t}"><option value="">Nothing (not linked)</option>${grp('Pages',v=>!/^(r|f|tr)\//.test(v))}${grp('My routines',v=>v.startsWith('r/'))}${grp('Guided flows',v=>v.startsWith('f/'))}${grp('Workouts',v=>v.startsWith('tr/'))}</select>`
+ +(b?`<div class=card style="border-left:4px solid hsl(${typeHue(b)} 60% 50%)"><small>Linked to</small><b style="font-weight:500">${esc(tgName(b))}</b><a class="btn pri" href="#/${b}" style="margin-top:8px">Open now ›</a><small>Tapping this event on the calendar opens its page. The colour comes from the type, change it in More › Google Calendar sync › Colours by type.</small></div>`:'<small>Not linked yet, so it stays grey on the calendar.</small>')
+ +`<h3>Link for Google Calendar</h3><small>Optional: paste this into the event's description in Google Calendar yourself, and the link opens the linked page.</small><button class=btn data-a=copy data-v="${base()}#/x/${encodeURIComponent(k)}">Copy link</button>`}
 function vTodoD(id){const x=S.todo.find(y=>y.id===id);if(!x)return'<a href="#/plan">‹ Calendar</a><p>To-do not found.</p>';
  const f=(k,ty,v)=>`<input data-c=tf data-id="${x.id}" data-k=${k} class=dt type=${ty} value="${esc(v||'')}">`,du=[15,30,45,60,90,120,180];if(!du.includes(+x.dur))du.push(+x.dur||30);
  return`<a href="#/plan">‹ Calendar</a><h1 style="${x.done?'text-decoration:line-through;opacity:.6':''}">${esc(x.t)}</h1><small>${x.due?x.due+(x.time?' at '+x.time+' · '+(x.dur||30)+' min':' · all day'):'No date'}${x.done?' · ✓ done':''}</small>
@@ -426,8 +426,8 @@ function vLinks(){const g=S.gcal,bs=Object.entries(S.bind||{});
  return`<h1>Google Calendar</h1><small>Link a Google event to a page, routine or flow. Life OS only reads your events.</small>
  <h3>Colours by type</h3><small>Every linked event takes the colour of its type.</small>`
  +TG().map(x=>`<div style="margin:8px 0"><small>${esc(x[1])}</small><div style="display:flex;gap:8px;margin-top:4px">`+HUES.map(h=>`<button data-a=tcol data-v="${x[0]}" data-h=${h} aria-label="Colour ${h}" style="flex:none;width:26px;height:26px;padding:0;border:0;border-radius:50%;background:hsl(${h} 60% 55%);${typeHue(x[0])===h?'outline:2px solid var(--t);outline-offset:2px':''}"></button>`).join('')+`</div></div>`).join('')
- +`<h3>Linked events</h3><small>Tap a grey Google event on the calendar to open it and link it. Change or remove a link there.</small>`
- +(bs.length?bs.map(([k,v])=>`<div class=row><span style="width:12px;height:12px;border-radius:50%;background:hsl(${typeHue(v)} 55% 50%);flex:none"></span><span style="flex:1">${esc((S.bname||{})[k]||k.replace(/^[un]:/,''))}<small>${esc(tgName(v))}</small></span><a class=btn href="#/xd/${encodeURIComponent(k)}/${D()}">Change</a></div>`).join(''):'<small>None yet.</small>')
+ +`<h3>Linked events</h3><small>Google events you've connected to a page, routine, flow or workout. Tap one to change or remove its link. To link a new event, tap it on the calendar.</small>`
+ +(bs.length?bs.map(([k,v])=>`<a class=row href="#/xd/${encodeURIComponent(k)}/${D()}" style="color:inherit"><span style="width:12px;height:12px;border-radius:50%;background:hsl(${typeHue(v)} 55% 50%);flex:none"></span><span style="flex:1"><b style="font-weight:500">${esc((S.bname||{})[k]||k.replace(/^[un]:/,''))}</b><small>Opens ${esc(tgName(v))}</small></span>${ic('chev')}</a>`).join(''):'<small>No events linked yet.</small>')
  +`<h3>Copy a link for any routine</h3>`+(routines().map(r=>`<div class=row><span style="flex:1">${esc(r.name)}</span><button class=btn data-a=copy data-v="${base()}#/r/${r.id}">Copy</button></div>`).join('')||'<small>No routines yet.</small>')
  +`<h3>Sync settings</h3><small>Set up once. <a href="#/guide">Step-by-step guide</a></small>
  <h3>Show my Google events here</h3><small>Google Calendar on a computer › Settings › your calendar › Integrate calendar › copy the secret address in iCal format.</small>
@@ -507,7 +507,7 @@ refresh:async()=>{try{(await navigator.serviceWorker.getRegistrations()).forEach
 const dl=(n,t,ty)=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:ty}));a.download=n;a.click()};
 
 let tft=0;
-const I={th:el=>{const T=themes(),d=+el.dataset.d,k=el.dataset.k;T[d]=T[d]||{};if(k==='q')T[d].q=el.value.split('\n').map(x=>x.trim()).filter(Boolean).map(x=>{const m=x.match(/^(.*?)\s*(https?:\S+)$/);return m?{t:m[1],u:m[2]}:{t:x,u:''}});else T[d][k]=el.value.replace(/\|/g,' ');S.cfg.themes=themesText(T)},flowt:el=>{const f=flows();f[el.dataset.n]=el.value.split('\n').filter(l=>l.trim()).map(l=>{const[n,x]=l.split('|');return[(n||'').trim(),+x||60]});S.cfg.flows=flowsText(f)},sk:el=>{$('#sc').style.display=el.value==='e'?'':'none';$('#si').style.display=el.value==='i'?'':'none'},tf:el=>{const x=S.todo.find(y=>y.id===el.dataset.id);if(!x)return;const k=el.dataset.k;x[k]=k==='dur'?+el.value:el.value;x.sy=0;clearTimeout(tft);tft=setTimeout(tflush,1500)},
+const I={bsel:el=>{const k=el.dataset.k,n=el.dataset.n;S.bind=S.bind||{};S.bname=S.bname||{};if(el.value){S.bind[k]=el.value;S.bname[k]=n}else{delete S.bind[k];delete S.bind[bkey(n)]}save();setTimeout(go,0)},th:el=>{const T=themes(),d=+el.dataset.d,k=el.dataset.k;T[d]=T[d]||{};if(k==='q')T[d].q=el.value.split('\n').map(x=>x.trim()).filter(Boolean).map(x=>{const m=x.match(/^(.*?)\s*(https?:\S+)$/);return m?{t:m[1],u:m[2]}:{t:x,u:''}});else T[d][k]=el.value.replace(/\|/g,' ');S.cfg.themes=themesText(T)},flowt:el=>{const f=flows();f[el.dataset.n]=el.value.split('\n').filter(l=>l.trim()).map(l=>{const[n,x]=l.split('|');return[(n||'').trim(),+x||60]});S.cfg.flows=flowsText(f)},sk:el=>{$('#sc').style.display=el.value==='e'?'':'none';$('#si').style.display=el.value==='i'?'':'none'},tf:el=>{const x=S.todo.find(y=>y.id===el.dataset.id);if(!x)return;const k=el.dataset.k;x[k]=k==='dur'?+el.value:el.value;x.sy=0;clearTimeout(tft);tft=setTimeout(tflush,1500)},
 
 w:el=>{S.active.ex[+el.dataset.x].s[+el.dataset.s].w=el.value},
 r:el=>{S.active.ex[+el.dataset.x].s[+el.dataset.s].r=el.value},
