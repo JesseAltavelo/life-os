@@ -1,5 +1,5 @@
 'use strict';
-const BUILD='1794071539';
+const BUILD='1794072247';
 const $=s=>document.querySelector(s);
 const D=(d=new Date())=>new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
 const dow=s=>new Date(s+'T12:00').getDay()||7;
@@ -18,7 +18,7 @@ const base=()=>location.origin+location.pathname;
 const td=()=>D();
 
 /* ---------- defaults (everything is editable in Life > Settings) ---------- */
-const VER=5;
+const VER=6;
 const DEF={v:VER,start:D(),mode:{},wmode:{},short:{},chk:{},water:{},steps:{},port:{},ing:{},z:1,own:0,tdel:[],bind:{},notes:{},gcal:{url:'',proxy:'',key:'',tds:0,t:0,evs:[],err:''},supp:{},hab:{},jr:{},med:{},todo:[],log:[],active:null,tx:[],paid:{},rev:{},wx:{},timer:null,ctx:null,
 cfg:{
 income:0,invest:0,waterT:2500,stepsT:10000,stepsMin:8000,
@@ -85,6 +85,11 @@ Fun|0
 Other|0
 Investing|0
 Savings|0`,
+day:`Steps|10000|8000|steps
+Water ml|2500|2000|water
+Diet % of plan|90|60|diet
+Meditation min|10|3|med
+Journal entry|1|1|jr`,
 wk:`Lift sessions|5|3|lift
 Days at step target|7|7|steps
 Days at water target|7|5|water
@@ -118,96 +123,12 @@ Hard 3|240
 Easy|180
 Hard 4|240
 Cool-down|300`,
-routines:`# Morning routine|07:00|70|12345||1|40
-💧 Water + pinch of salt|2||*
-☀️ Morning light, no phone|3||*
-🤸 Lymph + mobility flow|25|flow:Mobility flow|10
-🍳 Protein breakfast (40g+) + supplements|20|fuel|*
-🚿 Shower, cold finish, SPF 50|15||*
-🎒 Pack lunch + gym bag|5||
-# Commute + audio|08:30|30|12345||0|200
-🎧 Audio: {audio}|30|spotify|*
-# Deep work|09:00|90|12345||0|220
-🧠 Hardest task first (move 3 min every hour)|90||*
-# Lunch + sun walk|12:30|60|12345||1|130
-🍽️ Lunch: protein, veg, carb|20|fuel|
-☀️ Walk 20 min outside|20||*
-📞 Read or call a friend|10||
-# Snack + water|15:30|10|12345||0|130
-🍎 Fruit + protein snack|5|fuel|*
-💧 Water|2||*
-# Commute home|17:00|30|12345||0|200
-📞 Call family or friend, or audio. No doomscrolling|30||*
-# Dinner|17:30|60|12345||0|130
-🍽️ Dinner: 40-50g protein, carb, veg|30|fuel|*
-# Training|18:45|75|12345|135|0|0
-🤸 Warm up|10||5
-🏋️ Workout: {train}|55|train|45
-🧊 Cool down|5||
-🍽️ Protein refuel|5|fuel|*
-# Learn block|20:20|40|1234|123|0|210
-📚 {learn}|40|skill|30
-# Date night|20:00|180|5||0|330
-❤️ Date night, phone-free|120|rel|*
-# Together time|21:00|60|1234||0|330
-❤️ Phone-free time together (cook lunch, walk, talk)|60|rel|*
-# Evening routine|22:00|20|12345||0|270
-🍽️ Tick diet items, water + steps|3|fuel|*
-💶 Log today's spending|2|money|*
-✅ Set tomorrow's top 3 tasks|3|todo|
-🧴 Skin routine (retinoid 3 nights a week)|8||
-🎒 Prep clothes + bag|3||
-# Wind-down + bed|22:20|40|12345||1|250
-🧘 Breathing 10 min|10|mind|5
-📓 3-line journal|3|mind|
-📖 Read a paper book|10||
-💊 Magnesium|1||
-🛏️ Phone outside, lights out by 22:45|5||*
-# Morning (Sat)|08:00|75|6||1|40
-💧 Water + morning light|5||*
-🤸 Mobility 15 min|15|flow:Mobility flow|10
-🍳 Big protein breakfast|30|fuel|*
-# VO2 session|09:30|60|6||1|0
-🏃 VO2 4x4 (hill, bike, row or swim)|45|flow:VO2 4x4|*
-🚿 Shower + refuel|15|fuel|
-# Quality time|11:00|120|6||0|330
-❤️ Beach, market, coffee or day trip (SPF on face)|120|rel|*
-# Lunch (Sat)|13:00|60|6||0|130
-🍽️ Social lunch or nice meal|60|fuel|
-# Build block|14:00|90|6||0|210
-💼 Side project, business, investing or course|90|skill|30
-# Cook dinner together|18:00|90|6||0|130
-🍳 Cook dinner|60|fuel|
-# Fun night|20:00|180|6||0|300
-🎉 Friends, music, comedy (2 drinks or fewer)|180||
-# Wind-down (Sat)|23:00|30|6||1|250
-🧘 Breathing|5|mind|*
-🛏️ Lights out (up to 23:30)|5||*
-# Morning (Sun)|08:30|60|7||1|40
-💧 Water + morning light|5||*
-🤸 Mobility|15|flow:Mobility flow|10
-# Long Zone 2 + quiet hour|09:30|120|7||1|140
-🌊 Zone 2: coastal walk, hike or swim (60-90 min)|90||45
-🧘 15 min silence, gratitude, meditation|15|meaning|*
-# Brunch + recovery|12:00|120|7||0|130
-🍽️ Brunch|45|fuel|
-🧖 Sauna or contrast shower, foam rolling, stretching|45||
-# Weekly review|14:00|45|7||1|20
-💶 Review budget + auto-invest|15|money|*
-📊 Weekly review + notes|20|week|*
-📅 Add training days to Google Calendar|5||*
-# Relationship check-in|14:45|20|7||0|330
-❤️ What went well, what each needs, what to plan|20|rel|*
-# Meal prep|15:15|90|7||0|130
-🥘 Prep protein, carb base and veg for Mon-Wed|90|fuel|
-# Wind-down (Sun)|21:00|45|7||1|250
-🧴 Light skin routine, set up Monday|10||
-🧘 Breathing|10|mind|5
-🛏️ Lights out by 22:30|5||*`
+routines:``
 }};
 function load(o){o=o||{};if((o.v||0)<2){if(o.cfg){delete o.cfg.blocks;delete o.cfg.mvd;delete o.cfg.wk}Object.keys(o.mode||{}).forEach(k=>o.mode[k]=o.mode[k]==='mvd'?'min':'')}
  if((o.v||0)<4&&o.cfg){delete o.cfg.diet;delete o.cfg.habits;delete o.cfg.supps;delete o.cfg.wk}
  if((o.v||0)<3&&o.cfg){delete o.cfg.meals;delete o.cfg.wk;if(o.cfg.routines)o.cfg.routines=o.cfg.routines.replace('Log portions, water + steps','Tick diet items, water + steps')}
+ if((o.v||0)<6&&o.cfg){o.cfg.routines='';delete o.cfg.day}
  if((o.v||0)<5&&o.cfg&&o.cfg.cats){let c=o.cfg.cats;['Investing','Savings'].forEach(n=>{if(!c.includes(n))c+='\n'+n+'|0'});o.cfg.cats=c;if(+o.cfg.invest&&!/Investing\|[1-9]/.test(c))o.cfg.cats=c.replace('Investing|0','Investing|'+(+o.cfg.invest))}
  const s=Object.assign(structuredClone(DEF),o);s.cfg=Object.assign({},DEF.cfg,o.cfg);s.v=VER;return s}
 let S;try{S=load(JSON.parse(localStorage.lifeos1))}catch(e){S=load()}
@@ -254,14 +175,12 @@ function cnt(src,ws,lab,mv){const ds=wdays(ws);
  if(src.startsWith('r:'))return ds.filter(d=>rdone(d,src.slice(2))).length;
  if(src.startsWith('h:'))return ds.filter(d=>S.hab[d]?.[src.slice(2)]).length;
  return(S.wx[ws]||{})[lab]||0}
-function monthStats(){const mo=D().slice(0,7),tx=S.tx.filter(x=>x.d.startsWith(mo)),by={};tx.forEach(x=>by[x.c]=(by[x.c]||0)+x.a);return{mo,tx,by,sp:tx.reduce((a,x)=>a+x.a,0)}}
+function monthStats(){const mo=D().slice(0,7),tx=S.tx.filter(x=>x.d.startsWith(mo)),by={};tx.forEach(x=>{if(x.k!=='i')by[x.c]=(by[x.c]||0)+x.a});return{mo,tx,by,sp:tx.reduce((a,x)=>a+(x.k==='i'?0:x.a),0),rc:tx.reduce((a,x)=>a+(x.k==='i'?x.a:0),0)}}
 
 /* ---------- warnings ---------- */
-function warns(){const w=[],t=D(),y=addD(t,-1),y2=addD(t,-2),ok=d=>d<S.start||pct(d)>=.5;
- if(!ok(y)&&!ok(y2))w.push(['r','Two slipped days in a row. Today is non-negotiable: at least do the Minimum Day.']);
+function warns(){const w=[],t=D(),y=addD(t,-1),y2=addD(t,-2),ok=d=>d<S.start||minOk(d);
+ if(!ok(y)&&!ok(y2))w.push(['r','Two slipped days in a row. Today is non-negotiable: hit your minimum day targets.']);
  else if(!ok(y))w.push(['a','Yesterday slipped. Never miss twice. Protect today.']);
- let n=0;for(let i=1;i<=7;i++){const d=addD(t,-i);if(d>=S.start&&mode(d)==='min')n++;else break}
- if(n>=3)w.push(['a',`${n} days in a row on Minimum Day. Fine for a rough patch. Try one full routine today to climb back.`]);
  const ws=weekStart(t),dw=dow(t),L=cnt('lift',ws);
  if(ws>=S.start||dw>2){if(dw>=3&&L===0)w.push(['r','No workout logged this week yet.']);else if(dw>=5&&L<3)w.push(['a',`Only ${L} workout${L==1?'':'s'} logged this week.`])}
  if(S.steps[y]!==undefined&&S.steps[y]<S.cfg.stepsMin)w.push(['a',`Yesterday's steps: ${S.steps[y]} (minimum ${S.cfg.stepsMin}).`]);
@@ -318,11 +237,11 @@ function extOn(ds){const a=new Date(ds+'T00:00').getTime(),b=a+864e5;return(S.gc
 const TR='#c0392b';
 function todoBar(ds,t){const l=S.todo.map((x,i)=>({...x,i})).filter(x=>x.due&&(x.due===ds||(ds===t&&x.due<ds&&!x.done)));if(!l.length)return'';
  return`<div class=card style="border-left:4px solid ${TR}"><small>To-dos</small>`+l.map(x=>`<div class=row style="padding:6px 0"><button class="ck ${x.done?'on':''}" data-a=todotog data-i=${x.i}></button><span style="flex:1;${x.done?'opacity:.5;text-decoration:line-through':''}">${esc(x.t)}<small style="${x.due<ds&&!x.done?'color:var(--r)':''}">${x.due<ds?'overdue · '+x.due:x.time||'all day'}</small></span></div>`).join('')+`</div>`}
-function conflicts(ds){if(!S.own)return[];const o=[],xs=extOn(ds).filter(e=>!e.ad);occ(ds).forEach(r=>{const a=+r.start.slice(0,2)*60+ +r.start.slice(3),b=a+r.dur;xs.forEach(y=>{if(a<y.em&&y.sm<b)o.push(`${r.name} (${r.start}) overlaps "${y.t}" (${hmm(y.sm)}-${hmm(y.em)})`)})});return o}
+function conflicts(ds){return[];const o=[],xs=extOn(ds).filter(e=>!e.ad);occ(ds).forEach(r=>{const a=+r.start.slice(0,2)*60+ +r.start.slice(3),b=a+r.dur;xs.forEach(y=>{if(a<y.em&&y.sm<b)o.push(`${r.name} (${r.start}) overlaps "${y.t}" (${hmm(y.sm)}-${hmm(y.em)})`)})});return o}
 function grid(days){const t=D(),wk=days.length>1,nm=new Date(),nowM=nm.getHours()*60+nm.getMinutes(),z=Zv(),pos=q=>`left:calc(${q.c/q.n*100}% + 1px);width:calc(${100/q.n}% - 2px);top:calc(var(--z)*${q.s-360}px);height:max(calc(var(--z)*${q.e0-q.s}px - 1px),20px)`;
  let gut='';for(let i=0;i<=18;i++){gut+=`<span style="top:calc(var(--z)*${i*60}px)">${String(6+i).padStart(2,'0')}:00</span>`;if(z>=2&&i<18)gut+=`<span style="top:calc(var(--z)*${i*60+30}px);opacity:.6">${String(6+i).padStart(2,'0')}:30</span>`}
  return`<div class="grid ${wk?'wk':''}"><div class=gut>${gut}</div><div class=cols>`
- +days.map(ds=>{const ev=(S.own?occ(ds):[]).map(r=>{const s=+r.start.slice(0,2)*60+ +r.start.slice(3);return{r,s,e0:s+r.dur,e:Math.max(s+r.dur,s+Math.ceil(22/z))}}),
+ +days.map(ds=>{const ev=[].map(r=>{const s=+r.start.slice(0,2)*60+ +r.start.slice(3);return{r,s,e0:s+r.dur,e:Math.max(s+r.dur,s+Math.ceil(22/z))}}),
  tds=S.todo.map((x,i)=>({x,i})).filter(q=>q.x.due===ds&&q.x.time).map(q=>{const s=+q.x.time.slice(0,2)*60+ +q.x.time.slice(3);return{...q,s,e0:s+(q.x.dur||30),e:Math.max(s+(q.x.dur||30),s+Math.ceil(22/z))}}),
  xs=extOn(ds).filter(e=>!e.ad&&e.em>360).map(e=>({x:e,s:Math.max(e.sm,360),e0:e.em,e:Math.max(e.em,e.sm+Math.ceil(22/z))}));
  ev.forEach(q=>{q.cf=xs.some(y=>q.s<y.e0&&y.s<q.e0)});layout([...ev,...xs,...tds]);
@@ -331,22 +250,20 @@ function grid(days){const t=D(),wk=days.length>1,nm=new Date(),nowM=nm.getHours(
  +tds.map(q=>`<div class="ev ${q.x.done?'dn':''}" data-a=todotog data-i=${q.i} style="${pos(q)};background:${TR};border-color:#ff8a7a"><b>${q.x.done?'✓ ':''}${esc(q.x.t)}</b>${wk?'':`<br>${q.x.time} · ${q.x.dur||30} min`}</div>`).join('')
  +xs.map(q=>`<a class="ev ext" href="#/x/${encodeURIComponent(q.x.t)}/${ds}" style="${pos(q)}"><b>${bnd(q.x.t)?'🔗 ':''}${esc(q.x.t)}</b>${wk?'':`<br>${hmm(q.x.sm)}-${hmm(q.x.em)}`}</a>`).join('')+(ds===t?`<i class=now style="top:calc(var(--z)*${nowM-360}px)"></i>`:'')+`</div>`}).join('')+`</div></div>`}
 
-function minOk(ds){const d=dow(ds);return routines().filter(r=>r.ess&&r.days.includes(d)).every(r=>r.steps.filter(s=>s.short).every(x=>S.chk[ds]?.[key(r,x)]))}
+const dv=(src,ds)=>src==='steps'?(S.steps[ds]||0):src==='water'?(S.water[ds]||0):src==='diet'?Math.round(dietPct(ds)*100):src==='med'?(S.med[ds]||0):src==='jr'?(S.jr[ds]&&(S.jr[ds].g||S.jr[ds].w||S.jr[ds].t)?1:0):src==='lift'?S.log.filter(l=>l.date===ds).length:0;
+const dayRows=()=>lines(S.cfg.day).map(l=>{const[n,f,m,src]=l.split('|').map(x=>x.trim());return{n,f:+f||0,m:+m||0,src}});
+const minOk=ds=>{const r=dayRows().filter(x=>x.m);return r.length>0&&r.every(x=>dv(x.src,ds)>=x.m)},fullOk=ds=>{const r=dayRows().filter(x=>x.f);return r.length>0&&r.every(x=>dv(x.src,ds)>=x.f)};
+function minOkOld(ds){const d=dow(ds);return routines().filter(r=>r.ess&&r.days.includes(d)).every(r=>r.steps.filter(s=>s.short).every(x=>S.chk[ds]?.[key(r,x)]))}
 function wsum(ws){const t=D(),ds=wdays(ws).filter(d=>d<=t&&d>=S.start),rows=lines(S.cfg.wk).map(l=>{const[n,c,m,src]=l.split('|').map(x=>x.trim());return{n,c:+c||0,m:+m||0,src:src||'x',v:cnt(src||'x',ws,n),vm:cnt(src||'x',ws,n,true)}});
- return{ds,ok:ds.filter(minOk).length,rows,met:rows.filter(r=>r.c&&r.v>=r.c).length,n:rows.filter(r=>r.c).length}}
+ return{ds,ok:ds.filter(minOk).length,okF:ds.filter(fullOk).length,rows,met:rows.filter(r=>r.c&&r.v>=r.c).length,n:rows.filter(r=>r.c).length}}
 let CTA='';
 function vPlan(){const t=D(),ws=weekStart(sel),m=mode(sel),g=S.gcal,gon=g.url&&g.proxy;
  let h=`<div class=top><h1>${new Date(sel+'T12:00').toLocaleDateString('en-GB',{month:'long',year:'numeric'})}</h1><div><button class="chip ${view==='day'?'on':''}" data-a=view data-v=day>Day</button> <button class="chip ${view==='week'?'on':''}" data-a=view data-v=week>Week</button> <button class=chip data-a=gotoday>Today</button></div></div>
  <div class=strip><button data-a=wk data-v=-7>‹</button>`+wdays(ws).map(d=>`<button class="dd ${d===sel?'on':''} ${d===t?'td':''}" data-a=sel data-v=${d}><small>${DN[dow(d)]}</small><b>${+d.slice(8)}</b></button>`).join('')+`<button data-a=wk data-v=7>›</button></div>`;
- if(sel===t&&S.own){h+=warns().map(([k,x])=>`<div class="w ${k}">${esc(x)}</div>`).join('');
-  if(!m)h+=`<div class=card><b>How do you feel today?</b><small>This picks your plan for today. You can change it any time.</small><button class="btn pri" data-a=mode data-v=full>💪 Full day</button><button class=btn data-a=mode data-v=min>🪫 Minimum day</button></div>`}
- h+=conflicts(sel).map(x=>`<div class="w a">⚠ ${esc(x)}. Move one of them.</div>`).join('');
+ if(sel===t){h+=warns().map(([k,x])=>`<div class="w ${k}">${esc(x)}</div>`).join('')}
  const ad=extOn(sel).filter(e=>e.ad);if(ad.length)h+=`<div class=card><small>All day (Google Calendar)</small>${ad.map(e=>esc(e.t)).join(', ')}</div>`;
  h+=todoBar(sel,t);
- if(S.own)h+=`<div class=card><div class=ctl><span>Day</span>${seg([['full','Full'],['min','Minimum']],m||'full','mode')}</div><small>${m==='min'?'Minimum day: only the essential routines, in short versions. Doing just this counts as a good day.':'Full day: every routine for this day, all steps.'}</small></div>`;
- h+=`<button class="chip ${S.own?'on':''}" data-a=own>My routine schedule: ${S.own?'on':'off'}</button> <button class=chip data-a=zoom data-v=-1>🔍 −</button> <button class=chip data-a=zoom data-v=1>🔍 +</button> <small style="display:inline">pinch the calendar to zoom</small> `+(gon?`<button class=chip data-a=gsync>↻ Google ${g.t?new Date(g.t).toTimeString().slice(0,5):'not synced'}</button>`:'')+'<br>';
- if(S.own&&ws<=t){const sm=wsum(ws),past=addD(ws,6)<t,ds=wdays(ws),beh=ds.some(d=>d<t&&d>=S.start&&!minOk(d)),bad=past?sm.ok<7:beh,left=ds.filter(d=>d>=t).length;
-  h+=`<a class=card href="#/week/${ws}" style="display:block;color:inherit;text-decoration:none;border-left:4px solid ${bad?'var(--r)':'var(--g)'}"><b>Minimum days this week: ${sm.ok}/7</b> <span style="color:${bad?'var(--r)':'var(--g)'}">${past?(sm.ok===7?'achieved ✓':'missed'):bad?'a minimum day was missed, so this week will not count as a minimum week':'on track'}</span><br>`+ds.map(d=>{const f=d>=S.start,ok=f&&minOk(d);return`<span style="display:inline-block;width:13%;text-align:center;font-size:12px"><small style="text-align:center">${DN[dow(d)]}</small>${d<S.start?'–':d>t?'·':ok?'✓':d===t?'○':'✗'}</span>`}).join('')+`<small>A minimum week is simply all 7 minimum days done, so it adds up by itself. Days before you started the app show –. ${past?'':bad?'':minOk(t)?'Today\'s minimum day is done.':'Do today\'s minimum day (essential routines, short versions) to stay on track.'}</small></a>`}
+ h+=`<button class=chip data-a=zoom data-v=-1>🔍 −</button> <button class=chip data-a=zoom data-v=1>🔍 +</button> <small style="display:inline">pinch the calendar to zoom</small> `+(gon?`<button class=chip data-a=gsync>↻ Google ${g.t?new Date(g.t).toTimeString().slice(0,5):'not synced'}</button>`:'')+'<br>';
  return h+grid(view==='week'?wdays(ws):[sel])}
 
 const LBL={fuel:'Diet',train:'Workout',money:'Budget',mind:'Mind',skill:'Skill',rel:'Relationships',meaning:'Meaning',week:'Weeks',todo:'To-dos'};
@@ -382,13 +299,14 @@ function vFuel(){const t=D(),dd=diet(),g=S.ing[t]||{},all=dd.flatMap(m=>m.items.
  return h+`<div class=card><b>Water</b> ${S.water[t]||0} / ${S.cfg.waterT} ml${bar(S.water[t]||0,S.cfg.waterT)}<button class=btn data-a=water data-v=250>+250 ml</button><button class=btn data-a=water data-v=500>+500 ml</button><button class=btn data-a=water data-v=-250>−250 ml</button>
  <input type=number inputmode=numeric data-c=steps value="${S.steps[t]||''}" placeholder="Steps today (target ${S.cfg.stepsT})"></div>`}
 
-function vMoney(){const s=monthStats(),inc=+S.cfg.income||0,cs=cats(),bud=cs.reduce((a,c)=>a+c.l,0);
- return`<h1>Money</h1><small>${s.mo} · EUR</small><div class=card>Income ${eur(inc)}<br>Budgeted in buckets ${eur(bud)}<br>Spent so far ${eur(s.sp)}<br><b>Left to spend ${eur(inc-s.sp)}</b><small>${inc-bud<0?'Your buckets add up to more than your income by '+eur(bud-inc):'Not yet assigned to a bucket: '+eur(inc-bud)}. Change income and bucket amounts in More › Settings.</small></div>
+const sg=n=>(n>0?'+':n<0?'−':'')+eur(Math.abs(n));
+function vMoney(){const s=monthStats(),exp=+S.cfg.income||0,cs=cats(),bud=cs.reduce((a,c)=>a+c.l,0),av=Math.max(exp,s.rc),extra=Math.max(0,s.rc-exp);
+ return`<h1>Money</h1><small>${s.mo} · EUR</small><div class=card>Expected income ${eur(exp)}<br>Received so far ${eur(s.rc)}${extra?`<br><span style="color:var(--g)">Extra income above expected ${sg(extra)}</span>`:''}<br>Budgeted in buckets ${eur(bud)}<br>Spent so far ${eur(s.sp)}<br><b>Money left to spend ${sg(av-s.sp)}</b><br><b>Unbudgeted ${sg(av-bud)}</b><small>Unbudgeted = income minus what you put in buckets. Plus means money you have not given a job yet (extra income lands here), minus means you budgeted more than your income. Give it a job by raising a bucket in Settings, or adding an expense in Savings or Investing.</small></div>
  <h3>Buckets</h3><small>Each bucket: spent of budget, and what is left. Investing and Savings are buckets too: add an expense in them when you put money away.</small>`+cs.map(c=>{const v=s.by[c.n]||0,left=c.l-v;return`<div style="margin:10px 0"><b>${esc(c.n)}</b> <small style="display:inline">${eur(v)}${c.l?' of '+eur(c.l)+' · '+(left>=0?eur(left)+' left':'<span style="color:var(--r)">'+eur(-left)+' over</span>'):''}${c.m?' · minimum '+eur(c.m)+(v>=c.m?' ✓':', '+eur(c.m-v)+' to go'):''}</small>${bar(v,c.l)}</div>`}).join('')
- +`<h3>Add expense</h3><div class=card><input id=sa type=number step=0.01 inputmode=decimal placeholder="Amount €"><select id=sc>${cs.map(c=>`<option>${esc(c.n)}</option>`).join('')}</select><input id=sn placeholder="Note"><small>Date</small><input id=sdt class=dt type=date value="${D()}"><button class="btn pri" data-a=spend>Add</button></div>
+ +`<h3>Add expense or income</h3><div class=card><select id=sk><option value=e>Expense</option><option value=i>Income</option></select><input id=sa type=number step=0.01 inputmode=decimal placeholder="Amount €"><select id=sc>${cs.map(c=>`<option>${esc(c.n)}</option>`).join('')}</select><input id=sn placeholder="Note (for income: where from)"><small>Date</small><input id=sdt class=dt type=date value="${D()}"><button class="btn pri" data-a=spend>Add</button></div>
  <h3>This month</h3><div class=card><b>Total ${eur(s.sp)}</b>${cs.filter(c=>s.by[c.n]).map(c=>`<br>${esc(c.n)} ${eur(s.by[c.n])}`).join('')}</div>`+txByDay(s.tx)+`<h3>Earlier months</h3>`+earlier()}
-const txByDay=tx=>{const g={};tx.forEach(x=>(g[x.d]=g[x.d]||[]).push(x));return Object.keys(g).sort().reverse().map(d=>`<h3>${new Date(d+'T12:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})} · ${eur(g[d].reduce((a,x)=>a+x.a,0))}</h3>`+g[d].map(x=>`<div class=row><span style="flex:1">${esc(x.c)}<small>${esc(x.n)}</small></span><b>${eur(x.a)}</b><button class=btn data-a=txdel data-i="${S.tx.indexOf(x)}">✕</button></div>`).join('')).join('')||'<small>Nothing yet.</small>'};
-const earlier=()=>{const mo=D().slice(0,7),m={};S.tx.filter(x=>!x.d.startsWith(mo)).forEach(x=>m[x.d.slice(0,7)]=(m[x.d.slice(0,7)]||0)+x.a);return Object.keys(m).sort().reverse().map(k=>`<div class=row><span style="flex:1">${k}</span><b>${eur(m[k])}</b></div>`).join('')||'<small>None.</small>'}
+const txByDay=tx=>{const g={};tx.forEach(x=>(g[x.d]=g[x.d]||[]).push(x));return Object.keys(g).sort().reverse().map(d=>`<h3>${new Date(d+'T12:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})} · ${eur(g[d].reduce((a,x)=>a+(x.k==='i'?0:x.a),0))} spent</h3>`+g[d].map(x=>`<div class=row><span style="flex:1">${esc(x.c)}<small>${esc(x.n)}</small></span><b style="${x.k==='i'?'color:var(--g)':''}">${x.k==='i'?'+':''}${eur(x.a)}</b><button class=btn data-a=txdel data-i="${S.tx.indexOf(x)}">✕</button></div>`).join('')).join('')||'<small>Nothing yet.</small>'};
+const earlier=()=>{const mo=D().slice(0,7),m={};S.tx.filter(x=>!x.d.startsWith(mo)&&x.k!=='i').forEach(x=>m[x.d.slice(0,7)]=(m[x.d.slice(0,7)]||0)+x.a);return Object.keys(m).sort().reverse().map(k=>`<div class=row><span style="flex:1">${k}</span><b>${eur(m[k])}</b></div>`).join('')||'<small>None.</small>'}
 
 function vMind(){const t=D(),ws=weekStart(t);let h=`<h1>Mind training</h1><small>Meditated today ${S.med[t]||0} min · this week ${wdays(ws).reduce((a,d)=>a+(S.med[d]||0),0)} min</small>`;
  if(B)h+=`<div class=big id=bl></div><div id=bc></div><div class=big id=br style="font-size:28px"></div><button class=btn data-a=bstop>Stop</button>`;
@@ -404,20 +322,21 @@ function vSkill(d){d=+d||dow(D());const th=themes()[d]||{};
  <h3>Week themes</h3>`+Object.entries(themes()).map(([k,v])=>`<div class=row><b style="width:40px">${DN[k]}</b><span style="flex:1">${esc(v.learn)}<small>🎧 ${esc(v.audio)}</small></span></div>`).join('')}
 const vNotes=(title,k,hint,extra='')=>`<h1>${title}</h1>${extra}<small>${hint}</small><small style="color:var(--g)">✓ This is your notepad. Everything you type is saved automatically on this phone and stays here. It is included when you export a backup.</small><textarea data-c=note data-k=${k} rows=12 placeholder="Write here...">${esc(S.notes[k])}</textarea>`;
 
+const wkStrip=(ws,fn,mk)=>`<div style="display:flex;gap:4px;margin:6px 0 10px">`+wdays(ws).map(d=>{const f=d>=S.start&&d<=D(),ok=f&&fn(d);return`<span style="flex:1;text-align:center;border-radius:8px;padding:6px 0;font-size:12px;background:${ok?'var(--g)':f&&d<D()?'#4a1d1d':'var(--c2)'};color:${ok?'#06251a':'var(--t)'}">${DN[dow(d)]}<br>${ok?mk:f&&d<D()?'✗':'·'}</span>`}).join('')+`</div>`;
 function vWeek(w){const t=D(),cw=weekStart(t),ws=w||cw,sm=wsum(ws),r=S.rev[ws]||{},past=addD(ws,6)<t,fd=d=>new Date(d+'T12:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'});
  let h=`<div class=top><a class=btn href="#/week/${addD(ws,-7)}">‹</a><h2 style="margin:0">${fd(ws)} – ${fd(addD(ws,6))}</h2><a class=btn href="#/week/${addD(ws,7)}">›</a></div>
- <div class=card><b>Minimum week: ${sm.ok}/7 days</b> ${past?(sm.ok===7?'✓ achieved':'✗ missed'):'(in progress)'}<small>Achieved when the Minimum Day was done every day (essential routines, short versions).</small></div>
- <div class=card><b>Full week: ${sm.met}/${sm.n} targets met</b></div><div class=chips>`+wdays(ws).map(d=>{const f=d<=t&&d>=S.start,p=Math.round(pct(d)*100),ok=f&&minOk(d);return`<button class="${ok?'on':''}" style="${f&&!ok&&d<t?'background:#4a1d1d':''}">${DN[dow(d)]} ${f?(ok?'✓ ':'')+p+'%':'-'}</button>`}).join('')+`</div><small>✓ = minimum day done · % = steps done on that day's plan</small><h3>Targets</h3>`;
+ <div class=card><b>Minimum day: ${sm.ok}/7</b>${wkStrip(ws,minOk,'✓')}<b>Full day: ${sm.okF}/7</b>${wkStrip(ws,fullOk,'★')}<small>Targets per day are set in Settings › Daily targets. A week where all 7 days are minimum days counts as a minimum week.</small></div>
+ `+wdays(ws).map(d=>`<div class=row style="padding:6px 0"><b style="width:44px">${DN[dow(d)]} ${+d.slice(8)}</b><small style="flex:1;display:block">${d>t||d<S.start?'':dayRows().map(x=>x.n+' '+dv(x.src,d)).join(' · ')}</small></div>`).join('')+`<h3>Targets</h3>`;
  sm.rows.forEach(x=>{h+=`<div>${esc(x.n)} <small style="display:inline">${x.v}/${x.c} · minimum ${x.m} ${x.vm>=x.m?'✓':''}</small>${x.src==='x'?` <button class=btn data-a=wx data-w="${ws}" data-l="${esc(x.n)}" data-v=1>+</button><button class=btn data-a=wx data-w="${ws}" data-l="${esc(x.n)}" data-v=-1>−</button>`:''}<div class=bar><i style="width:${x.c?Math.min(100,x.v/x.c*100):0}%"></i></div></div>`});
  h+=`<h3>Notes</h3><textarea data-c=rev data-w="${ws}" placeholder="Money, goals, what to fix next week">${esc(r.n)}</textarea><div class=row><button class="ck ${r.done?'on':''}" data-a=revdone data-w="${ws}"></button><span>Review done</span></div>`;
- h+=`<h3>All weeks</h3>`;for(let x=cw,i=0;x>=weekStart(S.start)&&i<26;x=addD(x,-7),i++){const q=wsum(x),pw=addD(x,6)<t;h+=`<a class=lc href="#/week/${x}" style="padding:10px 14px"><b style="font-size:15px">${fd(x)} – ${fd(addD(x,6))}</b><small>Minimum ${q.ok}/7${pw?(q.ok===7?' ✓':' ✗'):''} · Full ${q.met}/${q.n}</small></a>`}
+ h+=`<h3>All weeks</h3>`;for(let x=cw,i=0;x>=weekStart(S.start)&&i<26;x=addD(x,-7),i++){const q=wsum(x),pw=addD(x,6)<t;h+=`<a class=lc href="#/week/${x}" style="padding:10px 14px"><b style="font-size:15px">${fd(x)} – ${fd(addD(x,6))}</b><small>Minimum days ${q.ok}/7 · Full days ${q.okF}/7 · Targets ${q.met}/${q.n}</small></a>`}
  return h}
 
 function vTodo(){const t=D(),a=S.todo.map((x,i)=>({...x,i})).sort((p,q)=>(p.done-q.done)||((p.due||'9')<(q.due||'9')?-1:1));
  return`<h1>To-dos</h1><div class=card><input id=ta placeholder="New task"><small>Date (leave empty for no date)</small><input id=td class=dt type=date><small>Time (optional; empty = all-day)</small><input id=tt2 class=dt type=time><small>Estimated duration</small><select id=tdu><option value=15>15 min</option><option value=30 selected>30 min</option><option value=60>1 hour</option><option value=90>1.5 hours</option><option value=120>2 hours</option></select><button class="btn pri" data-a=todoadd>Add</button><small>Open to-dos also show on the Calendar, in red, on their day.</small></div>`+a.map(x=>`<div class=row><button class="ck ${x.done?'on':''}" data-a=todotog data-i=${x.i}></button><span style="flex:1;${x.done?'opacity:.4;text-decoration:line-through':''}">${esc(x.t)}<small style="${x.due&&x.due<t&&!x.done?'color:var(--r)':''}">${x.due||''}${x.time?' '+x.time:''}</small></span><button class=btn data-a=tododel data-i=${x.i}>✕</button></div>`).join('')}
 
 const bkey=t=>String(t).trim().toLowerCase(),bnd=t=>(S.bind||{})[bkey(t)];
-const TG=()=>[...routines().map(r=>['r/'+r.id,r.start+' '+r.name]),['train','Workout'],['fuel','Diet and water'],['money','Budget'],['mind','Mind'],['skill','Skill'],['rel','Relationships'],['meaning','Meaning'],['week','Weeks'],['todo','To-dos']];
+const TG=()=>[['train','Workout (gym tracker)'],['fuel','Diet and water'],['money','Budget'],['mind','Mind'],['skill','Skill'],['rel','Relationships'],['meaning','Meaning'],['week','Weeks'],['todo','To-dos'],...routines().map(r=>['r/'+r.id,'My routine: '+r.name])];
 const tgName=v=>(TG().find(x=>x[0]===v)||[0,v])[1];
 function vExt(t,ds,edit){const b=bnd(t);if(b&&!edit){setTimeout(()=>location.replace('#/'+b),0);return'<p>Opening…</p>'}
  const e=extOn(ds||D()).find(x=>x.t===t),when=e?(e.ad?'All day':hmm(e.sm)+'-'+hmm(e.em)):'';
@@ -425,19 +344,34 @@ function vExt(t,ds,edit){const b=bnd(t);if(b&&!edit){setTimeout(()=>location.rep
  <h3>Link this event to</h3><small>Applies to every event called "${esc(t)}".</small>`+TG().map(x=>`<div class=row><span style="flex:1">${esc(x[1])}</span><button class="btn ${b===x[0]?'pri':''}" data-a=bind data-t="${esc(t)}" data-v="${x[0]}">${b===x[0]?'✓ Linked':'Link'}</button></div>`).join('')
  +(b?`<button class=btn data-a=unbind data-t="${esc(t)}">Remove link</button> <a class=btn href="#/${b}">Open ${esc(tgName(b))} ›</a>`:'')
  +`<h3>Open it from Google Calendar</h3><small>Copy this link and paste it into the event's description in Google Calendar yourself. Opening it goes straight to the linked page.</small><button class="btn pri" data-a=copy data-v="${base()}#/x/${encodeURIComponent(t)}">Copy link</button>`}
+function vGuide(){const g=S.gcal,w=(g.proxy||'https://YOUR-WORKER.workers.dev/').replace(/\/?$/,'/'),n=(t,b)=>`<div class=card><b>${t}</b><small style="color:var(--t)">${b}</small></div>`;
+ return`<h1>Connect Google Calendar</h1><small>Do this on a computer, once. There are two separate things, and you can do only the first.</small>
+ <h2>Part 1 · See Google events in Life OS</h2><small>You already did this if grey events show up. It needs a free Cloudflare worker address and your calendar's secret address.</small>
+ <h2>Part 2 · Send to-dos to Google Calendar</h2><small>Optional. About 15 minutes. Menu names at Google change now and then, so look for the closest match.</small>
+ ${n('Step 1 · Create a Google project','Open console.cloud.google.com and sign in with the same Google account as your calendar. Top left, click the project name › New project. Name it Life OS › Create. Make sure Life OS is the selected project.')}
+ ${n('Step 2 · Turn on the Calendar API','Click the search bar at the top, type Google Calendar API, open it, click Enable.')}
+ ${n('Step 3 · Consent screen','Menu › APIs and Services › OAuth consent screen (may be called Google Auth Platform) › Get started. App name Life OS, your email for support and contact. Audience: External. Finish. Then find Audience (or Publishing status) › Publish app › Confirm. This stops the login from expiring after 7 days. Only you will use it.')}
+ ${n('Step 4 · Get your client ID and secret','Menu › APIs and Services › Credentials (or Clients) › Create credentials › OAuth client ID › Application type: Web application › name Life OS. Under Authorized redirect URIs click Add URI and paste the address below. Create. Keep the window open: you need the Client ID and the Client secret in the next step.')}
+ <div class=row><span style="flex:1;word-break:break-all;font-size:13px">${esc(w)}auth/cb</span><button class=btn data-a=copy data-v="${esc(w)}auth/cb">Copy</button></div>
+ ${g.proxy?'':'<small style="color:var(--r)">Fill in your worker address in Google Calendar sync first so this address is right.</small>'}
+ ${n('Step 5 · Run the setup on your Mac','Open the Terminal app (Cmd+Space, type Terminal, Enter). Paste the line below and press Enter. It opens Cloudflare to log in, then asks you to paste the Client ID, then the Client secret (paste, Enter). At the end it prints a long key. Copy that key.')}
+ <div class=row><span style="flex:1;word-break:break-all;font-size:13px">cd ~/Desktop/Life-OS/worker && ./setup.sh</span><button class=btn data-a=copy data-v="cd ~/Desktop/Life-OS/worker && ./setup.sh">Copy</button></div>
+ ${n('Step 6 · Connect your Google account','In a browser on the computer open: '+esc(w)+'auth/start?k=YOURKEY (replace YOURKEY with the key). Choose your account. If Google says it has not verified the app, click Advanced › Go to Life OS › Allow. You should see "Connected ✓".')}
+ ${n('Step 7 · Tell the app','Back in this app: More › Google Calendar sync › paste the key in the To-do sync key box › Turn on to-do sync. Then add a to-do with a date and check Google Calendar. It appears in red within seconds.')}
+ <a class="btn pri" href="#/links">Back to Google Calendar sync</a>`}
 function vLinks(){const g=S.gcal,bs=Object.entries(S.bind||{});
  return`<h1>Google Calendar</h1><small>Life OS reads your events. The only thing it ever writes is your own to-dos, and only if you turn that on below.</small>
  <h3>Show my Google events here</h3>
- <ol style="color:var(--m);font-size:14px;padding-left:18px"><li>Google Calendar (computer) › Settings › your calendar › Integrate calendar › copy "Secret address in iCal format".</li><li>Paste it below, plus your proxy address (see the setup note).</li></ol>
+ <ol style="color:var(--m);font-size:14px;padding-left:18px"><li>Google Calendar (computer) › Settings › your calendar › Integrate calendar › copy "Secret address in iCal format".</li><li>Paste it below, plus your proxy address (see the <a href="#/guide">step-by-step guide</a>).</li></ol>
  <input data-c=gc data-k=url value="${esc(g.url)}" placeholder="Secret address in iCal format"><input data-c=gc data-k=proxy value="${esc(g.proxy)}" placeholder="Proxy address, e.g. https://lifeos-cal.yourname.workers.dev/">
  <button class=btn data-a=gsync>↻ Sync now</button><small>${g.t?'Last synced '+new Date(g.t).toTimeString().slice(0,5)+' · '+g.evs.length+' upcoming events':'Not synced yet'}${g.err?' · Error: '+esc(g.err):''}</small>
- <h3>To-dos → Google Calendar</h3><small>Your to-dos with a date are written to your main Google Calendar, in red, and kept in step: done ones get a ✓ and turn grey. Needs the one-time setup (see the setup steps I sent). Only to-dos are written, never anything else.</small><input data-c=gc data-k=key type=password value="${esc(g.key)}" placeholder="To-do sync key"><button class="btn ${g.tds?'pri':''}" data-a=tds>${g.tds?'✓ To-do sync on':'Turn on to-do sync'}</button>${g.terr?'<small style="color:var(--r)">Error: '+esc(g.terr)+'</small>':''}
+ <h3>To-dos → Google Calendar</h3><small>Your to-dos with a date are written to your main Google Calendar, in red, and kept in step: done ones get a ✓ and turn grey. <a href="#/guide">Step-by-step setup guide ›</a> Only to-dos are written, never anything else.</small><input data-c=gc data-k=key type=password value="${esc(g.key)}" placeholder="To-do sync key"><button class="btn ${g.tds?'pri':''}" data-a=tds>${g.tds?'✓ To-do sync on':'Turn on to-do sync'}</button>${g.terr?'<small style="color:var(--r)">Error: '+esc(g.terr)+'</small>':''}
  <h3>Linked events</h3><small>Tap a grey Google event on the calendar to link it to a routine or page. Linked events show 🔗 and open that page when tapped.</small>`
  +(bs.length?bs.map(([k,v])=>`<div class=row><span style="flex:1">${esc(k)}<small>→ ${esc(tgName(v))}</small></span><a class=btn href="#/xe/${encodeURIComponent(k)}">Change</a></div>`).join(''):'<small>None yet.</small>')
  +`<h3>Copy a link for any routine</h3>`+routines().map(r=>`<div class=row><span style="flex:1">${r.start} ${esc(r.name)}<small>${r.days.split('').map(d=>DN[d]).join(' ')}</small></span><button class=btn data-a=copy data-v="${base()}#/r/${r.id}">Copy</button></div>`).join('')}
 
 
-const CF=[['routines','Routines (calendar events)','# name|start|minutes|days 1-7|unused, leave blank|essential 1/0|colour 0-360, then steps: title|minutes|link|short version (* = keep, number = minutes, blank = skipped). Links: fuel money mind skill rel meaning train week todo spotify flow:Name. Titles can use {learn} {audio} {train}.'],['flows','Guided flows','# Name, then step|seconds'],['themes','Day themes','day 1-7|learn|audio|train template name|spotify link'],['tpl','Workout templates','# Name, then exercise|sets|reps|rest sec'],['diet','Diet plan','# Meal|time, then: ingredient|amount (g or ml)|protein g|carbs g|fat g. Calories are calculated.'],['cats','Budget categories','Name|monthly limit €'],['wk','Weekly targets','label|full target|minimum target|source: lift steps water diet med jr rev r:routine-id (join several with +) x(manual +/- counter)']];
+const CF=[['day','Daily targets (minimum and full day)','label|full-day target|minimum-day target|source. Sources: steps water diet(percent) med(minutes) jr(1 = journal written) lift(workouts that day). A minimum day = every minimum target reached. A full day = every full target reached.'],['routines','Routines (calendar events)','# name|start|minutes|days 1-7|unused, leave blank|essential 1/0|colour 0-360, then steps: title|minutes|link|short version (* = keep, number = minutes, blank = skipped). Links: fuel money mind skill rel meaning train week todo spotify flow:Name. Titles can use {learn} {audio} {train}.'],['flows','Guided flows','# Name, then step|seconds'],['themes','Day themes','day 1-7|learn|audio|train template name|spotify link'],['tpl','Workout templates','# Name, then exercise|sets|reps|rest sec'],['diet','Diet plan','# Meal|time, then: ingredient|amount (g or ml)|protein g|carbs g|fat g. Calories are calculated.'],['cats','Budget categories','Name|monthly limit €'],['wk','Weekly targets','label|full target|minimum target|source: lift steps water diet med jr rev r:routine-id (join several with +) x(manual +/- counter)']];
 const NF=[['income','Monthly income €'],['waterT','Water target ml'],['stepsT','Steps target'],['stepsMin','Steps minimum']];
 function vSet(){return`<h1>Settings</h1><small>Everything is editable. Use | to separate fields and never use | inside text.</small><h3>Numbers</h3>`+NF.map(([k,l])=>`<small>${l}</small><input type=number inputmode=decimal data-c=num data-k=${k} value="${S.cfg[k]}">`).join('')
  +CF.map(([k,l,h])=>`<h3>${l}</h3><small>${esc(h)}</small><textarea data-c=cfg data-k=${k} rows=8>${esc(S.cfg[k])}</textarea><button class=btn data-a=cfgreset data-k=${k}>Reset to default</button>`).join('')
@@ -469,7 +403,7 @@ tadd:({s})=>{if(T){T.end+= +s*1e3;if(S.timer)S.timer.end=T.end}},
 tskip:()=>{if(T)T.end=Date.now()-1;tick();return false},
 timer:({s,l})=>{startTimer(+s,l)},
 paid:()=>{const m=td().slice(0,7);S.paid[m]=!S.paid[m]},
-spend:()=>{const a=parseFloat($('#sa').value);if(!a)return false;S.tx.push({d:$('#sdt').value||td(),c:$('#sc').value,a,n:$('#sn').value})},
+spend:()=>{const a=parseFloat($('#sa').value);if(!a)return false;{const k=$('#sk').value;S.tx.push({d:$('#sdt').value||td(),c:k==='i'?'Income':$('#sc').value,a,n:$('#sn').value,k})}},
 txdel:({i})=>{S.tx.splice(+i,1)},
 todoadd:()=>{const t=$('#ta').value.trim();if(!t)return false;setTimeout(tflush,50);S.todo.push({id:tid(),sy:0,t,due:$('#td').value,time:$('#tt2').value,dur:+$('#tdu').value||30,done:0})},
 todotog:({i})=>{const x=S.todo[+i];x.done=x.done?0:1;x.sy=0;setTimeout(tflush,50)},
@@ -491,7 +425,6 @@ runback:()=>{R.i=Math.max(0,R.i-1);runStep()},
 runstop:()=>{R=null;T=null;S.timer=null;wake(false);location.hash=S.ctx?'#/r/'+S.ctx.r+'/'+S.ctx.d:'#/plan'},
 bind:({t,v})=>{(S.bind||(S.bind={}))[bkey(t)]=v;save();location.replace('#/'+v);return false},
 unbind:({t})=>{delete S.bind[bkey(t)];save()},
-own:()=>{S.own=S.own?0:1},
 tds:()=>{S.gcal.tds=S.gcal.tds?0:1;if(S.gcal.tds)S.todo.forEach(x=>x.sy=0)},
 copy:({v})=>{(navigator.clipboard?.writeText(v)||Promise.reject()).then(()=>alert('Link copied')).catch(()=>prompt('Copy this link',v));return false},
 cfgreset:({k})=>{if(confirm('Reset this section to defaults?'))S.cfg[k]=DEF.cfg[k]},
@@ -543,8 +476,8 @@ document.addEventListener('touchstart',e=>{const g=$('.grid');if(g&&e.touches.le
 document.addEventListener('touchmove',e=>{if(!pz||e.touches.length!==2)return;e.preventDefault();S.z=clampZ(pz.z*pd(e.touches)/pz.d);document.documentElement.style.setProperty('--z',S.z);scrollTo(0,$('.grid').offsetTop+pz.m*S.z-pz.my)},{passive:false});
 document.addEventListener('touchend',e=>{if(pz&&e.touches.length<2){pz=null;save();go()}});
 
-const V={x:(t,d)=>vExt(t,d),xe:(t,d)=>vExt(t,d,1),plan:vPlan,today:vPlan,b:vPlan,train:vTrain,fuel:vFuel,money:vMoney,more:vMore,life:vMore,mind:vMind,skill:vSkill,rel:()=>vNotes('Relationships and play','rel','Date ideas, things to talk about, friends to call, gift ideas. Your time together lives in the calendar routines.'),meaning:()=>vNotes('Meaning','meaning','What matters to you, reflections, gratitude, ways to help others.',`<button class=btn data-a=timer data-s=900 data-l="Quiet moment">⏱ 15-min quiet</button>`),week:vWeek,todo:vTodo,links:vLinks,set:vSet,r:vRoutine,run:vRun,day:vDay};
-const SUB=['train','fuel','money','mind','skill','rel','meaning','week','todo','links','set'];
+const V={guide:vGuide,x:(t,d)=>vExt(t,d),xe:(t,d)=>vExt(t,d,1),plan:vPlan,today:vPlan,b:vPlan,train:vTrain,fuel:vFuel,money:vMoney,more:vMore,life:vMore,mind:vMind,skill:vSkill,rel:()=>vNotes('Relationships and play','rel','Date ideas, things to talk about, friends to call, gift ideas. Your time together lives in the calendar routines.'),meaning:()=>vNotes('Meaning','meaning','What matters to you, reflections, gratitude, ways to help others.',`<button class=btn data-a=timer data-s=900 data-l="Quiet moment">⏱ 15-min quiet</button>`),week:vWeek,todo:vTodo,links:vLinks,set:vSet,r:vRoutine,run:vRun,day:vDay};
+const SUB=['guide','train','fuel','money','mind','skill','rel','meaning','week','todo','links','set'];
 function scrollPlan(){const g=$('.grid');if(!g)return;const n=new Date(),m=sel===D()?n.getHours()*60+n.getMinutes():420;scrollTo(0,g.offsetTop+Math.max(0,m-360-80))}
 function go(){const[p,...a]=(location.hash.slice(2)||'plan').split('/'),v=$('#v'),st=scrollY;CTA='';document.documentElement.style.setProperty('--z',Zv());
  if(p==='r'&&S.ctx){S.ctx=null;save()}
