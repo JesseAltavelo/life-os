@@ -41,8 +41,27 @@ nav a{flex:1;text-align:center;padding:8px 0 6px;color:var(--m);text-decoration:
 .big{font-size:64px;font-weight:700;text-align:center;margin:10px 0}
 #bc{width:200px;height:200px;border-radius:50%;background:var(--g);margin:30px auto;opacity:.85;transform:scale(.6)}
 .chips{display:flex;flex-wrap:wrap;gap:6px}.chips button{background:var(--c2);border:0;color:var(--t);border-radius:20px;padding:7px 12px;font:inherit;font-size:14px}.chips button.on{background:var(--g);color:#06251a}.chips button.over{background:var(--a);color:#000}
+.top{display:flex;justify-content:space-between;align-items:center}.top h1{font-size:22px}
+.chip.on{background:var(--g);color:#06251a}
+.strip{display:flex;gap:4px;margin:6px 0}.strip button{flex:1;background:var(--c);border:0;color:var(--t);border-radius:10px;padding:6px 0;font:inherit}
+.strip .dd small{text-align:center;font-size:11px}.strip .dd.on{background:var(--g);color:#06251a}.strip .dd.on small{color:#06251a}.strip .dd.td b{text-decoration:underline}
+.ctl{display:flex;align-items:center;gap:8px}.ctl>span{width:44px;font-weight:600}.ctl .seg{flex:1;margin:4px 0}
+.grid{display:flex;position:relative;height:1080px;margin-top:8px}.gut{width:38px;position:relative;flex:none}.gut span{position:absolute;font-size:10px;color:var(--m);transform:translateY(-6px)}
+.cols{flex:1;display:flex;border-left:1px solid var(--c2);background:repeating-linear-gradient(var(--c2) 0 1px,transparent 1px 60px)}.col{flex:1;position:relative;border-right:1px solid var(--c2)}
+.ev{position:absolute;border-radius:6px;padding:2px 4px;font-size:11px;overflow:hidden;color:#fff;text-decoration:none;line-height:1.2;border-left:3px solid}.ev.dn{opacity:.45}
+.grid.wk .ev{font-size:9px;padding:1px 2px}
+.now{position:absolute;left:0;right:0;height:2px;background:var(--r);z-index:2}
+.step{display:flex;gap:10px;align-items:center;background:var(--c);border-radius:14px;padding:12px;margin:8px 0}.step.dn{opacity:.45}.step.cur{outline:2px solid var(--g)}
+.step .n{color:var(--m);width:14px;font-size:12px}.step .em{font-size:24px}.step a{flex:1;color:inherit;text-decoration:none;font-weight:600}.step .mn{color:var(--m)}
+.dash{display:inline-block;border:1.5px dashed var(--m);color:var(--m);border-radius:20px;padding:8px 16px;margin:8px 0;background:none;font:inherit}.dash.on{border-color:var(--g);color:var(--g)}
+.cta{position:fixed;left:14px;right:14px;bottom:calc(70px + env(safe-area-inset-bottom));background:var(--g);color:#06251a;border:0;border-radius:30px;padding:14px;font:inherit;font-weight:700;font-size:18px;z-index:4}
+#cx{position:fixed;left:10px;right:10px;bottom:calc(64px + env(safe-area-inset-bottom));background:var(--a);color:#000;border-radius:14px;padding:8px 12px;display:none;align-items:center;gap:8px;z-index:6;font-weight:600}
+#cx button{border:0;border-radius:8px;padding:8px 10px;font:inherit;background:rgba(0,0,0,.15)}#cxl{flex:1;font-size:14px}
+body.hascx #tb{bottom:calc(120px + env(safe-area-inset-bottom))}
+.lc{display:block;background:var(--c);border-radius:14px;padding:14px;margin:8px 0;color:var(--t);text-decoration:none}.lc b{display:block;font-size:17px}
 </style></head><body>
 <div id="v"></div>
 <div id="tb"><span id="tl" style="flex:1"></span><b id="tt"></b><button data-a="tadd" data-s="-15">−15</button><button data-a="tadd" data-s="15">+15</button><button data-a="tskip">Skip</button></div>
-<nav><a href="#/today" data-p="today"><b>🏠</b>Today</a><a href="#/train" data-p="train"><b>🏋️</b>Train</a><a href="#/fuel" data-p="fuel"><b>🍽️</b>Fuel</a><a href="#/money" data-p="money"><b>💶</b>Money</a><a href="#/more" data-p="more"><b>⋯</b>More</a></nav>
+<div id="cx"><span id="cxl"></span><button data-a="ctxdone">✓ Done</button><button data-a="ctxx">✕</button></div>
+<nav><a href="#/plan" data-p="plan"><b>📅</b>Calendar</a><a href="#/train" data-p="train"><b>🏋️</b>Train</a><a href="#/fuel" data-p="fuel"><b>🍽️</b>Fuel</a><a href="#/money" data-p="money"><b>💶</b>Money</a><a href="#/life" data-p="life"><b>🧠</b>Life</a></nav>
 <script src="app.js"></script></body></html>
