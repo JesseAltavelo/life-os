@@ -1,5 +1,5 @@
 'use strict';
-const BUILD='1794070281';
+const BUILD='1794070643';
 const $=s=>document.querySelector(s);
 const D=(d=new Date())=>new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
 const dow=s=>new Date(s+'T12:00').getDay()||7;
@@ -312,15 +312,20 @@ function layout(ev){ev.sort((a,b)=>a.s-b.s);const cl=[];let cur=[],end=0;
 const Zv=()=>S.z||1,clampZ=z=>Math.min(4,Math.max(.6,z));
 const hmm=m=>String(m/60|0).padStart(2,'0')+':'+String(Math.round(m%60)).padStart(2,'0');
 function extOn(ds){const a=new Date(ds+'T00:00').getTime(),b=a+864e5;return(S.gcal.evs||[]).filter(e=>e.s<b&&e.e>a).map(e=>({...e,sm:Math.max(0,(Math.max(e.s,a)-a)/6e4),em:(Math.min(e.e,b)-a)/6e4}))}
+const TR='#c0392b';
+function todoBar(ds,t){const l=S.todo.map((x,i)=>({...x,i})).filter(x=>x.due&&(x.due===ds||(ds===t&&x.due<ds&&!x.done)));if(!l.length)return'';
+ return`<div class=card style="border-left:4px solid ${TR}"><small>To-dos</small>`+l.map(x=>`<div class=row style="padding:6px 0"><button class="ck ${x.done?'on':''}" data-a=todotog data-i=${x.i}></button><span style="flex:1;${x.done?'opacity:.5;text-decoration:line-through':''}">${esc(x.t)}<small style="${x.due<ds&&!x.done?'color:var(--r)':''}">${x.due<ds?'overdue · '+x.due:x.time||'all day'}</small></span></div>`).join('')+`</div>`}
 function conflicts(ds){const o=[],xs=extOn(ds).filter(e=>!e.ad);occ(ds).forEach(r=>{const a=+r.start.slice(0,2)*60+ +r.start.slice(3),b=a+r.dur;xs.forEach(y=>{if(a<y.em&&y.sm<b)o.push(`${r.name} (${r.start}) overlaps "${y.t}" (${hmm(y.sm)}-${hmm(y.em)})`)})});return o}
 function grid(days){const t=D(),wk=days.length>1,nm=new Date(),nowM=nm.getHours()*60+nm.getMinutes(),z=Zv(),pos=q=>`left:calc(${q.c/q.n*100}% + 1px);width:calc(${100/q.n}% - 2px);top:calc(var(--z)*${q.s-360}px);height:max(calc(var(--z)*${q.e0-q.s}px - 1px),20px)`;
  let gut='';for(let i=0;i<=18;i++){gut+=`<span style="top:calc(var(--z)*${i*60}px)">${String(6+i).padStart(2,'0')}:00</span>`;if(z>=2&&i<18)gut+=`<span style="top:calc(var(--z)*${i*60+30}px);opacity:.6">${String(6+i).padStart(2,'0')}:30</span>`}
  return`<div class="grid ${wk?'wk':''}"><div class=gut>${gut}</div><div class=cols>`
  +days.map(ds=>{const ev=occ(ds).map(r=>{const s=+r.start.slice(0,2)*60+ +r.start.slice(3);return{r,s,e0:s+r.dur,e:Math.max(s+r.dur,s+Math.ceil(22/z))}}),
+ tds=S.todo.map((x,i)=>({x,i})).filter(q=>q.x.due===ds&&q.x.time).map(q=>{const s=+q.x.time.slice(0,2)*60+ +q.x.time.slice(3);return{...q,s,e0:s+(q.x.dur||30),e:Math.max(s+(q.x.dur||30),s+Math.ceil(22/z))}}),
  xs=extOn(ds).filter(e=>!e.ad&&e.em>360).map(e=>({x:e,s:Math.max(e.sm,360),e0:e.em,e:Math.max(e.em,e.sm+Math.ceil(22/z))}));
- ev.forEach(q=>{q.cf=xs.some(y=>q.s<y.e0&&y.s<q.e0)});layout([...ev,...xs]);
+ ev.forEach(q=>{q.cf=xs.some(y=>q.s<y.e0&&y.s<q.e0)});layout([...ev,...xs,...tds]);
  return`<div class=col>`+ev.map(q=>{const r=q.r,st=stepsOf(r,ds),dn=st.filter(s=>isDone(ds,r,s)).length,all=st.length&&dn===st.length;
  return`<a class="ev ${all?'dn':''}" href="#/r/${r.id}/${ds}" style="${pos(q)};background:hsl(${r.hue} 45% 24%);border-color:hsl(${r.hue} 70% 60%)"><b>${all?'✓ ':''}${q.cf?'⚠ ':''}${esc(r.name)}</b>${wk?'':`<br>${r.start} · ${dn}/${st.length}`}</a>`}).join('')
+ +tds.map(q=>`<div class="ev ${q.x.done?'dn':''}" data-a=todotog data-i=${q.i} style="${pos(q)};background:${TR};border-color:#ff8a7a"><b>${q.x.done?'✓ ':''}${esc(q.x.t)}</b>${wk?'':`<br>${q.x.time} · ${q.x.dur||30} min`}</div>`).join('')
  +xs.map(q=>`<a class="ev ext" href="#/x/${encodeURIComponent(q.x.t)}/${ds}" style="${pos(q)}"><b>${bnd(q.x.t)?'🔗 ':''}${esc(q.x.t)}</b>${wk?'':`<br>${hmm(q.x.sm)}-${hmm(q.x.em)}`}</a>`).join('')+(ds===t?`<i class=now style="top:calc(var(--z)*${nowM-360}px)"></i>`:'')+`</div>`}).join('')+`</div></div>`}
 
 function minOk(ds){const d=dow(ds);return routines().filter(r=>r.ess&&r.days.includes(d)).every(r=>r.steps.filter(s=>s.short).every(x=>S.chk[ds]?.[key(r,x)]))}
@@ -334,10 +339,11 @@ function vPlan(){const t=D(),ws=weekStart(sel),m=mode(sel),g=S.gcal,gon=g.url&&g
   if(!m)h+=`<div class=card><b>How do you feel today?</b><small>This picks your plan for today. You can change it any time.</small><button class="btn pri" data-a=mode data-v=full>💪 Full day</button><button class=btn data-a=mode data-v=min>🪫 Minimum day</button></div>`}
  h+=conflicts(sel).map(x=>`<div class="w a">⚠ ${esc(x)}. Move one of them.</div>`).join('');
  const ad=extOn(sel).filter(e=>e.ad);if(ad.length)h+=`<div class=card><small>All day (Google Calendar)</small>${ad.map(e=>esc(e.t)).join(', ')}</div>`;
+ h+=todoBar(sel,t);
  h+=`<div class=card><div class=ctl><span>Day</span>${seg([['full','Full'],['min','Minimum']],m||'full','mode')}</div><small>${m==='min'?'Minimum day: only the essential routines, in short versions. Doing just this counts as a good day.':'Full day: every routine for this day, all steps.'}</small></div>`;
  h+=`<button class=chip data-a=zoom data-v=-1>🔍 −</button> <button class=chip data-a=zoom data-v=1>🔍 +</button> <small style="display:inline">pinch the calendar to zoom</small> `+(gon?`<button class=chip data-a=gsync>↻ Google ${g.t?new Date(g.t).toTimeString().slice(0,5):'not synced'}</button>`:'')+'<br>';
- if(ws<=t){const sm=wsum(ws),past=addD(ws,6)<t,beh=sm.ds.filter(d=>d<t).some(d=>!minOk(d)),bad=past?sm.ok<7:beh;
-  h+=`<a class=chip href="#/week/${ws}" style="${bad?'background:#46380f':''}">Minimum week ${sm.ok}/7 · ${past?(sm.ok===7?'achieved ✓':'missed'):beh?'behind':'on track'} ›</a>`}
+ if(ws<=t){const sm=wsum(ws),past=addD(ws,6)<t,ds=wdays(ws),beh=ds.some(d=>d<t&&d>=S.start&&!minOk(d)),bad=past?sm.ok<7:beh,left=ds.filter(d=>d>=t).length;
+  h+=`<a class=card href="#/week/${ws}" style="display:block;color:inherit;text-decoration:none;border-left:4px solid ${bad?'var(--r)':'var(--g)'}"><b>Minimum week · ${sm.ok}/7 days</b> <span style="color:${bad?'var(--r)':'var(--g)'}">${past?(sm.ok===7?'achieved ✓':'missed'):bad?'broken: a minimum day was missed':'on track'}</span><br>`+ds.map(d=>{const f=d>=S.start,ok=f&&minOk(d);return`<span style="display:inline-block;width:13%;text-align:center;font-size:12px"><small style="text-align:center">${DN[dow(d)]}</small>${d>t?'·':ok?'✓':d===t?'○':'✗'}</span>`}).join('')+`<small>${past?'':bad?'You can still do the minimum day on the days left, but this week will not count as minimum.':minOk(t)?'Today\'s minimum day is done.':'Do today\'s minimum day (essential routines, short versions) to stay on track.'}</small></a>`}
  return h+grid(view==='week'?wdays(ws):[sel])}
 
 const LBL={fuel:'Diet',train:'Workout',money:'Budget',mind:'Mind',skill:'Skill',rel:'Relationships',meaning:'Meaning',week:'Weeks',todo:'To-dos'};
@@ -374,10 +380,12 @@ function vFuel(){const t=D(),dd=diet(),g=S.ing[t]||{},all=dd.flatMap(m=>m.items.
  <input type=number inputmode=numeric data-c=steps value="${S.steps[t]||''}" placeholder="Steps today (target ${S.cfg.stepsT})"></div>`}
 
 function vMoney(){const s=monthStats(),inc=+S.cfg.income||0,inv=+S.cfg.invest||0,cs=cats();
- return`<h1>Money</h1><small>${s.mo} · EUR</small><div class=card>Income ${eur(inc)}<br>Auto-invest ${eur(inv)} <button class="ck ${S.paid[s.mo]?'on':''}" data-a=paid style="vertical-align:middle"></button><br>Spent ${eur(s.sp)}<br><b>Left ${eur(inc-inv-s.sp)}</b><small>Set income, invest and category limits in Life › Settings.</small></div>
+ return`<h1>Money</h1><small>${s.mo} · EUR</small><div class=card>Income ${eur(inc)}<br>Auto-invest ${eur(inv)} <button class="btn ${S.paid[s.mo]?'pri':''}" data-a=paid>${S.paid[s.mo]?'✓ Invested this month':'Tap when invested'}</button><br>Spent ${eur(s.sp)}<br><b>Left ${eur(inc-inv-s.sp)}</b><small>Set income, invest and category limits in Life › Settings.</small></div>
  <h3>Categories</h3>`+cs.map(c=>{const v=s.by[c.n]||0;return`<div>${esc(c.n)} <small style="display:inline">${eur(v)}${c.l?' / '+eur(c.l):''}</small>${bar(v,c.l)}</div>`}).join('')
- +`<h3>Add expense</h3><div class=card><input id=sa type=number step=0.01 inputmode=decimal placeholder="Amount €"><select id=sc>${cs.map(c=>`<option>${esc(c.n)}</option>`).join('')}</select><input id=sn placeholder="Note"><button class="btn pri" data-a=spend>Add</button></div>
- <h3>This month</h3>`+(s.tx.slice().reverse().map(x=>`<div class=row><span style="flex:1">${esc(x.c)}<small>${x.d} ${esc(x.n)}</small></span><b>${eur(x.a)}</b><button class=btn data-a=txdel data-i="${S.tx.indexOf(x)}">✕</button></div>`).join('')||'<small>Nothing yet.</small>')}
+ +`<h3>Add expense</h3><div class=card><input id=sa type=number step=0.01 inputmode=decimal placeholder="Amount €"><select id=sc>${cs.map(c=>`<option>${esc(c.n)}</option>`).join('')}</select><input id=sn placeholder="Note"><small>Date</small><input id=sdt type=date value="${D()}"><button class="btn pri" data-a=spend>Add</button></div>
+ <h3>This month</h3><div class=card><b>Total ${eur(s.sp)}</b>${cs.filter(c=>s.by[c.n]).map(c=>`<br>${esc(c.n)} ${eur(s.by[c.n])}`).join('')}</div>`+txByDay(s.tx)+`<h3>Earlier months</h3>`+earlier()}
+const txByDay=tx=>{const g={};tx.forEach(x=>(g[x.d]=g[x.d]||[]).push(x));return Object.keys(g).sort().reverse().map(d=>`<h3>${new Date(d+'T12:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})} · ${eur(g[d].reduce((a,x)=>a+x.a,0))}</h3>`+g[d].map(x=>`<div class=row><span style="flex:1">${esc(x.c)}<small>${esc(x.n)}</small></span><b>${eur(x.a)}</b><button class=btn data-a=txdel data-i="${S.tx.indexOf(x)}">✕</button></div>`).join('')).join('')||'<small>Nothing yet.</small>'};
+const earlier=()=>{const mo=D().slice(0,7),m={};S.tx.filter(x=>!x.d.startsWith(mo)).forEach(x=>m[x.d.slice(0,7)]=(m[x.d.slice(0,7)]||0)+x.a);return Object.keys(m).sort().reverse().map(k=>`<div class=row><span style="flex:1">${k}</span><b>${eur(m[k])}</b></div>`).join('')||'<small>None.</small>'}
 
 function vMind(){const t=D(),ws=weekStart(t);let h=`<h1>Mind training</h1><small>Meditated today ${S.med[t]||0} min · this week ${wdays(ws).reduce((a,d)=>a+(S.med[d]||0),0)} min</small>`;
  if(B)h+=`<div class=big id=bl></div><div id=bc></div><div class=big id=br style="font-size:28px"></div><button class=btn data-a=bstop>Stop</button>`;
@@ -403,7 +411,7 @@ function vWeek(w){const t=D(),cw=weekStart(t),ws=w||cw,sm=wsum(ws),r=S.rev[ws]||
  return h}
 
 function vTodo(){const t=D(),a=S.todo.map((x,i)=>({...x,i})).sort((p,q)=>(p.done-q.done)||((p.due||'9')<(q.due||'9')?-1:1));
- return`<h1>To-dos</h1><div class=card><input id=ta placeholder="New task"><input id=td type=date><button class="btn pri" data-a=todoadd>Add</button></div>`+a.map(x=>`<div class=row><button class="ck ${x.done?'on':''}" data-a=todotog data-i=${x.i}></button><span style="flex:1;${x.done?'opacity:.4;text-decoration:line-through':''}">${esc(x.t)}<small style="${x.due&&x.due<t&&!x.done?'color:var(--r)':''}">${x.due||''}</small></span><button class=btn data-a=tododel data-i=${x.i}>✕</button></div>`).join('')}
+ return`<h1>To-dos</h1><div class=card><input id=ta placeholder="New task"><small>Date (leave empty for no date)</small><input id=td type=date><small>Time (optional; empty = all-day)</small><input id=tt2 type=time><small>Estimated duration</small><select id=tdu><option value=15>15 min</option><option value=30 selected>30 min</option><option value=60>1 hour</option><option value=90>1.5 hours</option><option value=120>2 hours</option></select><button class="btn pri" data-a=todoadd>Add</button><small>Open to-dos also show on the Calendar, in red, on their day.</small></div>`+a.map(x=>`<div class=row><button class="ck ${x.done?'on':''}" data-a=todotog data-i=${x.i}></button><span style="flex:1;${x.done?'opacity:.4;text-decoration:line-through':''}">${esc(x.t)}<small style="${x.due&&x.due<t&&!x.done?'color:var(--r)':''}">${x.due||''}${x.time?' '+x.time:''}</small></span><button class=btn data-a=tododel data-i=${x.i}>✕</button></div>`).join('')}
 
 const bkey=t=>String(t).trim().toLowerCase(),bnd=t=>(S.bind||{})[bkey(t)];
 const TG=()=>[...routines().map(r=>['r/'+r.id,r.start+' '+r.name]),['train','Workout'],['fuel','Diet and water'],['money','Budget'],['mind','Mind'],['skill','Skill'],['rel','Relationships'],['meaning','Meaning'],['week','Weeks'],['todo','To-dos']];
@@ -457,9 +465,9 @@ tadd:({s})=>{if(T){T.end+= +s*1e3;if(S.timer)S.timer.end=T.end}},
 tskip:()=>{if(T)T.end=Date.now()-1;tick();return false},
 timer:({s,l})=>{startTimer(+s,l)},
 paid:()=>{const m=td().slice(0,7);S.paid[m]=!S.paid[m]},
-spend:()=>{const a=parseFloat($('#sa').value);if(!a)return false;S.tx.push({d:td(),c:$('#sc').value,a,n:$('#sn').value})},
+spend:()=>{const a=parseFloat($('#sa').value);if(!a)return false;S.tx.push({d:$('#sdt').value||td(),c:$('#sc').value,a,n:$('#sn').value})},
 txdel:({i})=>{S.tx.splice(+i,1)},
-todoadd:()=>{const t=$('#ta').value.trim();if(!t)return false;S.todo.push({t,due:$('#td').value,done:0})},
+todoadd:()=>{const t=$('#ta').value.trim();if(!t)return false;S.todo.push({t,due:$('#td').value,time:$('#tt2').value,dur:+$('#tdu').value||30,done:0})},
 todotog:({i})=>{S.todo[+i].done=S.todo[+i].done?0:1},
 tododel:({i})=>{S.todo.splice(+i,1)},
 wx:({l,v,w})=>{S.wx[w]=S.wx[w]||{};S.wx[w][l]=Math.max(0,(S.wx[w][l]||0)+ +v)},
