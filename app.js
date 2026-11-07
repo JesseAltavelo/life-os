@@ -1,5 +1,5 @@
 'use strict';
-const BUILD='1794077559';
+const BUILD='1794078555';
 const $=s=>document.querySelector(s);
 const D=(d=new Date())=>new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
 const dow=s=>new Date(s+'T12:00').getDay()||7;
@@ -20,17 +20,17 @@ const base=()=>location.origin+location.pathname;
 const td=()=>D();
 
 /* ---------- defaults (everything is editable in Life > Settings) ---------- */
-const VER=9;
+const VER=10;
 const DEF={v:VER,start:D(),mode:{},wmode:{},short:{},chk:{},water:{},steps:{},port:{},ing:{},z:.75,tcol:{},bname:{},bcol:{},nl:{},own:0,tdel:[],bind:{},notes:{},gcal:{url:'',proxy:'',key:'',tds:0,t:0,evs:[],err:''},supp:{},hab:{},jr:{},med:{},todo:[],log:[],active:null,tx:[],paid:{},rev:{},wx:{},timer:null,ctx:null,
 cfg:{
 income:0,invest:0,waterT:2500,stepsT:10000,stepsMin:8000,
 themes:`1|Money: investing basics, tax, index funds. Check auto-invest.|Finance and business|Push|
 2|Craft: GTM, CRM, RevOps. Build or practise something real.|Career and industry|Pull|
 3|Reading and mind: one book chapter + 10 min language.|History and philosophy|Lower|
-4|Humour and social: improv, comedy night, run club, or write a joke.|Comedy, storytelling|Zone 2 + mobility|
+4|Humour and social: improv, comedy night, run club, or write a joke.|Comedy, storytelling|Mobility|
 5|No learn block. Date night.|Anything fun|Upper|
-6|Build block (90 min).|Fun|VO2 4x4|
-7|Weekly review.|Wisdom, nature|Long Zone 2|`,
+6|Build block (90 min).|Fun|Hard session (4x4)|
+7|Weekly review.|Wisdom, nature|Long easy session (Zone 2)|`,
 tpl:`# Push
 Incline DB press|4|6-10|120
 Flat DB press|3|8-12|90
@@ -107,7 +107,7 @@ Date night|1|1|r:date-night
 Social / play (quality time + fun night)|2|1|r:quality-time+r:fun-night
 Nature / quiet time|1|1|r:long-zone-2-quiet-hour
 Weekly review done|1|1|rev`,
-flows:`# Mobility flow
+flows:`# Mobility
 Dry brush (optional)|180
 Jumping jacks|120
 Cat-cow|120
@@ -117,7 +117,7 @@ Thoracic rotations|120
 Band shoulder dislocates|120
 Deep squat hold|120
 Legs up the wall + belly breathing|180
-# VO2 4x4
+# Hard session (4x4)
 Warm-up|600
 Hard 1|240
 Easy|180
@@ -126,6 +126,10 @@ Easy|180
 Hard 3|240
 Easy|180
 Hard 4|240
+Cool-down|300
+# Long easy session (Zone 2)
+Warm-up|300
+Steady Zone 2|5400
 Cool-down|300`,
 routines:``
 }};
@@ -136,6 +140,12 @@ function load(o){o=o||{};if((o.v||0)<2){if(o.cfg){delete o.cfg.blocks;delete o.c
  if((o.v||0)<6&&o.cfg){o.cfg.routines='';delete o.cfg.day}
  if((o.v||0)<5&&o.cfg&&o.cfg.cats){let c=o.cfg.cats;['Investing','Savings'].forEach(n=>{if(!c.includes(n))c+='\n'+n+'|0'});o.cfg.cats=c;if(+o.cfg.invest&&!/Investing\|[1-9]/.test(c))o.cfg.cats=c.replace('Investing|0','Investing|'+(+o.cfg.invest))}
  const s=Object.assign(structuredClone(DEF),o);s.cfg=Object.assign({},DEF.cfg,o.cfg); s.todo.forEach(x=>{x.id=x.id||Date.now().toString(32)+Math.random().toString(32).slice(2,6)});if((o.v||0)<8&&s.gcal)s.gcal.t=0;if((o.v||0)<9){const c=s.cfg;if(+c.income&&c.inc===DEF.cfg.inc)c.inc='Salary|'+(+c.income)+'\nOther income|0';c.diet=c.diet.split('\n').map(l=>{if(l[0]==='#')return l;const p=l.split('|');return p.length===5?l+'|'+Math.round(+p[2]*4+ +p[3]*4+ +p[4]*9):l}).join('\n');if(!c.flows.includes('# Zone 2 session'))c.flows+='\n# Zone 2 session\nWarm-up|300\nSteady Zone 2|3000\nCool-down|300\n# Long Zone 2\nWarm-up|300\nSteady Zone 2|5400\nCool-down|300';c.themes=c.themes.replace('Zone 2 + mobility','Zone 2 session')}
+
+ if((o.v||0)<10){const R2={'Mobility flow':'Mobility','VO2 4x4':'Hard session (4x4)','Long Zone 2':'Long easy session (Zone 2)','Zone 2 session':'Long easy session (Zone 2)'},c=s.cfg;
+  c.flows=c.flows.replace(/\n?# Zone 2 session\n(?:[^#\n][^\n]*\n?)*/,'\n').replace('# Mobility flow','# Mobility').replace('# VO2 4x4','# Hard session (4x4)').replace('# Long Zone 2','# Long easy session (Zone 2)').trim();
+  c.themes=c.themes.replace('|Zone 2 session|','|Mobility|').replace('|VO2 4x4|','|Hard session (4x4)|').replace('|Long Zone 2|','|Long easy session (Zone 2)|').replace('|Mobility flow|','|Mobility|');
+  Object.keys(R2).forEach(k=>{c.routines=(c.routines||'').split('flow:'+k).join('flow:'+R2[k])});
+  Object.keys(s.bind||{}).forEach(k=>{const v=s.bind[k];if(v.startsWith('f/')&&R2[v.slice(2)])s.bind[k]='f/'+R2[v.slice(2)]})}
  s.v=VER;return s}
 let S;try{S=load(JSON.parse(localStorage.lifeos1))}catch(e){S=load()}
 const save=()=>{try{localStorage.lifeos1=JSON.stringify(S)}catch(e){}};
@@ -217,7 +227,7 @@ function breath(){if(!B)return;const el=(Date.now()-B.start)/1e3;
  const bl=$('#bl');if(bl){bl.textContent=n+' '+Math.ceil(d-x);$('#bc').style.transform=`scale(${sc})`;$('#br').textContent=fmt(Math.ceil(B.dur*60-el))}}
 function bend(full){const m=full?B.dur:Math.floor((Date.now()-B.start)/6e4);B=null;wake(false);if(m>0)S.med[D()]=(S.med[D()]||0)+m;save();if(full)beep(3);go()}
 
-/* guided flow (mobility, VO2): steps with auto-advancing timers */
+/* timed workout (mobility, VO2): steps with auto-advancing timers */
 function startFlow(name,scale){const f=flows()[name]||[];R={name,i:0,steps:f.map(([n,s])=>[n,Math.max(5,Math.round(s*scale))])};runStep()}
 function runStep(){const[n,s]=R.steps[R.i];startTimer(s,n,()=>{R.i++;if(R.i<R.steps.length)runStep();else{R=null;save();if(S.ctx)A.ctxdone();else location.hash='#/plan'}go()})}
 
@@ -228,6 +238,7 @@ function stepGo(rid,ds,i){const r=routines().find(x=>x.id===rid),s=stepsOf(r,ds)
  if(k==='spotify'){setDone(ds,r,s,1);save();window.open(themeOf(ds).sp||'https://open.spotify.com','_blank');return}
  S.ctx={r:rid,d:ds,k:key(r,s),link:k,label:r.name+' › '+stripE(s.title)};save();
  if(k.startsWith('flow:'))startFlow(k.slice(5),s.min/s.full);
+ if(k.startsWith('gym:')){if(!S.active)A.start({n:k.slice(4)});save();location.hash='#/train';go();return}
  location.hash=k.startsWith('flow:')?'#/run':'#/'+k;go()}
 function rnext(rid,ds){const r=routines().find(x=>x.id===rid),st=stepsOf(r,ds),i=st.findIndex(s=>!isDone(ds,r,s));
  if(i<0){RUN=null;wake(false);beep(3);sel=ds;location.hash='#/plan';return}
@@ -274,24 +285,25 @@ function vPlan(){const t=D(),ws=weekStart(sel),g=S.gcal,gon=g.url&&g.proxy;
  h+=todoBar(sel,t)+`</div>`;
  return h+grid(view==='week'?wdays(ws):[sel])}
 
-const LBL={fuel:'Diet',train:'Workout',money:'Budget',mind:'Mind',skill:'Skill',rel:'Relationships',meaning:'Meaning',week:'Weeks',todo:'To-dos'};
+const linkLbl=k=>k.startsWith('flow:')?'Timed workout · '+k.slice(5):k.startsWith('gym:')?'Gym workout · '+k.slice(4):k==='spotify'?'Opens Spotify':'Opens '+(LBL[k]||k);
+const LBL={fuel:'Diet',train:'Gym workout',money:'Budget',mind:'Mind',skill:'Skill',rel:'Relationships',meaning:'Meaning',week:'Weeks',todo:'To-dos'};
 function vRoutine(id,ds){ds=ds||D();const r=routines().find(x=>x.id===id);if(!r)return'<p>Routine not found.</p><a href="#/plan">Back</a>';
  const forced=mode(ds)==='min'&&r.ess,sh=isShort(r,ds),st=stepsOf(r,ds),done=st.filter(s=>isDone(ds,r,s)).length,left=st.filter(s=>!isDone(ds,r,s)).reduce((a,s)=>a+s.min,0),
  end=new Date(Date.now()+left*6e4).toTimeString().slice(0,5),cur=st.findIndex(s=>!isDone(ds,r,s)),run=RUN&&RUN.rid===id;
  const e=+r.start.slice(0,2)*60+ +r.start.slice(3)+r.dur,endT=String(Math.min(e,1439)/60|0).padStart(2,'0')+':'+String(Math.min(e,1439)%60).padStart(2,'0');
  const H=`<a href="#/plan" onclick="sel='${ds}'">‹ Calendar</a><h1>${esc(r.name)}</h1><small>${r.start} – ${endT} (${r.dur}m) · ${new Date(ds+'T12:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})} · ${done}/${st.length} done</small>
  ${forced?`<span class="dash on">Short version (Minimum day)</span>`:`<button class="dash ${sh?'on':''}" data-a=short data-r="${id}" data-d="${ds}">${sh?'✓ Short version':'+ Short version'}</button>`}`
- +st.map((s,i)=>{const d=isDone(ds,r,s);return`<div class="step ${d?'dn':''} ${i===cur?'cur':''}"><span class=n>${i+1}</span><span class=em>${emo(s.title)}</span><a data-a=stepgo data-r="${id}" data-d="${ds}" data-i=${i}>${esc(stripE(s.title))}${s.link?'<small>'+(s.link.startsWith('flow:')?'Guided flow':s.link==='spotify'?'Opens Spotify':'Opens '+esc(LBL[s.link]||s.link))+' ›</small>':''}</a><span class=mn>${s.min}m</span><button class="ck ${d?'on':''}" data-a=stepchk data-r="${id}" data-d="${ds}" data-i=${i}></button></div>`}).join('')
+ +st.map((s,i)=>{const d=isDone(ds,r,s);return`<div class="step ${d?'dn':''} ${i===cur?'cur':''}"><span class=n>${i+1}</span><span class=em>${emo(s.title)}</span><a data-a=stepgo data-r="${id}" data-d="${ds}" data-i=${i}>${esc(stripE(s.title))}${s.link?'<small>'+esc(linkLbl(s.link))+' ›</small>':''}</a><span class=mn>${s.min}m</span><button class="ck ${d?'on':''}" data-a=stepchk data-r="${id}" data-d="${ds}" data-i=${i}></button></div>`}).join('')
 ;CTA=done===st.length&&st.length?`<button class=cta data-a=rback data-d="${ds}">✓ Routine complete · Back to calendar</button>`:run?`<button class=cta data-a=rstop>■ Stop timer</button>`:`<button class=cta data-a=rstart data-r="${id}" data-d="${ds}">${ic('play')} Start timer<br><small style="color:#fff">Ends at ${end}</small></button>`;return H}
 
-function vRun(){if(!R)return'<p>No guided flow running.</p><a href="#/plan">Back</a>';const s=R.steps;
+function vRun(){if(!R)return'<p>No timed workout running.</p><a href="#/plan">Back</a>';const s=R.steps;
  return`<small>${esc(R.name)} · step ${R.i+1} / ${s.length}</small><h1>${esc(s[R.i][0])}</h1><div class=big id=big>${fmt(s[R.i][1])}</div>
  <button class=btn data-a=runback>Back</button><button class="btn pri" data-a=tskip>Next</button><button class=btn data-a=runstop>Stop</button>
  <h3>Up next</h3>`+s.slice(R.i+1).map(x=>`<div class=row><span style="flex:1">${esc(x[0])}</span><small style="width:auto">${fmt(x[1])}</small></div>`).join('')}
 
 function vTrain(){if(S.active)return vActive();const th=themeOf(D()),tp=tpls(),tn=th.train,last=S.log.filter(l=>l.tpl===tn).pop();
- let h=`<h1>Train</h1>`+(tp[tn]?`<div class=card><small>Today's session</small><b style="font-size:20px">${esc(tn)}</b><small>${tp[tn].length} exercises${last?' · last time '+last.date:''}</small><button class="btn pri" data-a=start data-n="${esc(tn)}">${ic('play')} Start ${esc(tn)}</button></div>`:(flows()[tn]?`<div class=card><small>Today's session</small><b style="font-weight:500;font-size:17px">${esc(tn)}</b><small>Guided flow · ${Math.round(flows()[tn].reduce((a,x)=>a+x[1],0)/60)} min</small><button class="btn pri" data-a=flowgo data-n="${esc(tn)}">${ic('play')} Start ${esc(tn)}</button></div>`:`<div class=card><small>Today's session</small><b>${esc(tn||'Rest day')}</b><small>Not a workout template. Start a free workout if you want to log something.</small></div>`))
- +`<h3>Cardio and guided flows</h3>`+Object.keys(flows()).map(n=>`<button class=btn data-a=flowgo data-n="${esc(n)}">${esc(n)}</button>`).join('')+`<a class=btn href="#/flows">Edit</a><h3>Other workouts</h3>`+Object.keys(tp).filter(n=>n!==tn).map(n=>`<button class=btn data-a=start data-n="${esc(n)}">${esc(n)}</button>`).join('')+`<button class=btn data-a=start data-n="">Empty workout</button><h3>History (saved on this phone)</h3>`;
+ let h=`<h1>Train</h1>`+(tp[tn]?`<div class=card><small>Today's session</small><b style="font-size:20px">${esc(tn)}</b><small>${tp[tn].length} exercises${last?' · last time '+last.date:''}</small><button class="btn pri" data-a=start data-n="${esc(tn)}">${ic('play')} Start ${esc(tn)}</button></div>`:(flows()[tn]?`<div class=card><small>Today's session</small><b style="font-weight:500;font-size:17px">${esc(tn)}</b><small>Timed workout · ${Math.round(flows()[tn].reduce((a,x)=>a+x[1],0)/60)} min</small><button class="btn pri" data-a=flowgo data-n="${esc(tn)}">${ic('play')} Start ${esc(tn)}</button></div>`:`<div class=card><small>Today's session</small><b>${esc(tn||'Rest day')}</b><small>Not a workout template. Start a free workout if you want to log something.</small></div>`))
+ +`<h3>Timed workouts</h3><small>Mobility, a hard session, a long Zone 2 session</small>`+Object.keys(flows()).map(n=>`<button class=btn data-a=flowgo data-n="${esc(n)}">${esc(n)}</button>`).join('')+`<a class=btn href="#/flows">Edit</a><h3>Other workouts</h3>`+Object.keys(tp).filter(n=>n!==tn).map(n=>`<button class=btn data-a=start data-n="${esc(n)}">${esc(n)}</button>`).join('')+`<button class=btn data-a=start data-n="">Empty workout</button><small>Empty workout: no exercises prepared, you add them as you go.</small><h3>History (saved on this phone)</h3>`;
  return h+(S.log.slice(-15).reverse().map((l,i)=>{const sets=l.ex.reduce((a,e)=>a+e.s.length,0),vol=l.ex.reduce((a,e)=>a+e.s.reduce((b,s)=>b+(+s.w||0)*(+s.r||0),0),0);
  return`<details class=card><summary><b>${esc(l.tpl)}</b> <small style="display:inline">${l.date} · ${l.dur} min · ${sets} sets · ${Math.round(vol)} kg</small></summary>${l.ex.map(e=>`<small>${esc(e.n)}: ${e.s.map(s=>s.w+'×'+s.r).join(', ')}</small>`).join('')}<button class=btn data-a=logdel data-i="${S.log.length-1-i}">Delete</button></details>`}).join('')||'<small>No workouts yet.</small>')}
 function vActive(){const a=S.active;
@@ -335,7 +347,7 @@ function vSkill(d){const T=themes(),td=+d||dow(D()),th=T[td]||{},tn=[...Object.k
  return`<h1>Skill and money</h1><div class=card><small>${DN[td]} focus</small><b style="font-weight:500;font-size:17px">${esc(th.learn)}</b><small>Listen: ${esc(th.audio)}</small></div>`
  +(th.q&&th.q.length?`<h3>Watch and listen list for ${DN[td]}</h3>`+th.q.map(i=>i.u?`<a class=row href="${esc(i.u)}" target=_blank style="flex:1"><span style="flex:1">${esc(i.t)}</span>${ic('chev')}</a>`:`<div class=row><span style="flex:1">${esc(i.t)}</span></div>`).join(''):'')
  +`<div style="margin-top:12px"><a class="btn pri" href="${esc(th.sp||'https://open.spotify.com')}" target=_blank>${ic('play')} Spotify</a><button class=btn data-a=timer data-s=2400 data-l="Learn block">${ic('timer')} 40-min learn</button><button class=btn data-a=timer data-s=5400 data-l="Build block">${ic('timer')} 90-min build</button></div>
- <h3>What each day is for</h3><small>Tap a day to change its focus, audio, training and watch list. The training name can be a workout or a guided flow.</small>
+ <h3>What each day is for</h3><small>Tap a day to change its focus, audio, training and watch list. The training name can be a workout or a timed workout.</small>
  <datalist id=trl>${tn.map(n=>`<option value="${esc(n)}">`).join('')}</datalist>`
  +Object.entries(T).map(([k,v])=>`<details class=card><summary><b style="font-weight:500">${DN[k]}</b> <small style="display:inline">${esc(v.learn)} · ${esc(v.train)}</small></summary>
  <small>Learn focus</small><input data-c=th data-d=${k} data-k=learn value="${esc(v.learn)}"><small>Audio</small><input data-c=th data-d=${k} data-k=audio value="${esc(v.audio)}"><small>Training</small><input data-c=th data-d=${k} data-k=train list=trl value="${esc(v.train)}"><small>Spotify link</small><input data-c=th data-d=${k} data-k=sp value="${esc(v.sp)}"><small>Watch and listen list: one per line, optional link after the title</small><textarea data-c=th data-d=${k} data-k=q rows=4 style="font-family:inherit">${esc((v.q||[]).map(i=>i.t+(i.u?' '+i.u:'')).join('\n'))}</textarea></details>`).join('')}
@@ -366,21 +378,21 @@ function vTodo(){const t=D(),a=S.todo.map((x,i)=>({...x,i})).sort((p,q)=>(p.done
 
 const DH={train:8,routine:215,flow:40,fuel:130,money:48,mind:270,skill:210,rel:330,meaning:170,week:190,todo:0},HUES=[0,25,45,95,150,185,215,255,290,330];
 const evKey=e=>e.u?'u:'+e.u:'n:'+bkey(e.t),bndE=e=>{const b=S.bind||{};return b[evKey(e)]||b[bkey(e.t)]};
-const CATS=[['train','Workout'],['routine','Routine'],['flow','Guided flow'],['fuel','Diet and water'],['money','Budget'],['mind','Mind'],['skill','Skill and watch list'],['rel','Relationships'],['meaning','Meaning'],['week','Weeks'],['todo','To-dos']];
+const CATS=[['train','Gym workout'],['routine','Routine'],['flow','Timed workout'],['fuel','Diet and water'],['money','Budget'],['mind','Mind'],['skill','Skill and watch list'],['rel','Relationships'],['meaning','Meaning'],['week','Weeks'],['todo','To-dos']];
 const catOf=v=>v==='train'||v.startsWith('tr/')?'train':v.startsWith('r/')?'routine':v.startsWith('f/')?'flow':v;
-const ITM=()=>({train:[['train','Gym tracker (free workout)'],...Object.keys(tpls()).map(n=>['tr/'+n,n])],routine:routines().map(r=>['r/'+r.id,r.name]),flow:Object.keys(flows()).map(n=>['f/'+n,n])});
+const ITM=()=>({train:[['train','Any gym workout (I choose when I start)'],...Object.keys(tpls()).map(n=>['tr/'+n,n])],routine:routines().map(r=>['r/'+r.id,r.name]),flow:Object.keys(flows()).map(n=>['f/'+n,n])});
 const typeHue=b=>{const c=catOf(b);return S.tcol&&S.tcol[c]!=null?S.tcol[c]:(DH[c]??200)};
 const evHue=e=>{const b=bndE(e);return b?typeHue(b):null};
 const bkey=t=>String(t).trim().toLowerCase(),bnd=t=>(S.bind||{})[bkey(t)];
-const TG=()=>[['train','Workout (gym tracker)'],['fuel','Diet and water'],['money','Budget'],['mind','Mind'],['skill','Skill and watch list'],['rel','Relationships'],['meaning','Meaning'],['week','Weeks'],['todo','To-dos'],...routines().map(r=>['r/'+r.id,'My routine: '+r.name]),...Object.keys(flows()).map(n=>['f/'+n,'Guided flow: '+n]),...Object.keys(tpls()).map(n=>['tr/'+n,'Workout: '+n])];
-const tgName=v=>v==='train'?'Workout · gym tracker':v.startsWith('tr/')?'Workout · '+v.slice(3):v.startsWith('r/')?'Routine · '+((routines().find(x=>'r/'+x.id===v)||{}).name||v.slice(2)):v.startsWith('f/')?'Guided flow · '+v.slice(2):((CATS.find(x=>x[0]===v)||[0,v])[1]);
+const TG=()=>[['train','Workout (gym tracker)'],['fuel','Diet and water'],['money','Budget'],['mind','Mind'],['skill','Skill and watch list'],['rel','Relationships'],['meaning','Meaning'],['week','Weeks'],['todo','To-dos'],...routines().map(r=>['r/'+r.id,'My routine: '+r.name]),...Object.keys(flows()).map(n=>['f/'+n,'Timed workout: '+n]),...Object.keys(tpls()).map(n=>['tr/'+n,'Workout: '+n])];
+const tgName=v=>v==='train'?'Gym workout · any':v.startsWith('tr/')?'Gym workout · '+v.slice(3):v.startsWith('r/')?'Routine · '+((routines().find(x=>'r/'+x.id===v)||{}).name||v.slice(2)):v.startsWith('f/')?'Timed workout · '+v.slice(2):((CATS.find(x=>x[0]===v)||[0,v])[1]);
 function vExt(k,ds,rd){const e=extOn(ds||D()).find(x=>evKey(x)===k)||(S.gcal.evs||[]).find(x=>evKey(x)===k)||{t:(S.bname||{})[k]||k.replace(/^[un]:/,''),u:k.startsWith('u:')?k.slice(2):''},b=(S.bind||{})[k]||bndE(e);
  if(b&&rd){setTimeout(()=>location.replace('#/'+b),0);return'<p>Opening…</p>'}
  const when=e.sm!=null?(e.ad?'All day':hmm(e.sm)+'-'+hmm(e.em)):'',t=esc(e.t),cat=b?catOf(b):'',items=ITM();
  return`<a href="#/plan">‹ Calendar</a><h1>${t}</h1><small>Google Calendar event${when?' · '+when:''}${e.rc?' · repeating: the link applies to every occurrence of this event':''}</small>`
  +(e.d?`<div class=card style="white-space:pre-wrap;font-size:14px">${esc(e.d)}</div>`:'')
  +`<h3>Type of event</h3><select data-c=bsel data-k="${esc(k)}" data-n="${t}"><option value="">Not linked</option>${CATS.map(c=>`<option value="${c[0]}" ${cat===c[0]?'selected':''}>${c[1]}</option>`).join('')}</select>`
- +(items[cat]?`<h3>Which one</h3>`+(items[cat].length?`<select data-c=bsel2 data-k="${esc(k)}" data-n="${t}">${items[cat].map(x=>`<option value="${esc(x[0])}" ${b===x[0]?'selected':''}>${esc(x[1])}</option>`).join('')}</select>`:`<small>None yet. Create one first (More › ${cat==='routine'?'My routines':'Guided flows'}).</small>`):'')
+ +(items[cat]?`<h3>Which one</h3>`+(items[cat].length?`<select data-c=bsel2 data-k="${esc(k)}" data-n="${t}">${items[cat].map(x=>`<option value="${esc(x[0])}" ${b===x[0]?'selected':''}>${esc(x[1])}</option>`).join('')}</select>`:`<small>None yet. Create one first (More › ${cat==='routine'?'My routines':'Timed workouts'}).</small>`):'')
  +(b?`<div class=card style="border-left:4px solid hsl(${typeHue(b)} 60% 50%)"><small>Linked to</small><b style="font-weight:500">${esc(tgName(b))}</b><a class="btn pri" href="#/${b}" style="margin-top:8px">Open now ›</a><small>Tapping this event on the calendar opens its page. The colour comes from the type, change it in More › Google Calendar sync › Colours by type.</small></div>`:'<small>Not linked yet, so it stays grey on the calendar.</small>')
  +`<h3>Link for Google Calendar</h3><small>Optional: paste this into the event's description in Google Calendar yourself, and the link opens the linked page.</small><button class=btn data-a=copy data-v="${base()}#/x/${encodeURIComponent(k)}">Copy link</button>`}
 function vTodoD(id){const x=S.todo.find(y=>y.id===id);if(!x)return'<a href="#/plan">‹ Calendar</a><p>To-do not found.</p>';
@@ -392,12 +404,12 @@ function vTodoD(id){const x=S.todo.find(y=>y.id===id);if(!x)return'<a href="#/pl
  <button class=btn data-a=tododelid data-id="${x.id}" style="margin-top:14px">Delete to-do</button>`}
 const flowsText=f=>Object.entries(f).map(([n,st])=>'# '+n+'\n'+st.map(x=>x[0]+'|'+x[1]).join('\n')).join('\n');
 const nUse=v=>Object.values(S.bind||{}).filter(x=>x===v).length+routines().reduce((a,r)=>a+r.steps.filter(x=>x.link===v||(v.startsWith('f/')&&x.link==='flow:'+v.slice(2))).length,0);
-function vFlow(n){const f=flows()[n];if(!f)return'<a href="#/flows">‹ Guided flows</a><p>Flow not found.</p>';
+function vFlow(n){const f=flows()[n];if(!f)return'<a href="#/flows">‹ Timed workouts</a><p>Flow not found.</p>';
  return`<a href="#/types">‹ Event types</a><h1>${esc(n)}</h1><small>${Math.round(f.reduce((a,x)=>a+x[1],0)/60)} min · ${f.length} steps</small><button class="btn pri" data-a=flowgo data-n="${esc(n)}" style="margin-top:12px">${ic('play')} Start</button><h3>Steps</h3>`+f.map(x=>`<div class=row><span style="flex:1">${esc(x[0])}</span><small>${fmt(x[1])}</small></div>`).join('')+`<a class=btn href="#/flows" style="margin-top:12px">Edit flows</a>`}
 function vTr(n){if(S.active)return vActive();const t=tpls()[n];if(!t)return'<a href="#/types">‹ Event types</a><p>Workout not found.</p>';
  return`<a href="#/types">‹ Event types</a><h1>${esc(n)}</h1><small>${t.length} exercises</small><button class="btn pri" data-a=start data-n="${esc(n)}" style="margin-top:12px">${ic('play')} Start ${esc(n)}</button><h3>Exercises</h3>`+t.map(e=>`<div class=row><span style="flex:1">${esc(e.n)}</span><small>${e.s} × ${esc(e.r)} · rest ${e.rest} s</small></div>`).join('')+`<a class=btn href="#/set/tpl" style="margin-top:12px">Edit exercises and rest times</a>`}
 function vFlows(){const f=flows();
- return`<h1>Guided flows</h1><small>Timed, step-by-step sessions: mobility, 4x4 intervals, Zone 2 cardio. Start one here, link it to a Google event, or add it to a routine as a step with the page set to flow:Name.</small>`
+ return`<h1>Timed workouts</h1><small>Timed, step-by-step sessions: mobility, 4x4 intervals, Zone 2 cardio. Start one here, link it to a Google event, or add it to a routine as a step with the page set to flow:Name.</small>`
  +Object.entries(f).map(([n,st])=>`<div class=card><div class=top><b style="font-weight:500">${esc(n)}</b><small style="display:inline">${Math.round(st.reduce((a,x)=>a+x[1],0)/60)} min</small></div><button class="btn pri" data-a=flowgo data-n="${esc(n)}">${ic('play')} Start</button><details><summary><small style="display:inline">Edit steps (name|seconds)</small></summary><textarea data-c=flowt data-n="${esc(n)}" rows=${st.length+1} style="font-family:var(--mono)">${esc(st.map(x=>x[0]+'|'+x[1]).join('\n'))}</textarea><button class=btn data-a=flowdel data-n="${esc(n)}">Delete flow</button></details></div>`).join('')
  +`<h3>Build an interval or cardio session</h3><div class=card><small>Name</small><input id=fn placeholder="e.g. Hill intervals"><small>Warm-up (min)</small><input id=fw type=number value=10><small>Rounds</small><input id=fr type=number value=4><small>Work per round (min)</small><input id=fk type=number value=4><small>Rest per round (min, 0 for steady cardio)</small><input id=fe type=number value=3><small>Cool-down (min)</small><input id=fc type=number value=5><button class="btn pri" data-a=flowbuild>Build</button><small>4 rounds of 4 min work and 3 min rest is the 4x4. One round, no rest, 60 min work is a Zone 2 session.</small></div>`}
 function vTypes(){const row=(href,i,name,desc,v)=>`<a class=lr href="${href}"><span class=li>${ic(i)}<span>${esc(name)}<small>${esc(desc)}</small></span></span><small style="white-space:nowrap">${v!=null?nUse(v)+' linked':''}</small></a>`;
@@ -405,12 +417,18 @@ function vTypes(){const row=(href,i,name,desc,v)=>`<a class=lr href="${href}"><s
  return`<h1>Event types</h1><small>Everything a Google event or a routine step can open. Open one, or edit it. The number is how many events and routine steps are linked to it.</small>
  <h3>Pages</h3>`+PG.map(p=>row('#/'+p[0],p[1],p[2],p[3],p[0])).join('')
  +`<h3>My routines</h3>`+(routines().map(r=>row('#/r/'+r.id,'repeat',r.name,r.steps.length+' steps',null).replace('<small style="white-space:nowrap"></small>',`<small style="white-space:nowrap">${nUse('r/'+r.id)} linked</small>`)).join('')||'<small>No routines yet.</small>')+`<a class=btn href="#/rtn" style="margin-top:8px">Edit routines</a>`
- +`<h3>Guided flows</h3>`+Object.entries(flows()).map(([n,st])=>row('#/f/'+encodeURIComponent(n),'timer',n,Math.round(st.reduce((a,x)=>a+x[1],0)/60)+' min',null).replace('<small style="white-space:nowrap"></small>',`<small style="white-space:nowrap">${nUse('f/'+n)} linked</small>`)).join('')+`<a class=btn href="#/flows" style="margin-top:8px">Edit flows and cardio</a>`
- +`<h3>Workouts</h3>`+row('#/train','dumbbell','Gym tracker','Free workout and history',null).replace('<small style="white-space:nowrap"></small>',`<small style="white-space:nowrap">${nUse('train')} linked</small>`)+Object.keys(tpls()).map(n=>row('#/tr/'+encodeURIComponent(n),'dumbbell',n,'Strength session',null).replace('<small style="white-space:nowrap"></small>',`<small style="white-space:nowrap">${nUse('tr/'+n)} linked</small>`)).join('')+`<a class=btn href="#/set/tpl" style="margin-top:8px">Edit workouts, sets and rest times</a>`}
+ +`<h3>Timed workouts</h3>`+Object.entries(flows()).map(([n,st])=>row('#/f/'+encodeURIComponent(n),'timer',n,Math.round(st.reduce((a,x)=>a+x[1],0)/60)+' min',null).replace('<small style="white-space:nowrap"></small>',`<small style="white-space:nowrap">${nUse('f/'+n)} linked</small>`)).join('')+`<a class=btn href="#/flows" style="margin-top:8px">Edit flows and cardio</a>`
+ +`<h3>Gym workouts</h3>`+row('#/train','dumbbell','Gym tracker','Any gym workout, plus your history',null).replace('<small style="white-space:nowrap"></small>',`<small style="white-space:nowrap">${nUse('train')} linked</small>`)+Object.keys(tpls()).map(n=>row('#/tr/'+encodeURIComponent(n),'dumbbell',n,'Strength session',null).replace('<small style="white-space:nowrap"></small>',`<small style="white-space:nowrap">${nUse('tr/'+n)} linked</small>`)).join('')+`<a class=btn href="#/set/tpl" style="margin-top:8px">Edit workouts, sets and rest times</a>`}
 function vNewTodo(d,tm){const du=[15,30,45,60,90,120,180];return`<a href="#/plan">‹ Calendar</a><h1>New to-do</h1><div class=card><input id=nt placeholder="What needs doing?"><small>Date</small><input id=ntd class=dt type=date value="${esc(d)}"><small>Time</small><input id=ntt class=dt type=time value="${esc(tm)}"><small>Duration</small><select id=ntu>${du.map(m=>`<option value=${m} ${m===30?'selected':''}>${m} min</option>`).join('')}</select><small>Description</small><textarea id=ntde rows=3 style="font-family:inherit"></textarea><button class="btn pri" data-a=tnadd>Add to-do</button></div>`}
-function vRtn(){return`<h1>My routines</h1><small>A routine is a list of steps you tick off, with an optional timer per step. Make one here, then link it to a Google Calendar event by tapping that event in the calendar.</small>`
- +routines().map(r=>`<div class=row><a href="#/r/${r.id}"><b>${esc(r.name)}</b><small>${r.steps.length} steps · ${r.dur} min</small></a><button class=btn data-a=rtndel data-n="${esc(r.name)}">✕</button></div>`).join('')
- +`<h3>New routine</h3><div class=card><input id=rn placeholder="Name, e.g. Evening routine"><small>One step per line: title|minutes|page (minutes and page are optional). Pages you can open from a step: train fuel money mind skill rel meaning week todo</small><textarea id=rs rows=7 placeholder="Brush teeth|3\nBox breathing|5|mind\nPlan tomorrow|5|todo\nRead|20"></textarea><button class="btn pri" data-a=rtnadd>Add routine</button></div><small>Want more control (days, colour, short versions)? Edit the text in Settings › Routines.</small>`}
+const PGS=[['fuel','Diet and water'],['money','Budget'],['mind','Mind (box breathing, journal)'],['skill','Skill and watch list'],['rel','Relationships'],['meaning','Meaning'],['week','Weeks'],['todo','To-dos'],['spotify','Spotify']];
+function srow(t,m,l){const o=(v,n)=>`<option value="${esc(v)}" ${l===v?'selected':''}>${esc(n)}</option>`;
+ return`<div class=srow style="border-top:1px solid var(--hl);padding:12px 0"><div style="display:grid;grid-template-columns:1fr 72px;gap:8px"><input class=st-t placeholder="Step, e.g. Brush teeth" value="${esc(t||'')}"><input class=st-m type=number inputmode=numeric placeholder="min" value="${m||''}"></div><select class=st-l><option value="">No page, just tick it</option><optgroup label="Open a page">${PGS.map(p=>o(p[0],p[1])).join('')}</optgroup><optgroup label="Timed workouts (starts the timer)">${Object.keys(flows()).map(n=>o('flow:'+n,n)).join('')}</optgroup><optgroup label="Gym workouts">${o('train','Any gym workout (I choose)')}${Object.keys(tpls()).map(n=>o('gym:'+n,n)).join('')}</optgroup></select><button class=btn data-a=rtnrm>Remove step</button></div>`}
+function vRtn(id){
+ if(id){const r=id==='new'?null:routines().find(x=>x.id===id),rows=r?r.steps:[{},{},{}];
+  return`<a href="#/rtn">‹ My routines</a><h1>${r?'Edit routine':'New routine'}</h1><div class=card><input id=rn placeholder="Name, e.g. Evening routine" value="${esc(r?r.name:'')}"><small>Steps, in order. A step can open a page, start a timed workout, or start a gym workout. When you run the routine, tapping that step opens it, and finishing it brings you back here.</small><div id=rows>${rows.map(x=>srow(x.raw,x.min,x.link)).join('')}</div><button class=btn data-a=rtnrow>+ Add step</button><div style="margin-top:12px"><button class="btn pri" data-a=rtnsave data-id="${id}">Save routine</button></div></div>`}
+ return`<h1>My routines</h1><small>A routine is a list of steps you work through. Create one, then link it to a Google Calendar event by tapping that event on the calendar.</small>`
+ +routines().map(r=>`<div class=row><a href="#/rtn/${r.id}"><b style="font-weight:500">${esc(r.name)}</b><small>${r.steps.length} steps · ${r.dur} min</small></a><a class=btn href="#/r/${r.id}">Open</a><button class=btn data-a=rtndel data-n="${esc(r.name)}">✕</button></div>`).join('')
+ +`<a class="btn pri" href="#/rtn/new" style="margin-top:16px">+ New routine</a><small style="margin-top:12px">More control (days, colour, short versions): Settings › Routines.</small>`}
 function vGuide(){const g=S.gcal,w=(g.proxy||'https://YOUR-WORKER.workers.dev/').replace(/\/?$/,'/'),n=(t,b)=>`<div class=card><b>${t}</b><small style="color:var(--t)">${b}</small></div>`;
  return`<h1>Connect Google Calendar</h1><small>Do this on a computer, once. There are two separate things, and you can do only the first.</small>
  <h2>Part 1 · See Google events in Life OS</h2><small>You already did this if grey events show up. It needs a free Cloudflare worker address and your calendar's secret address.</small>
@@ -440,14 +458,14 @@ function vLinks(){const g=S.gcal,bs=Object.entries(S.bind||{});
  <h3>Send my to-dos to Google Calendar</h3><small>To-dos with a date appear in red and stay in step: done ones get a ✓ and turn grey.</small><input data-c=gc data-k=key type=password value="${esc(g.key)}" placeholder="To-do sync key"><button class="btn ${g.tds?'pri':''}" data-a=tds>${g.tds?'✓ To-do sync on':'Turn on to-do sync'}</button>${g.terr?'<small style="color:var(--r)">Error: '+esc(g.terr)+'</small>':''}</details>`}
 
 
-const CF=[['day','Daily targets (minimum and full day)','label|full-day target|minimum-day target|source. Sources: steps water diet(percent) med(minutes) jr(1 = journal written) lift(workouts that day). A minimum day = every minimum target reached. A full day = every full target reached.'],['routines','Routines (calendar events)','# name|start|minutes|days 1-7|unused, leave blank|essential 1/0|colour 0-360, then steps: title|minutes|link|short version (* = keep, number = minutes, blank = skipped). Links: fuel money mind skill rel meaning train week todo spotify flow:Name. Titles can use {learn} {audio} {train}.'],['flows','Guided flows','# Name, then step|seconds'],['themes','Day themes','day 1-7|learn|audio|train template name|spotify link'],['tpl','Workout templates','# Name, then exercise|sets|reps|rest sec'],['diet','Diet plan','# Meal|time, then: ingredient|amount (g or ml)|protein g|carbs g|fat g|kcal. You enter the kcal yourself, nothing is calculated.'],['inc','Income sources','Name|expected per month €. Salary, trading wins, anything that comes in.'],['cats','Expense buckets','Name|monthly budget €|optional minimum €. Rent, groceries, savings and so on.'],['wk','Weekly targets','label|full target|minimum target|source: lift steps water diet med jr rev r:routine-id (join several with +) x(manual +/- counter)']];
+const CF=[['day','Daily targets (minimum and full day)','label|full-day target|minimum-day target|source. Sources: steps water diet(percent) med(minutes) jr(1 = journal written) lift(workouts that day). A minimum day = every minimum target reached. A full day = every full target reached.'],['routines','Routines (calendar events)','# name|start|minutes|days 1-7|unused, leave blank|essential 1/0|colour 0-360, then steps: title|minutes|link|short version (* = keep, number = minutes, blank = skipped). Links: fuel money mind skill rel meaning train week todo spotify flow:Name. Titles can use {learn} {audio} {train}.'],['flows','Timed workouts','# Name, then step|seconds'],['themes','Day themes','day 1-7|learn|audio|train template name|spotify link'],['tpl','Workout templates','# Name, then exercise|sets|reps|rest sec'],['diet','Diet plan','# Meal|time, then: ingredient|amount (g or ml)|protein g|carbs g|fat g|kcal. You enter the kcal yourself, nothing is calculated.'],['inc','Income sources','Name|expected per month €. Salary, trading wins, anything that comes in.'],['cats','Expense buckets','Name|monthly budget €|optional minimum €. Rent, groceries, savings and so on.'],['wk','Weekly targets','label|full target|minimum target|source: lift steps water diet med jr rev r:routine-id (join several with +) x(manual +/- counter)']];
 const NF=[['waterT','Water target ml'],['stepsT','Steps target'],['stepsMin','Steps minimum']];
 function vSet(k){if(k)setTimeout(()=>{const e=document.getElementById('cfg-'+k);if(e)e.scrollIntoView()},50);return`<h1>Settings</h1><small>Everything is editable. Use | to separate fields and never use | inside text.</small><h3>Numbers</h3>`+NF.map(([k,l])=>`<small>${l}</small><input type=number inputmode=decimal data-c=num data-k=${k} value="${S.cfg[k]}">`).join('')
  +CF.map(([k,l,h])=>`<h3 id="cfg-${k}">${l}</h3><small>${esc(h)}</small><textarea data-c=cfg data-k=${k} rows=8>${esc(S.cfg[k])}</textarea><button class=btn data-a=cfgreset data-k=${k}>Reset to default</button>`).join('')
  +`<h3>Data</h3><button class=btn data-a=export>Export backup (JSON)</button><label class=btn>Import backup<input id=imp type=file accept=".json" hidden></label>`}
 
 function vMore(){const L=(r,i,t)=>`<a class=lr href="#/${r}"><span class=li>${ic(i)}${t}</span>${ic('chev')}</a>`;
- return`<h1>More</h1><h3>Track</h3>`+L('train','dumbbell','Workouts')+L('fuel','utensils','Diet, water, steps')+L('money','wallet','Budget')+`<h3>Grow</h3>`+L('mind','wind','Mind: box breathing, journal')+L('skill','book','Skill and money')+L('rel','heart','Relationships and play')+L('meaning','leaf','Meaning')+`<h3>Review and plan</h3>`+L('week','chart','Weeks')+L('todo','check','To-dos')+L('rtn','repeat','My routines')+L('types','layers','Event types')+L('flows','timer','Guided flows')+`<h3>App</h3>`+L('links','calendar','Google Calendar sync')+L('set','sliders','Settings')+`<div class=row style="margin-top:8px"><span style="flex:1">Version<small style="font-family:var(--mono)">${BUILD}</small></span><button class=btn data-a=refresh>${ic('refresh')} Update app</button></div><small>Your data stays on the phone when you update</small>`}
+ return`<h1>More</h1><h3>Track</h3>`+L('train','dumbbell','Gym workouts')+L('fuel','utensils','Diet, water, steps')+L('money','wallet','Budget')+`<h3>Grow</h3>`+L('mind','wind','Mind: box breathing, journal')+L('skill','book','Skill and money')+L('rel','heart','Relationships and play')+L('meaning','leaf','Meaning')+`<h3>Review and plan</h3>`+L('week','chart','Weeks')+L('todo','check','To-dos')+L('rtn','repeat','My routines')+L('types','layers','Event types')+L('flows','timer','Timed workouts')+`<h3>App</h3>`+L('links','calendar','Google Calendar sync')+L('set','sliders','Settings')+`<div class=row style="margin-top:8px"><span style="flex:1">Version<small style="font-family:var(--mono)">${BUILD}</small></span><button class=btn data-a=refresh>${ic('refresh')} Update app</button></div><small>Your data stays on the phone when you update</small>`}
 
 function vDay(d,w){const i=DN.map(x=>x.toLowerCase()).indexOf(String(d).toLowerCase());return w==='learn'?vSkill(i>0?i:d):w==='train'?vTrain():vPlan()}
 
@@ -462,7 +480,13 @@ flowgo:({n})=>{startFlow(n,1);location.hash='#/run';return false},
 flowdel:({n})=>{if(!confirm('Delete this flow?'))return false;const f=flows();delete f[n];S.cfg.flows=flowsText(f)},
 flowbuild:()=>{const n=$('#fn').value.replace(/\|/g,' ').trim(),w=+$('#fw').value||0,r=Math.max(1,+$('#fr').value||1),k=+$('#fk').value||1,e=+$('#fe').value||0,c=+$('#fc').value||0;if(!n)return false;const st=[];if(w)st.push(['Warm-up',w*60]);for(let i=1;i<=r;i++){st.push([r===1&&!e?'Steady':'Work '+i,k*60]);if(e&&i<r)st.push(['Easy',e*60])}if(c)st.push(['Cool-down',c*60]);const f=flows();f[n]=st;S.cfg.flows=flowsText(f)},
 tnadd:()=>{const t=$('#nt').value.trim();if(!t)return false;S.todo.push({id:tid(),sy:0,t,desc:$('#ntde').value,due:$('#ntd').value,time:$('#ntt').value,dur:+$('#ntu').value||30,done:0});sel=$('#ntd').value||sel;save();setTimeout(tflush,50);location.hash='#/plan';return false},
-rtnadd:()=>{const n=$('#rn').value.replace(/\|/g,' ').trim(),st=$('#rs').value.split('\n').map(x=>x.trim()).filter(Boolean);if(!n||!st.length)return false;const m=st.reduce((a,x)=>a+(+x.split('|')[1]||0),0)||5;S.cfg.routines=(S.cfg.routines?S.cfg.routines.trim()+'\n':'')+`# ${n}|08:00|${m}|1234567||0|${Math.floor(Math.random()*360)}\n`+st.join('\n')},
+rtnrow:()=>{$('#rows').insertAdjacentHTML('beforeend',srow('','',''));return false},
+rtnrm:(d,el)=>{el.closest('.srow').remove();return false},
+rtnsave:({id})=>{const n=$('#rn').value.replace(/\|/g,' ').trim(),rows=[...document.querySelectorAll('.srow')].map(r=>({t:r.querySelector('.st-t').value.replace(/\|/g,' ').trim(),m:+r.querySelector('.st-m').value||0,l:r.querySelector('.st-l').value})).filter(x=>x.t);if(!n||!rows.length){alert('Give the routine a name and at least one step');return false}
+ const old=id!=='new'?routines().find(x=>x.id===id):null,keep=old?Object.fromEntries(old.steps.map(x=>[x.raw,x.short])):{},sum=rows.reduce((a,x)=>a+(x.m||1),0),body=rows.map(x=>x.t+'|'+(x.m||1)+'|'+x.l+(keep[x.t]?'|'+keep[x.t]:'')).join('\n');
+ if(old){const o=[];let skip=0;lines(S.cfg.routines).forEach(l=>{if(l[0]==='#'){const p=l.slice(1).split('|');skip=slug(p[0].trim())===id;if(skip){p[0]=n;p[2]=sum;o.push('# '+p.join('|'));o.push(body)}else o.push(l)}else if(!skip)o.push(l)});S.cfg.routines=o.join('\n')}
+ else S.cfg.routines=(S.cfg.routines?S.cfg.routines.trim()+'\n':'')+`# ${n}|08:00|${sum}|1234567||0|${Math.floor(Math.random()*360)}\n`+body;
+ save();location.hash='#/rtn';return false},
 rtndel:({n})=>{const o=[];let skip=0;lines(S.cfg.routines).forEach(l=>{if(l[0]==='#')skip=l.slice(1).split('|')[0].trim()===n;if(!skip)o.push(l)});S.cfg.routines=o.join('\n')},
 rstart:({r,d})=>{rnext(r,d)},
 rstop:()=>{RUN=null;T=null;S.timer=null;wake(false)},
@@ -493,7 +517,7 @@ addset:({x})=>{S.active.ex[+x].s.push({w:'',r:'',d:0})},
 rmex:({x})=>{S.active.ex.splice(+x,1)},
 addex:()=>{const n=prompt('Exercise name');if(n)S.active.ex.push({n,r:'8-12',rest:90,s:[{w:'',r:'',d:0},{w:'',r:'',d:0},{w:'',r:'',d:0}]})},
 setdone:({x,s})=>{const a=S.active,e=a.ex[+x],st=e.s[+s],p=prevOf(e.n,a.tpl);st.d=st.d?0:1;if(st.d){const q=p&&(p[+s]||p[p.length-1]);if(q){st.w=st.w||q.w;st.r=st.r||q.r}startTimer(e.rest,'Rest: '+e.n)}},
-finish:()=>{const a=S.active,ex=a.ex.map(e=>({n:e.n,s:e.s.filter(s=>s.d)})).filter(e=>e.s.length);if(ex.length)S.log.push({date:td(),tpl:a.tpl,dur:Math.round((Date.now()-a.t0)/6e4),ex});S.active=null;T=null;S.timer=null;wake(false);if(S.ctx&&S.ctx.link==='train')return A.ctxdone();location.hash='#/train'},
+finish:()=>{const a=S.active,ex=a.ex.map(e=>({n:e.n,s:e.s.filter(s=>s.d)})).filter(e=>e.s.length);if(ex.length)S.log.push({date:td(),tpl:a.tpl,dur:Math.round((Date.now()-a.t0)/6e4),ex});S.active=null;T=null;S.timer=null;wake(false);if(S.ctx&&(S.ctx.link==='train'||String(S.ctx.link).startsWith('gym:')))return A.ctxdone();location.hash='#/train'},
 cancel:()=>{if(confirm('Discard this workout?')){S.active=null;T=null;S.timer=null}},
 logdel:({i})=>{if(confirm('Delete this workout?'))S.log.splice(+i,1)},
 runback:()=>{R.i=Math.max(0,R.i-1);runStep()},
@@ -574,7 +598,9 @@ function go(){const[p,...a]=(location.hash.slice(2)||'plan').split('/'),v=$('#v'
  $('#cx').style.display=S.ctx?'flex':'none';if(S.ctx)$('#cxl').textContent=S.ctx.label;
  tick();breath()}
 addEventListener('hashchange',()=>{go();scrollTo(0,0);scrollPlan()});
-try{new ResizeObserver(()=>{$('#v').style.paddingBottom=($('#dock').offsetHeight+72)+'px'}).observe($('#dock'))}catch(e){}
+try{new ResizeObserver(()=>{$('#v').style.paddingBottom='calc('+$('#dock').offsetHeight+'px + 104px + env(safe-area-inset-bottom))'}).observe($('#dock'))}catch(e){}
+const fixVp=()=>setTimeout(()=>{const y=scrollY;scrollTo(0,y+1);scrollTo(0,y)},120);
+document.addEventListener('focusout',fixVp);addEventListener('hashchange',()=>{try{document.activeElement&&document.activeElement.blur()}catch(e){}fixVp()});addEventListener('resize',fixVp);
 setInterval(tick,250);setInterval(breath,100);
 
 /* data safety + silent updates */
