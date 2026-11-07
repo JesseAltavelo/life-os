@@ -1,5 +1,5 @@
 'use strict';
-const BUILD='1794076850';
+const BUILD='1794076995';
 const $=s=>document.querySelector(s);
 const D=(d=new Date())=>new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
 const dow=s=>new Date(s+'T12:00').getDay()||7;
@@ -308,13 +308,13 @@ function vFuel(){const t=D(),dd=diet(),g=S.ing[t]||{},all=dd.flatMap(m=>m.items.
  <input type=number inputmode=numeric data-c=steps value="${S.steps[t]||''}" placeholder="Steps today (target ${S.cfg.stepsT})"></div>`}
 
 const sg=n=>(n>0?'+':n<0?'−':'')+eur(Math.abs(n));
-function vMoney(){const s=monthStats(),ics=incs(),cs=cats(),exp=ics.reduce((a,c)=>a+c.l,0),bud=cs.reduce((a,c)=>a+c.l,0),av=Math.max(exp,s.rc),extra=Math.max(0,s.rc-exp),left=av-s.sp,unb=av-bud;
+function vMoney(){const s=monthStats(),ics=incs(),cs=cats(),exp=ics.reduce((a,c)=>a+c.l,0),bud=cs.reduce((a,c)=>a+c.l,0),av=exp,extra=Math.max(0,s.rc-exp),left=av-s.sp,unb=av-bud;
  const T=(l,v,sub,col)=>`<div class=tile><small>${l}</small><b style="${col?'color:'+col:''}">${v}</b><small>${sub}</small></div>`;
  return`<h1>Money</h1><small>${s.mo}</small><div class=tiles>`
- +T('Left to spend',sg(left),'income minus spent',left<0?'var(--r)':'var(--ok)')
+ +T('Left to spend',sg(left),'expected income minus spent',left<0?'var(--r)':'var(--ok)')
  +T('Spent',eur(s.sp),bud?'of '+eur(bud)+' budgeted':'no budget set',bud&&s.sp>bud?'var(--r)':'')
  +T('Income',eur(s.rc),'of '+eur(exp)+' expected'+(extra?' · '+sg(extra)+' extra':''),'')
- +T('Unbudgeted',sg(unb),unb<0?'budgets exceed income':'not in any bucket',unb<0?'var(--r)':'')
+ +T('Unbudgeted',sg(unb),unb<0?'budgets exceed expected income':'expected income not in a bucket',unb<0?'var(--r)':'')
  +`</div><h3>Income</h3>`+ics.map(c=>{const v=s.inBy[c.n]||0;return`<div style="margin:12px 0"><div class=top><b style="font-weight:500">${esc(c.n)}</b><small style="display:inline">${eur(v)}${c.l?' of '+eur(c.l):''}</small></div>${bar(c.l?Math.min(v,c.l):0,c.l)}</div>`}).join('')
  +`<h3>Expenses</h3>`+cs.map(c=>{const v=s.by[c.n]||0,l2=c.l-v;return`<div style="margin:12px 0"><div class=top><b style="font-weight:500">${esc(c.n)}</b><small style="display:inline;text-align:right">${eur(v)}${c.l?' of '+eur(c.l)+' · '+(l2>=0?eur(l2)+' left':'<span style="color:var(--r)">'+eur(-l2)+' over</span>'):''}${c.m?' · min '+eur(c.m)+(v>=c.m?' ✓':', '+eur(c.m-v)+' to go'):''}</small></div>${bar(v,c.l)}</div>`}).join('')
  +`<h3>Add</h3><div class=card><select id=sk data-c=sk><option value=e>Expense</option><option value=i>Income</option></select><input id=sa type=number step=0.01 inputmode=decimal placeholder="Amount €"><select id=sc>${cs.map(c=>`<option>${esc(c.n)}</option>`).join('')}</select><select id=si style="display:none">${ics.map(c=>`<option>${esc(c.n)}</option>`).join('')}</select><input id=sn placeholder="Note"><small>Date</small><input id=sdt class=dt type=date value="${D()}"><button class="btn pri" data-a=spend>Add</button></div>
