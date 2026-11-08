@@ -1,5 +1,5 @@
 'use strict';
-const BUILD='1794140998';
+const BUILD='1794156175';
 const $=s=>document.querySelector(s);
 const D=(d=new Date())=>new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
 const dow=s=>new Date(s+'T12:00').getDay()||7;
@@ -484,7 +484,7 @@ function vDay(d,w){const i=DN.map(x=>x.toLowerCase()).indexOf(String(d).toLowerC
 
 /* ---------- actions ---------- */
 const A={
-fstart:({m})=>{fstart(m)},fgo:({n})=>{if(S.foc){S.foc.go={n,t:Date.now()};save()}return false},fstop:()=>{const f=S.foc;if(!f.sure||Date.now()-f.sure>5e3){f.sure=Date.now();save();setTimeout(go,5100);return}f.sure=0;ffail('You gave up this block.',Date.now())},ffin:()=>{fover(S.foc);wake(false)},fend:()=>{S.foc=null;wake(false)},fapadd:()=>{$('#fap').insertAdjacentHTML('beforeend',fapRow('',''));return false},fapdel:(d,el)=>{el.closest('.wrow2').remove();I.fap();save();return false},
+fstart:({m})=>{fstart(m)},fwk:({v})=>{fwk=Math.min(0,fwk+ +v)},fgo:({n})=>{if(S.foc){S.foc.go={n,t:Date.now()};save()}return false},fstop:()=>{const f=S.foc;if(!f.sure||Date.now()-f.sure>5e3){f.sure=Date.now();save();setTimeout(go,5100);return}f.sure=0;ffail('You gave up this block.',Date.now())},ffin:()=>{fover(S.foc);wake(false)},fend:()=>{S.foc=null;wake(false)},fapadd:()=>{$('#fap').insertAdjacentHTML('beforeend',fapRow('',''));return false},fapdel:(d,el)=>{el.closest('.wrow2').remove();I.fap();save();return false},
 view:({v})=>{view=v},gotoday:()=>{sel=D()},wk:({v})=>{sel=addD(sel,+v)},sel:({v})=>{sel=v},
 mode:({v})=>{S.mode[sel]=v==='min'?'min':'full'},
 short:({r,d})=>{const s=S.short[d]=S.short[d]||{};s[r]=!s[r]},
@@ -603,6 +603,7 @@ document.addEventListener('touchstart',e=>{clearTimeout(lp);if(e.touches.length!
 document.addEventListener('touchmove',e=>{if(lp&&e.touches[0]&&(Math.abs(e.touches[0].clientX-lpx)>10||Math.abs(e.touches[0].clientY-lpy)>10)){clearTimeout(lp);lp=null}},{passive:true});
 document.addEventListener('touchend',()=>{clearTimeout(lp)});
 /* ---------- work focus: pomodoro + garden ---------- */
+let fwk=0;
 const FM={s:{n:'Short',f:25,b:5,bud:5,use:'Low energy, a hard time starting, or quick admin like email and organising files.'},l:{n:'Long',f:50,b:10,bud:10,use:'Complex work where switching context costs a lot: writing software, long reports, continuous design.'}},GRACE=20;
 const fapps=()=>lines(S.cfg.fapps).map(l=>{const[n,u]=l.split('|').map(x=>x.trim());return{n,u}}).filter(x=>x.n&&x.u);
 const fses=d=>(S.fs||[]).filter(x=>x.ok&&(!d||x.d===d)),fmin=d=>fses(d).reduce((a,x)=>a+x.mins+(x.over||0),0);
@@ -657,18 +658,19 @@ function gpl(s,x,y,sc,g){const ok=!!s.ok,r=rr(s.r),h=typeHue('focus'),H=(s.m==='
  o+=`<path d="M${x} ${y} Q${x+(ck?9*sc:-4*sc)} ${y-H*.55} ${tx} ${ty}" fill="none" stroke="${sk}" stroke-width="${3*sc+.6}" stroke-linecap="round"/>`;
  [[.3,1],[.5,-1],[.66,1]].forEach(([f,d])=>{const lx=x,ly=y-H*f;o+=`<ellipse cx="${lx+d*9*sc}" cy="${ly}" rx="${9*sc}" ry="${3.8*sc}" transform="rotate(${ck?d*40:d*-28} ${lx} ${ly})" fill="${lf}"/>`});
  o+=bloom(tx,ty,(ck?.42:.62)*sc,{r,h,ck});return{o,tx,ty}}
-function gscene(rows,op){op=op||{};const W=360,top=op.sky===false?0:96,RH=op.rh||122,n=Math.max(1,rows.length),Ht=top+n*RH+(op.sky===false?4:10),R=rnd(op.seed||11);
+function gscene(rows,op){op=op||{};const W=360,top=op.sky===false?0:96,PL=7,LH=40,Ls=r=>Math.max(1,Math.ceil(r.ss.length/PL)),R=rnd(op.seed||11),rs=rows.length?rows:[{label:'Plant your first seed',ss:[]}],base=op.rh||122,hs=rs.map(r=>base+(Ls(r)-1)*LH),Ht=top+hs.reduce((t,x)=>t+x,0)+(op.sky===false?4:10);
  let s=`<svg viewBox="0 0 ${W} ${Ht}" role=img aria-label="Garden" style="width:100%;display:block;border-radius:14px"><defs><linearGradient id=gsk x1=0 y1=0 x2=0 y2=1><stop offset=0 stop-color="#bfe3ff"/><stop offset=1 stop-color="#eaf7ff"/></linearGradient><linearGradient id=ggr x1=0 y1=0 x2=0 y2=1><stop offset=0 stop-color="#8fd46a"/><stop offset=1 stop-color="#67b84f"/></linearGradient></defs>`;
  if(top)s+=sky(W,top);
  s+=`<rect y="${top?top+2:0}" width="${W}" height="${Ht-(top?top+2:0)}" fill="url(#ggr)"/>`;if(top)s+=fence(W,top-22);
- for(let i=0;i<46;i++){const x=R()*W,y=(top?top+34:6)+R()*(Ht-(top?top+40:10));s+=`<path d="M${x} ${y}l-2-6M${x} ${y}l0-7M${x} ${y}l2-6" stroke="hsl(110 45% ${34+R()*10}%)" stroke-width="1.3" stroke-linecap="round"/>`;if(i%6===0)s+=`<circle cx="${x+9}" cy="${y-3}" r="2" fill="${['#fff','#fff7b0','#ffd1e8'][i%3]}"/>`}
- (rows.length?rows:[{label:'Plant your first seed',ss:[]}]).forEach((rw,i)=>{const yb=top+i*RH+(top?74:62),ss=rw.ss,m=ss.length,sp=m>1?Math.min(56,(W-90)/(m-1)):0,sc=m<=6?1:cl(sp/52,.55,1),x0=W/2-(m-1)*sp/2;
-  s+=`<rect x="14" y="${yb-4}" width="${W-28}" height="30" rx="7" fill="#6e4b2e" stroke="#b07c4c" stroke-width="3"/><rect x="20" y="${yb}" width="${W-40}" height="19" rx="4" fill="#4f3420"/>`;
-  for(let k=0;k<22;k++)s+=`<circle cx="${24+R()*(W-48)}" cy="${yb+2+R()*15}" r="1.1" fill="#7a5636"/>`;
-  s+=`<text x="${W/2}" y="${yb+44}" text-anchor="middle" font-family="Geist Mono,monospace" font-size="10" fill="#2f5d1f">${esc(rw.label)}</text>`;
-  const pts=[];ss.forEach((q,k)=>{const x=x0+k*sp,r=gpl(q,x,yb+14,sc,q.g||0);pts.push({...r,q});s+=r.o});
-  for(let k=1;k<pts.length;k++){const a=pts[k-1],b=pts[k];if(a.q.ok&&b.q.ok&&a.q.ch&&a.q.ch===b.q.ch)s+=`<path d="M${a.tx} ${a.ty} Q${(a.tx+b.tx)/2} ${Math.min(a.ty,b.ty)-14} ${b.tx} ${b.ty}" fill="none" stroke="hsl(42 95% 48%)" stroke-width="1.6" stroke-dasharray="3 3"/>`}
-  const cs={};pts.forEach(q=>{if(q.q.ok&&q.q.ch)(cs[q.q.ch]=cs[q.q.ch]||[]).push(q)});Object.values(cs).filter(a=>a.length>1).forEach(a=>{const mx=a.reduce((t,q)=>t+q.tx,0)/a.length,my=Math.min(...a.map(q=>q.ty))-26;s+=`<rect x="${mx-21}" y="${my-9}" width="42" height="15" rx="7.5" fill="hsl(42 95% 52%)"/><text x="${mx}" y="${my+2}" text-anchor="middle" font-family="Geist Mono,monospace" font-size="9" font-weight="500" fill="#3b2a00">Streak ×${a.length}</text>`});
+ for(let i=0;i<Math.round(46*Ht/500)+20;i++){const x=R()*W,y=(top?top+34:6)+R()*(Ht-(top?top+40:10));s+=`<path d="M${x} ${y}l-2-6M${x} ${y}l0-7M${x} ${y}l2-6" stroke="hsl(110 45% ${34+R()*10}%)" stroke-width="1.3" stroke-linecap="round"/>`;if(i%6===0)s+=`<circle cx="${x+9}" cy="${y-3}" r="2" fill="${['#fff','#fff7b0','#ffd1e8'][i%3]}"/>`}
+ let cum=0;rs.forEach((rw,i)=>{const ss=rw.ss,L=Ls(rw),yb=top+cum+(top?74:62)+0,bh=30+(L-1)*LH;cum+=hs[i];
+  s+=`<rect x="14" y="${yb-4}" width="${W-28}" height="${bh}" rx="7" fill="#6e4b2e" stroke="#b07c4c" stroke-width="3"/><rect x="20" y="${yb}" width="${W-40}" height="${bh-11}" rx="4" fill="#4f3420"/>`;
+  for(let k=0;k<14+L*8;k++)s+=`<circle cx="${24+R()*(W-48)}" cy="${yb+2+R()*(bh-15)}" r="1.1" fill="#7a5636"/>`;
+  s+=`<text x="${W/2}" y="${yb+bh+14}" text-anchor="middle" font-family="Geist Mono,monospace" font-size="10" fill="#2f5d1f">${esc(rw.label)}</text>`;
+  const pts=[];for(let l=0;l<L;l++){const line=ss.slice(l*PL,(l+1)*PL),m=line.length,sp=m>1?Math.min(56,(W-90)/(m-1)):0,x0=W/2-(m-1)*sp/2,arr=[];
+   line.forEach((q,k)=>{const r=gpl(q,x0+k*sp,yb+14+l*LH,1,q.g||0);arr.push({...r,q});s+=r.o});pts.push(arr);
+   for(let k=1;k<arr.length;k++){const a=arr[k-1],b=arr[k];if(a.q.ok&&b.q.ok&&a.q.ch&&a.q.ch===b.q.ch)s+=`<path d="M${a.tx} ${a.ty} Q${(a.tx+b.tx)/2} ${Math.min(a.ty,b.ty)-14} ${b.tx} ${b.ty}" fill="none" stroke="hsl(42 95% 48%)" stroke-width="1.6" stroke-dasharray="3 3"/>`}}
+  const cs={};pts.flat().forEach(q=>{if(q.q.ok&&q.q.ch)(cs[q.q.ch]=cs[q.q.ch]||[]).push(q)});Object.values(cs).filter(a=>a.length>1).forEach(a=>{const mx=a.reduce((t,q)=>t+q.tx,0)/a.length,my=Math.min(...a.map(q=>q.ty))-26;s+=`<rect x="${mx-21}" y="${my-9}" width="42" height="15" rx="7.5" fill="hsl(42 95% 52%)"/><text x="${mx}" y="${my+2}" text-anchor="middle" font-family="Geist Mono,monospace" font-size="9" font-weight="500" fill="#3b2a00">Streak ×${a.length}</text>`});
   const bf=Math.min(3,ss.reduce((t,q)=>t+(q.bf||0),0));for(let k=0;k<bf;k++)s+=bfly(30+R()*(W-60),yb-30-R()*22,k)});
  return s+'</svg>'}
 const grows=days=>days.map(d=>({label:new Date(d+'T12:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})+' · '+fmin(d)+' min',ss:(S.fs||[]).filter(x=>x.d===d).map(q=>({...q})).sort((a,b)=>a.id-b.id)})).map(rw=>{const idx={};rw.ss.forEach(q=>{if(q.ok&&q.ch){idx[q.ch]=(idx[q.ch]||0);q.g=idx[q.ch]++}else q.g=0});return rw});
@@ -684,6 +686,7 @@ function vFocus(sug){const f=S.foc,T0=D();
   if(f.ph==='b')return PH+`<h1>Break</h1><div class=card style="text-align:center"><div class=big id=ftm></div><p>Free time. Use any app you like.</p>${chainRow(S.fchain&&S.fchain.d===T0?S.fchain.ids:[])}<button class="btn pri" data-a=fstart data-m="${f.m}">Next ${M.n.toLowerCase()} block</button><button class=btn data-a=fstart data-m="${f.m==='s'?'l':'s'}">Switch to ${FM[f.m==='s'?'l':'s'].n.toLowerCase()}</button><button class=btn data-a=fend>Finish for today</button></div>`;
   if(f.ph==='x')return PH+`<h1>Plant wilted</h1><div class=card style="text-align:center">${plant(f.pf,{n:f.m==='s'?5:7,ck:true})}<p>${esc(f.why||'')}</p><small>It stays in your garden, wilted. The streak resets.</small><br><button class="btn pri" data-a=fstart data-m="${f.m}">Try again</button><button class=btn data-a=fend>Stop</button></div>`}
  const tdS=fses(T0),wk=wdays(weekStart(T0)).reduce((a,d)=>a+fmin(d),0),rare=fses().filter(x=>x.r),days=[...new Set((S.fs||[]).map(x=>x.d))].sort().reverse().slice(0,10);
+ const fsh=(d,n)=>{const x=new Date(d+'T12:00');x.setDate(x.getDate()+n);return x.toISOString().slice(0,10)},wsh=fsh(weekStart(T0),fwk*7),wdy=wdays(wsh).filter(d=>(S.fs||[]).some(x=>x.d===d)).reverse(),fwl=fwk===0?'This week':'Week of '+new Date(wsh+'T12:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'})+' · '+wdays(wsh).reduce((t,d)=>t+fmin(d),0)+' min';
  const best=(()=>{const c={};fses().forEach(x=>{c[x.ch]=(c[x.ch]||0)+1});return Math.max(0,...Object.values(c))})();
  const sg=sug>=45?'l':sug>0?'s':'';
  const mode=m=>{const M=FM[m];return`<div class=card ${sg===m?'style="border-color:var(--g)"':''}><b>${M.n}: ${M.f} focus, ${M.b} break</b>${sg===m?` <span class=chip style="margin:0 0 0 8px">Suggested by your ${sug} min event</span>`:''}<small style="display:block;margin:4px 0 8px">${M.use}</small><button class="btn pri" data-a=fstart data-m="${m}">${ic('play',16)} Start ${M.f} / ${M.b}</button></div>`};
@@ -691,7 +694,7 @@ function vFocus(sug){const f=S.foc,T0=D();
  <div class=card><b>How it works</b><div style="font-size:14px;color:var(--t2);line-height:1.5;margin-top:4px">Stay on this screen while the plant grows: seed, sprout, leaves, bud, flower. Open an allowed app from here and the time away comes from your detour budget (${FM.s.bud} min for short blocks, ${FM.l.bud} for long). Leave any other way, or browse elsewhere in this app, and you have ${GRACE} seconds to come back or the plant wilts. Locking the screen counts as leaving. Breaks are free.</div></div>
  <div class=card><b>Bonuses</b><div style="font-size:14px;color:var(--t2);line-height:1.6;margin-top:4px"><b>Butterflies.</b> Two land on your plant, at one third and two thirds of the block.<br><b>Rare flower.</b> About 1 in 6 finished plants blooms golden, blue or rainbow. You find out at the end.<br><b>Overtime.</b> Stay on the screen after the end and a new flower opens every 3 minutes, up to 4.<br><b>Streak.</b> Start the next block within ${'30'} minutes of the break ending and the plant grows 10% taller for each block in a row, with a glow.</div></div>
  <h3>Garden</h3><div class=tiles><div class=tile><small>Today</small><b>${fmin(T0)} min</b><small>${tdS.length} block${tdS.length===1?'':'s'}</small></div><div class=tile><small>This week</small><b>${wk} min</b><small>${rare.length} rare · ${fses().length*2} butterflies in total</small></div></div>
- ${days.length?`<div style="margin:8px 0">${gscene(grows(days.slice(0,7)))}</div><small>Dashed gold line: blocks back to back, each one taller. Wilted plants stay in the garden.</small>`:`<div style="margin:8px 0">${gscene([])}</div>`}
+ <div style="display:flex;align-items:center;justify-content:space-between;margin:8px 0"><button class=btn data-a=fwk data-v=-1>‹ Earlier</button><small>${fwl}</small><button class=btn data-a=fwk data-v=1 ${fwk>=0?'disabled style="opacity:.4"':''}>Later ›</button></div><div style="margin:8px 0">${gscene(grows(wdy))}</div>${wdy.length?'<small>Dashed gold line: blocks back to back, each one taller. Wilted plants stay in the garden. Full beds wrap into a second row.</small>':'<small>No blocks this week.</small>'}
  ${best>1?`<small>Longest streak: ${best} blocks in a row</small>`:''}
  <h3>Allowed apps</h3><small>Shown on the focus screen. Use the app's link, for example whatsapp://, googlegmail:// or googlecalendar://</small><div id=fap>${(apps.length?apps:[]).map((a,i)=>fapRow(a.n,a.u)).join('')}</div><button class=btn data-a=fapadd>${ic('link',16)} Add app</button><select data-c=fapx style="margin-top:8px"><option value="">Add from common apps</option>${FAPP.map(x=>`<option value="${x}">${x.split('|')[0]}</option>`).join('')}</select><small style="display:block;margin-top:8px">Not in the list? Every iPhone app has a link that starts with its own word and ://. Search the web for the app name plus \"URL scheme iOS\". For any app, you can also make a shortcut in the Shortcuts app with the action Open App, name it, and use the link shortcuts://run-shortcut?name=YourShortcutName here.</small>`}
 const FAPP=['WhatsApp|whatsapp://','Gmail|googlegmail://','Google Calendar|googlecalendar://','Google Docs|googledocs://','Google Sheets|googlesheets://','Google Drive|googledrive://','Slack|slack://','Notion|notion://','Spotify|spotify://','Telegram|tg://','Microsoft Teams|msteams://','Zoom|zoomus://','Todoist|todoist://','Apple Calendar|calshow://','Apple Notes|mobilenotes://','Apple Mail|message://','Messages|sms:','Phone|tel:'];
