@@ -1,5 +1,5 @@
 'use strict';
-const BUILD='1795180543';
+const BUILD='1795182302';
 const $=s=>document.querySelector(s);
 const D=(d=new Date())=>new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
 const dow=s=>new Date(s+'T12:00').getDay()||7;
@@ -20,7 +20,7 @@ const base=()=>location.origin+location.pathname;
 const td=()=>D();
 
 /* ---------- defaults (everything is editable in Life > Settings) ---------- */
-const VER=10;
+const VER=11;
 const DEF={v:VER,foods:[],fd:{},sets:[],fday:'',bw:{},bgoal:0,bp:[],foc:null,fs:[],fchain:null,gd:{w:8,h:6,it:[],bf:0,pend:[]},fsp:'daisy',fsel:null,fpick:null,fmv:null,gh:[],start:D(),mode:{},wmode:{},short:{},chk:{},water:{},steps:{},port:{},ing:{},z:.75,tcol:{},bname:{},bcol:{},nl:{},own:0,tdel:[],bind:{},notes:{},gcal:{url:'',proxy:'',key:'',tds:0,t:0,evs:[],err:''},supp:{},hab:{},jr:{},med:{},todo:[],log:[],active:null,tx:[],paid:{},rev:{},wx:{},timer:null,ctx:null,
 cfg:{
 kcalT:2400,protT:130,
@@ -150,6 +150,54 @@ function load(o){o=o||{};if((o.v||0)<2){if(o.cfg){delete o.cfg.blocks;delete o.c
   c.themes=c.themes.replace('|Zone 2 session|','|Mobility|').replace('|VO2 4x4|','|Hard session (4x4)|').replace('|Long Zone 2|','|Long easy session (Zone 2)|').replace('|Mobility flow|','|Mobility|');
   Object.keys(R2).forEach(k=>{c.routines=(c.routines||'').split('flow:'+k).join('flow:'+R2[k])});
   Object.keys(s.bind||{}).forEach(k=>{const v=s.bind[k];if(v.startsWith('f/')&&R2[v.slice(2)])s.bind[k]='f/'+R2[v.slice(2)]})}
+
+ if((o.v||0)<11){const c=s.cfg;
+  c.routines=`#Morning routine|06:30|60|1234567||0|20
+Wake up|10||
+Weigh in|5|body|
+Shower|10||
+Get dressed|5||
+Breakfast|30|fuel|
+#Evening routine|22:00|30|1234567||0|270
+Update budget|5|money|
+Shower|15||
+Reflect|10|meaning|`;
+  c.tpl=`# Push
+Dumbbell bench press|4|8-12|180
+Dumbbell seated overhead press|4|8-12|180
+Incline dumbbell bench press|3|8-12|180
+Dumbbell lateral raise|4|12-15|180
+Single-arm dumbbell triceps extension|4|10-12|180
+# Pull
+Incline row|4|8-12|180
+Pull-up|3|6-10|180
+Bent-over one-arm row|3|8-12|180
+Reverse fly|3|12-15|180
+Bicep curl|3|10-12|180
+# Legs
+Leg press|3|8-12|180
+Bulgarian split squat|3|8-10|180
+Romanian deadlift|4|8-10|180
+Lying leg curl|3|10-12|180
+Standing calf raise|4|10-15|180`;
+  c.themes=c.themes.split('\n').map(l=>{const p=l.split('|'),d=+p[0];if(d>=1&&d<=7)p[3]=['','Pull','Push','Legs','Pull','Push','Legs','Rest'][d];return p.join('|')}).join('\n');
+  c.day=`Steps|10000|8000|steps
+Water ml|2500|2000|water
+Calories near target %|90|60|diet`;
+  c.wk=`Gym sessions|6|5|lift
+Days at step target|7|5|steps
+Days at water target|7|5|water
+Days near calorie target|7|5|diet
+Days weighed in|7|5|weigh
+Morning routine days|7|5|r:morning-routine
+Evening routine days|7|5|r:evening-routine
+Work focus blocks|10|5|focus
+Hard cardio (4x4)|1|1|flow:Hard session (4x4)
+Zone 2 cardio|1|1|flow:Long easy session (Zone 2)
+Weekly review done|1|1|rev`;
+  c.kcalT=3300;c.protT=140;
+  s.bind=s.bind||{};s.bname=s.bname||{};
+  [['Gym: Pull','tr/Pull'],['Gym: Push','tr/Push'],['Gym: Legs','tr/Legs'],['Cardio: 4x4','f/Hard session (4x4)'],['Cardio: Zone 2','f/Long easy session (Zone 2)'],['Morning Routine + Breakfast','r/morning-routine'],['Evening routine','r/evening-routine'],['Lunch','fuel'],['Dinner','fuel'],['Snack','fuel']].forEach(([t,v])=>{const k=t.trim().toLowerCase();if(!s.bind[k]){s.bind[k]=v;s.bname[k]=t}})}
  s.v=VER;return s}
 let S;try{S=load(JSON.parse(localStorage.lifeos1))}catch(e){S=load()}
 const save=()=>{try{localStorage.lifeos1=JSON.stringify(S)}catch(e){}};
@@ -413,13 +461,13 @@ function vTodo(){const t=D(),a=S.todo.map((x,i)=>({...x,i})).sort((p,q)=>(p.done
 
 const DH={train:8,routine:215,flow:40,fuel:130,money:48,mind:270,skill:210,rel:330,meaning:170,week:190,todo:0,focus:255,body:165},HUES=[0,25,45,95,150,185,215,255,290,330];
 const evKey=e=>e.u?'u:'+e.u:'n:'+bkey(e.t),bndE=e=>{const b=S.bind||{};return b[evKey(e)]||b[bkey(e.t)]};
-const CATS=[['train','Gym workout'],['routine','Routine'],['flow','Timed workout'],['fuel','Diet and water'],['money','Budget'],['mind','Mind'],['skill','Skill and watch list'],['rel','Relationships'],['meaning','Meaning'],['week','Weeks'],['todo','To-dos'],['focus','Work focus'],['body','Body: weight and photos']];
+const CATS=[['train','Gym workout'],['routine','Routine'],['flow','Timed workout'],['fuel','Diet and water'],['money','Budget'],['skill','Skill and watch list'],['rel','Relationships'],['meaning','Meaning'],['week','Weeks'],['todo','To-dos'],['focus','Work focus'],['body','Body: weight and photos']];
 const catOf=v=>v==='train'||v.startsWith('tr/')?'train':v.startsWith('r/')?'routine':v.startsWith('f/')?'flow':v;
 const ITM=()=>({train:[['train','Any gym workout (I choose when I start)'],...Object.keys(tpls()).map(n=>['tr/'+n,n])],routine:routines().map(r=>['r/'+r.id,r.name]),flow:Object.keys(flows()).map(n=>['f/'+n,n])});
 const typeHue=b=>{const c=catOf(b);return S.tcol&&S.tcol[c]!=null?S.tcol[c]:(DH[c]??200)};
 const evHue=e=>{const b=bndE(e);return b?typeHue(b):null};
 const bkey=t=>String(t).trim().toLowerCase(),bnd=t=>(S.bind||{})[bkey(t)];
-const TG=()=>[['train','Workout (gym tracker)'],['fuel','Diet and water'],['money','Budget'],['mind','Mind'],['skill','Skill and watch list'],['rel','Relationships'],['meaning','Meaning'],['week','Weeks'],['todo','To-dos'],['focus','Work focus'],['body','Body: weight and photos'],...routines().map(r=>['r/'+r.id,'My routine: '+r.name]),...Object.keys(flows()).map(n=>['f/'+n,'Timed workout: '+n]),...Object.keys(tpls()).map(n=>['tr/'+n,'Workout: '+n])];
+const TG=()=>[['train','Workout (gym tracker)'],['fuel','Diet and water'],['money','Budget'],['skill','Skill and watch list'],['rel','Relationships'],['meaning','Meaning'],['week','Weeks'],['todo','To-dos'],['focus','Work focus'],['body','Body: weight and photos'],...routines().map(r=>['r/'+r.id,'My routine: '+r.name]),...Object.keys(flows()).map(n=>['f/'+n,'Timed workout: '+n]),...Object.keys(tpls()).map(n=>['tr/'+n,'Workout: '+n])];
 const tgName=v=>v==='train'?'Gym workout · any':v.startsWith('tr/')?'Gym workout · '+v.slice(3):v.startsWith('r/')?'Routine · '+((routines().find(x=>'r/'+x.id===v)||{}).name||v.slice(2)):v.startsWith('f/')?'Timed workout · '+v.slice(2):((CATS.find(x=>x[0]===v)||[0,v])[1]);
 function vExt(k,ds,rd){const e=extOn(ds||D()).find(x=>evKey(x)===k)||(S.gcal.evs||[]).find(x=>evKey(x)===k)||{t:(S.bname||{})[k]||k.replace(/^[un]:/,''),u:k.startsWith('u:')?k.slice(2):''},b=(S.bind||{})[k]||bndE(e);
  if(b&&rd){setTimeout(()=>location.replace('#/'+b+(b==='focus'&&e.sm!=null&&!e.ad?'/'+(e.em-e.sm):'')),0);return'<p>Opening…</p>'}
@@ -451,14 +499,14 @@ function vFlows(){const f=flows();
  +Object.entries(f).map(([n,st])=>`<div class=card><div class=top><b style="font-weight:500">${esc(n)}</b><small style="display:inline">${Math.round(st.reduce((a,x)=>a+x[1],0)/60)} min</small></div><button class="btn pri" data-a=flowgo data-n="${esc(n)}">${ic('play')} Start</button><details><summary><small style="display:inline">Edit steps (name|seconds)</small></summary><textarea data-c=flowt data-n="${esc(n)}" rows=${st.length+1} style="font-family:var(--mono)">${esc(st.map(x=>x[0]+'|'+x[1]).join('\n'))}</textarea><button class=btn data-a=flowdel data-n="${esc(n)}">Delete flow</button></details></div>`).join('')
  +`<h3>Build an interval or cardio session</h3><div class=card><small>Name</small><input id=fn placeholder="e.g. Hill intervals"><small>Warm-up (min)</small><input id=fw type=number value=10><small>Rounds</small><input id=fr type=number value=4><small>Work per round (min)</small><input id=fk type=number value=4><small>Rest per round (min, 0 for steady cardio)</small><input id=fe type=number value=3><small>Cool-down (min)</small><input id=fc type=number value=5><button class="btn pri" data-a=flowbuild>Build</button><small>4 rounds of 4 min work and 3 min rest is the 4x4. One round, no rest, 60 min work is a Zone 2 session.</small></div>`}
 function vTypes(){const row=(href,i,name,desc,v)=>`<a class=lr href="${href}"><span class=li>${ic(i)}<span>${esc(name)}<small>${esc(desc)}</small></span></span><small style="white-space:nowrap">${v!=null?nUse(v)+' linked':''}</small></a>`;
- const PG=[['fuel','utensils','Diet and water','Tick meals, log water and steps'],['money','wallet','Budget','Income, expenses and buckets'],['mind','wind','Mind','Box breathing and journal'],['skill','book','Skill and watch list','Learn focus, audio and your list per day'],['rel','heart','Relationships','Time with people, notes'],['meaning','leaf','Meaning','Reflections and gratitude'],['week','chart','Weeks','Your log per day and week'],['todo','check','To-dos','Tasks with date, time and description']];
+ const PG=[['fuel','utensils','Diet and water','Tick meals, log water and steps'],['money','wallet','Budget','Income, expenses and buckets'],['skill','book','Skill and watch list','Learn focus, audio and your list per day'],['rel','heart','Relationships','Time with people, notes'],['meaning','leaf','Meaning','Reflections and gratitude'],['week','chart','Weeks','Your log per day and week'],['todo','check','To-dos','Tasks with date, time and description']];
  return`<h1>Event types</h1><small>Everything a Google event or a routine step can open. Open one, or edit it. The number is how many events and routine steps are linked to it.</small>
  <h3>Pages</h3>`+PG.map(p=>row('#/'+p[0],p[1],p[2],p[3],p[0])).join('')
  +`<h3>My routines</h3>`+(routines().map(r=>row('#/r/'+r.id,'repeat',r.name,r.steps.length+' steps',null).replace('<small style="white-space:nowrap"></small>',`<small style="white-space:nowrap">${nUse('r/'+r.id)} linked</small>`)).join('')||'<small>No routines yet.</small>')+`<a class=btn href="#/rtn" style="margin-top:8px">Edit routines</a>`
  +`<h3>Timed workouts</h3>`+Object.entries(flows()).map(([n,st])=>row('#/f/'+encodeURIComponent(n),'timer',n,Math.round(st.reduce((a,x)=>a+x[1],0)/60)+' min',null).replace('<small style="white-space:nowrap"></small>',`<small style="white-space:nowrap">${nUse('f/'+n)} linked</small>`)).join('')+`<a class=btn href="#/flows" style="margin-top:8px">Edit flows and cardio</a>`
  +`<h3>Gym workouts</h3>`+row('#/train','dumbbell','Gym tracker','Any gym workout, plus your history',null).replace('<small style="white-space:nowrap"></small>',`<small style="white-space:nowrap">${nUse('train')} linked</small>`)+Object.keys(tpls()).map(n=>row('#/tr/'+encodeURIComponent(n),'dumbbell',n,'Strength session',null).replace('<small style="white-space:nowrap"></small>',`<small style="white-space:nowrap">${nUse('tr/'+n)} linked</small>`)).join('')+`<a class=btn href="#/set/tpl" style="margin-top:8px">Edit workouts, sets and rest times</a>`}
 function vNewTodo(d,tm){const du=[15,30,45,60,90,120,180];return`<a href="#/plan">‹ Calendar</a><h1>New to-do</h1><div class=card><input id=nt placeholder="What needs doing?"><small>Date</small><input id=ntd class=dt type=date value="${esc(d)}"><small>Time</small><input id=ntt class=dt type=time value="${esc(tm)}"><small>Duration</small><select id=ntu>${du.map(m=>`<option value=${m} ${m===30?'selected':''}>${m} min</option>`).join('')}</select><small>Description</small><textarea id=ntde rows=3 style="font-family:inherit"></textarea><button class="btn pri" data-a=tnadd>Add to-do</button></div>`}
-const PGS=[['fuel','Diet and water'],['money','Budget'],['mind','Mind (box breathing, journal)'],['skill','Skill and watch list'],['rel','Relationships'],['meaning','Meaning'],['week','Weeks'],['todo','To-dos'],['body','Body: weight and photos'],['focus','Work focus'],['spotify','Spotify']];
+const PGS=[['fuel','Diet and water'],['money','Budget'],['skill','Skill and watch list'],['rel','Relationships'],['meaning','Meaning'],['week','Weeks'],['todo','To-dos'],['body','Body: weight and photos'],['focus','Work focus'],['spotify','Spotify']];
 function srow(t,m,l){const o=(v,n)=>`<option value="${esc(v)}" ${l===v?'selected':''}>${esc(n)}</option>`;
  return`<div class=srow style="border-top:1px solid var(--hl);padding:12px 0"><div style="display:grid;grid-template-columns:1fr 72px;gap:8px"><input class=st-t placeholder="Step, e.g. Brush teeth" value="${esc(t||'')}"><input class=st-m type=number inputmode=numeric placeholder="min" value="${m||''}"></div><select class=st-l><option value="">No page, just tick it</option><optgroup label="Open a page">${PGS.map(p=>o(p[0],p[1])).join('')}</optgroup><optgroup label="Timed workouts (starts the timer)">${Object.keys(flows()).map(n=>o('flow:'+n,n)).join('')}</optgroup><optgroup label="Gym workouts">${o('train','Any gym workout (I choose)')}${Object.keys(tpls()).map(n=>o('gym:'+n,n)).join('')}</optgroup></select><button class=btn data-a=rtnrm>Remove step</button></div>`}
 const wsrc=cur=>{const o=(v,n)=>`<option value="${esc(v)}" ${cur===v?'selected':''}>${esc(n)}</option>`,base=[['lift','Gym workouts finished (count)'],['weigh','Days weighed in'],['focus','Work focus blocks finished (count)'],['focusm','Work focus minutes'],['steps','Days at step target'],['water','Days at water target'],['diet','Days near your calorie target'],['med','Days with box breathing'],['jr','Days journaled'],['rev','Weekly review done'],['x','Manual counter (+ and −)']],ids=[...base.map(x=>x[0]),...routines().map(r=>'r:'+r.id),...Object.keys(tpls()).map(n=>'gym:'+n),...Object.keys(flows()).map(n=>'flow:'+n)];
@@ -507,7 +555,7 @@ function vSet(k){if(k)setTimeout(()=>{const e=document.getElementById('cfg-'+k);
  +`<h3>Data</h3><button class=btn data-a=export>Export backup (JSON)</button><label class=btn>Import backup<input id=imp type=file accept=".json" hidden></label>`}
 
 function vMore(){const L=(r,i,t)=>`<a class=lr href="#/${r}"><span class=li>${ic(i)}${t}</span>${ic('chev')}</a>`;
- return`<h1>More</h1><h3>Track</h3>`+L('body','scale','Body: weight and photos')+L('focus','gem','Work focus')+L('train','dumbbell','Gym workouts')+L('fuel','utensils','Diet, water, steps')+L('money','wallet','Budget')+`<h3>Grow</h3>`+L('mind','wind','Mind: box breathing, journal')+L('skill','book','Skill and money')+L('rel','heart','Relationships and play')+L('meaning','leaf','Meaning')+`<h3>Review and plan</h3>`+L('week','chart','Weeks')+L('todo','check','To-dos')+L('rtn','repeat','My routines')+L('types','layers','Event types')+L('flows','timer','Timed workouts')+`<h3>App</h3>`+L('links','calendar','Google Calendar sync')+L('set','sliders','Settings')+`<div class=row style="margin-top:8px"><span style="flex:1">Version<small style="font-family:var(--mono)">${BUILD}</small></span><button class=btn data-a=refresh>${ic('refresh')} Update app</button></div><small>Your data stays on the phone when you update</small>`}
+ return`<h1>More</h1><h3>Track</h3>`+L('body','scale','Body: weight and photos')+L('focus','gem','Work focus')+L('train','dumbbell','Gym workouts')+L('fuel','utensils','Diet, water, steps')+L('money','wallet','Budget')+`<h3>Grow</h3>`+L('skill','book','Skill and money')+L('rel','heart','Relationships and play')+L('meaning','leaf','Meaning')+`<h3>Review and plan</h3>`+L('week','chart','Weeks')+L('todo','check','To-dos')+L('rtn','repeat','My routines')+L('types','layers','Event types')+L('flows','timer','Timed workouts')+`<h3>App</h3>`+L('links','calendar','Google Calendar sync')+L('set','sliders','Settings')+`<div class=row style="margin-top:8px"><span style="flex:1">Version<small style="font-family:var(--mono)">${BUILD}</small></span><button class=btn data-a=refresh>${ic('refresh')} Update app</button></div><small>Your data stays on the phone when you update</small>`}
 
 function vDay(d,w){const i=DN.map(x=>x.toLowerCase()).indexOf(String(d).toLowerCase());return w==='learn'?vSkill(i>0?i:d):w==='train'?vTrain():vPlan()}
 
