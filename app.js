@@ -1,5 +1,5 @@
 'use strict';
-const BUILD='1795182302';
+const BUILD='1795182598';
 const $=s=>document.querySelector(s);
 const D=(d=new Date())=>new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
 const dow=s=>new Date(s+'T12:00').getDay()||7;
@@ -20,7 +20,7 @@ const base=()=>location.origin+location.pathname;
 const td=()=>D();
 
 /* ---------- defaults (everything is editable in Life > Settings) ---------- */
-const VER=11;
+const VER=12;
 const DEF={v:VER,foods:[],fd:{},sets:[],fday:'',bw:{},bgoal:0,bp:[],foc:null,fs:[],fchain:null,gd:{w:8,h:6,it:[],bf:0,pend:[]},fsp:'daisy',fsel:null,fpick:null,fmv:null,gh:[],start:D(),mode:{},wmode:{},short:{},chk:{},water:{},steps:{},port:{},ing:{},z:.75,tcol:{},bname:{},bcol:{},nl:{},own:0,tdel:[],bind:{},notes:{},gcal:{url:'',proxy:'',key:'',tds:0,t:0,evs:[],err:''},supp:{},hab:{},jr:{},med:{},todo:[],log:[],active:null,tx:[],paid:{},rev:{},wx:{},timer:null,ctx:null,
 cfg:{
 kcalT:2400,protT:130,
@@ -198,6 +198,7 @@ Weekly review done|1|1|rev`;
   c.kcalT=3300;c.protT=140;
   s.bind=s.bind||{};s.bname=s.bname||{};
   [['Gym: Pull','tr/Pull'],['Gym: Push','tr/Push'],['Gym: Legs','tr/Legs'],['Cardio: 4x4','f/Hard session (4x4)'],['Cardio: Zone 2','f/Long easy session (Zone 2)'],['Morning Routine + Breakfast','r/morning-routine'],['Evening routine','r/evening-routine'],['Lunch','fuel'],['Dinner','fuel'],['Snack','fuel']].forEach(([t,v])=>{const k=t.trim().toLowerCase();if(!s.bind[k]){s.bind[k]=v;s.bname[k]=t}})}
+ if((o.v||0)<12){s.cfg.wk=s.cfg.wk.split('\n').filter(l=>!l.includes('flow:Hard session (4x4)')).join('\n')}
  s.v=VER;return s}
 let S;try{S=load(JSON.parse(localStorage.lifeos1))}catch(e){S=load()}
 const save=()=>{try{localStorage.lifeos1=JSON.stringify(S)}catch(e){}};
