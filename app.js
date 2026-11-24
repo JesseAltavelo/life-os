@@ -1,5 +1,5 @@
 'use strict';
-const BUILD='1795560073';
+const BUILD='1795560120';
 const $=s=>document.querySelector(s);
 const D=(d=new Date())=>new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
 const dow=s=>new Date(s+'T12:00').getDay()||7;
@@ -383,7 +383,7 @@ const dsum=es=>es.reduce((t,x)=>{if(x.q)return{k:t.k+x.k,p:t.p+x.p,c:t.c+x.c,f:t
 const gv=id=>{const e=$('#'+id);return e?e.value:''},fnm=m=>gv('fn-'+m).trim(),ffind=n=>n?(S.foods||[]).find(f=>(f.n||'').trim().toLowerCase()===n.toLowerCase()):null,ferr=(m,t)=>{const e=$('#fer-'+m);if(e)e.textContent=t;return false};
 function vFuel(){const t=S.fday||D(),es=(S.fd||{})[t]||[],sm=dsum(es),kt=+S.cfg.kcalT||0,pt=+S.cfg.protT||0,fs=S.foods||[],left=kt-sm.k;
  const mb=(l,v,tg)=>`<div style="flex:1;min-width:0"><small>${l}</small><div style="font:500 14px var(--mono);white-space:nowrap;margin:2px 0 4px">${r0(v)}${tg?' / '+tg:''} g</div>${bar(v,tg)}</div>`;
- let h=`<h1>Diet</h1>`+(t!==D()?`<div class=card style="border-color:var(--a)"><b>Logging for ${fdt(t)}</b><br><button class=btn data-a=ftoday>Back to today</button></div>`:'')
+ let h=`<h1>Diet, water and steps</h1>`+(t!==D()?`<div class=card style="border-color:var(--a)"><b>Logging for ${fdt(t)}</b><br><button class=btn data-a=ftoday>Back to today</button></div>`:'')
  +`<div class=card><small>Calories eaten</small><div style="display:flex;align-items:baseline;gap:8px;margin:4px 0"><span style="font:500 34px/1.1 var(--mono)">${r0(sm.k)}</span><small>/ ${r0(kt)} kcal</small></div>${bar(sm.k,kt)}<small>${kt?(left>=0?r0(left)+' kcal left':r0(-left)+' kcal over'):'Set a calorie target below'}</small><div style="display:flex;gap:12px;margin-top:12px">${mb('Protein',sm.p,pt)}${mb('Carbs',sm.c,0)}${mb('Fat',sm.f,0)}</div><div style="display:flex;gap:8px;align-items:center;margin-top:12px"><small>Date</small><input type=date data-c=fday value="${t}" style="margin:0"></div></div>`;
  const wv=S.water[D()]||0,sv=S.steps[D()]||0,big=(l,v,u,tg,x)=>`<div class=card><small>${l}</small><div style="display:flex;align-items:baseline;gap:8px;margin:4px 0"><span class=stv style="font:500 34px/1.1 var(--mono)">${r0(v)}</span><small>${u} / ${r0(tg)}</small></div>${bar(v,tg)}${x}</div>`;
  h+=big('Water',wv,'ml',S.cfg.waterT,`<div style="display:flex;gap:6px;margin-top:10px"><button class=btn data-a=water data-v=250 style="flex:1;justify-content:center;margin:0">+250</button><button class=btn data-a=water data-v=500 style="flex:1;justify-content:center;margin:0">+500</button><button class=btn data-a=water data-v=-250 style="flex:1;justify-content:center;margin:0">−250</button></div>`)
@@ -562,7 +562,7 @@ function vSet(k){if(k)setTimeout(()=>{const e=document.getElementById('cfg-'+k);
  +`<h3>Data</h3><button class=btn data-a=export>Export backup (JSON)</button><label class=btn>Import backup<input id=imp type=file accept=".json" hidden></label>`}
 
 function vMore(){const L=(r,i,t)=>`<a class=lr href="#/${r}"><span class=li>${ic(i)}${t}</span>${ic('chev')}</a>`;
- return`<h1>More</h1><h3>Track</h3>`+L('body','scale','Body: weight and photos')+L('focus','gem','Work focus')+L('train','dumbbell','Gym workouts')+L('fuel','utensils','Diet, water, steps')+L('money','wallet','Budget')+`<h3>Grow</h3>`+L('skill','book','Skill and money')+L('rel','heart','Relationships and play')+L('meaning','leaf','Meaning')+`<h3>Review and plan</h3>`+L('week','chart','Weeks')+L('todo','check','To-dos')+L('rtn','repeat','My routines')+L('types','layers','Event types')+L('flows','timer','Timed workouts')+`<h3>App</h3>`+L('links','calendar','Google Calendar sync')+L('set','sliders','Settings')+`<div class=row style="margin-top:8px"><span style="flex:1">Version<small style="font-family:var(--mono)">${BUILD}</small></span><button class=btn data-a=refresh>${ic('refresh')} Update app</button></div><small>Your data stays on the phone when you update</small>`}
+ return`<h1>More</h1><h3>Track</h3>`+L('body','scale','Body: weight and photos')+L('focus','gem','Work focus')+L('train','dumbbell','Gym workouts')+L('fuel','utensils','Diet, water and steps')+L('money','wallet','Budget')+`<h3>Grow</h3>`+L('skill','book','Skill and money')+L('rel','heart','Relationships and play')+L('meaning','leaf','Meaning')+`<h3>Review and plan</h3>`+L('week','chart','Weeks')+L('todo','check','To-dos')+L('rtn','repeat','My routines')+L('types','layers','Event types')+L('flows','timer','Timed workouts')+`<h3>App</h3>`+L('links','calendar','Google Calendar sync')+L('set','sliders','Settings')+`<div class=row style="margin-top:8px"><span style="flex:1">Version<small style="font-family:var(--mono)">${BUILD}</small></span><button class=btn data-a=refresh>${ic('refresh')} Update app</button></div><small>Your data stays on the phone when you update</small>`}
 
 function vDay(d,w){const i=DN.map(x=>x.toLowerCase()).indexOf(String(d).toLowerCase());return w==='learn'?vSkill(i>0?i:d):w==='train'?vTrain():vPlan()}
 
