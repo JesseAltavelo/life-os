@@ -10,8 +10,11 @@ struct WebView: UIViewRepresentable {
     /// Set by makeUIView so deep links (lifeos://focus) can change the page.
     static weak var current: WKWebView?
     static func open(route: String) {
-        let safe = route.filter { $0.isLetter || $0.isNumber }
-        current?.evaluateJavaScript("location.hash='#/\(safe)'")
+        let allowed = Set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/_-:%.@")
+        let safe = String(route.filter { allowed.contains($0) })
+        guard let data = try? JSONSerialization.data(withJSONObject: ["#/" + safe]),
+              let arr = String(data: data, encoding: .utf8) else { return }
+        current?.evaluateJavaScript("location.hash=\(arr)[0]")
     }
 
     func makeUIView(context: Context) -> WKWebView {
@@ -46,17 +49,21 @@ struct WebView: UIViewRepresentable {
                 let label = (msg["label"] as? String) ?? ""
                 let kind = (msg["kind"] as? String) ?? "rest"
                 let start = (msg["start"] as? Double) ?? Date().timeIntervalSince1970 * 1000
-                if kind == "rest" {
+                let useAlarm = (msg["alarm"] as? Bool) ?? (kind == "rest")
+                if useAlarm {
                     // Rings like the Clock timer, also in silent mode
-                    Alarms.shared.set(endMs: end, title: label.isEmpty ? "Rest is over" : label)
+                    Alarms.shared.set(endMs: end, title: label.isEmpty ? "Time is up" : label,
+                                      sound: (msg["snd"] as? String) ?? "")
                     Notifier.shared.schedule(id: "timer", endMs: 0, title: "", body: "")
                 } else {
+                    Alarms.shared.set(endMs: 0, title: "")
                     Notifier.shared.schedule(id: "timer", endMs: end, title: "Next step",
                                              body: label.isEmpty ? "Your timer finished." : "\(label) finished.")
                 }
                 Task { @MainActor in
                     Live.shared.set(slot: "timer", kind: kind, title: label.isEmpty ? "Timer" : label,
-                                    subtitle: (msg["sub"] as? String) ?? "", startMs: start, endMs: end)
+                                    subtitle: (msg["sub"] as? String) ?? "", startMs: start, endMs: end,
+                                    next: (msg["next"] as? String) ?? "", info: (msg["info"] as? String) ?? "")
                 }
             case "focus":
                 let to = (msg["to"] as? String) ?? ""
@@ -66,14 +73,20 @@ struct WebView: UIViewRepresentable {
                                          body: to.isEmpty ? "Your focus flight is done." : "Welcome to \(to). Open Life OS to collect your stamp.")
                 Task { @MainActor in
                     Live.shared.set(slot: "focus", kind: "focus", title: "\(from) to \(to)",
-                                    subtitle: "Focus flight", startMs: start, endMs: end)
+                                    subtitle: "Focus flight", startMs: start, endMs: end,
+                                    next: (msg["next"] as? String) ?? "", info: (msg["info"] as? String) ?? "")
                 }
             case "summary":
                 if let d = msg["d"] as? [String: Any] {
                     func n(_ k: String) -> Int { Int((d[k] as? Double) ?? 0) }
+                    let evs: [CalEvent] = ((d["ev"] as? [[String: Any]]) ?? []).compactMap { x in
+                        guard let t = x["t"] as? String, let s = x["s"] as? Double, let e = x["e"] as? Double else { return nil }
+                        return CalEvent(t: t, s: Date(timeIntervalSince1970: s / 1000), e: Date(timeIntervalSince1970: e / 1000),
+                                        h: (x["h"] as? Double) ?? 215, l: (x["l"] as? Bool) ?? false, r: (x["r"] as? String) ?? "plan")
+                    }
                     TodaySummary(focusMin: n("fm"), focusGoal: n("fg"), steps: n("st"), stepsT: n("stT"),
                                  water: n("w"), waterT: n("wT"), kcal: n("k"), kcalT: n("kT"),
-                                 streak: n("sk"), city: (d["city"] as? String) ?? "", updated: .now).save()
+                                 streak: n("sk"), city: (d["city"] as? String) ?? "", updated: .now, events: evs).save()
                     WidgetCenter.shared.reloadAllTimelines()
                 }
             case "export":

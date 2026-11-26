@@ -8,14 +8,27 @@ struct LifeOSActivity: ActivityAttributes {
         var subtitle: String
         var start: Date
         var end: Date
+        var next: String = ""
+        var info: String = ""
     }
     /// "rest", "step" or "focus"
     var kind: String
 }
 
 enum Shared {
-    static let group = "group.com.jroque.lifeos"
+    /// SideStore rewrites the group id when it re-signs and records it in ALTAppGroups.
+    static let group: String = (Bundle.main.object(forInfoDictionaryKey: "ALTAppGroups") as? [String])?.first ?? "group.com.jroque.lifeos"
     static var defaults: UserDefaults? { UserDefaults(suiteName: group) }
+}
+
+/// One calendar event for the calendar widget. `r` is the Life OS route to open.
+struct CalEvent: Codable, Hashable {
+    var t: String
+    var s: Date
+    var e: Date
+    var h: Double
+    var l: Bool
+    var r: String
 }
 
 /// Today's numbers, sent by the web app and shown in the widgets.
@@ -31,6 +44,7 @@ struct TodaySummary: Codable {
     var streak: Int
     var city: String
     var updated: Date
+    var events: [CalEvent]? = nil
 
     static let sample = TodaySummary(focusMin: 80, focusGoal: 180, steps: 6200, stepsT: 10000,
                                      water: 1500, waterT: 2500, kcal: 1900, kcalT: 3300,

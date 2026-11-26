@@ -10,7 +10,7 @@ final class Alarms {
     static let shared = Alarms()
     private var currentID: UUID?
 
-    func set(endMs: Double, title: String) {
+    func set(endMs: Double, title: String, sound: String = "") {
         guard #available(iOS 26.0, *) else { return }
         if let id = currentID { try? AlarmManager.shared.cancel(id: id); currentID = nil }
         guard endMs > 0 else { return }
@@ -28,7 +28,8 @@ final class Alarms {
                     stopButton: AlarmButton(text: "Done", textColor: .white, systemImageName: "checkmark"))
                 let attrs = AlarmAttributes<RestMeta>(presentation: AlarmPresentation(alert: alert),
                                                       metadata: RestMeta(), tintColor: .blue)
-                _ = try await mgr.schedule(id: id, configuration: .alarm(schedule: .fixed(date), attributes: attrs))
+                _ = try await mgr.schedule(id: id, configuration: .alarm(schedule: .fixed(date), attributes: attrs,
+                                                                         sound: sound.isEmpty ? .default : .named("\(sound).caf")))
             } catch {}
         }
     }

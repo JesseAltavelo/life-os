@@ -7,7 +7,8 @@ final class Live {
     static let shared = Live()
     private var current: [String: Activity<LifeOSActivity>] = [:]
 
-    func set(slot: String, kind: String, title: String, subtitle: String, startMs: Double, endMs: Double) {
+    func set(slot: String, kind: String, title: String, subtitle: String, startMs: Double, endMs: Double,
+             next: String = "", info: String = "") {
         if endMs <= 0 {
             if let a = current[slot] { Task { await a.end(nil, dismissalPolicy: .immediate) } }
             current[slot] = nil
@@ -16,7 +17,8 @@ final class Live {
         let state = LifeOSActivity.ContentState(
             title: title, subtitle: subtitle,
             start: Date(timeIntervalSince1970: startMs / 1000),
-            end: Date(timeIntervalSince1970: endMs / 1000))
+            end: Date(timeIntervalSince1970: endMs / 1000),
+            next: next, info: info)
         let content = ActivityContent(state: state, staleDate: state.end.addingTimeInterval(120))
         if let a = current[slot] {
             Task { await a.update(content) }

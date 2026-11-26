@@ -15,7 +15,14 @@ struct LifeOSApp: App {
         WindowGroup {
             WebView(url: lifeOSURL)
                 .ignoresSafeArea()
-                .onOpenURL { url in WebView.open(route: url.host ?? "plan") }
+                .onOpenURL { url in
+                    if url.host == "open", let h = URLComponents(url: url, resolvingAgainstBaseURL: false)?
+                        .queryItems?.first(where: { $0.name == "h" })?.value {
+                        WebView.open(route: h)
+                    } else {
+                        WebView.open(route: url.host ?? "plan")
+                    }
+                }
         }
     }
 }

@@ -154,23 +154,38 @@ struct LiveView: View {
     let ctx: ActivityViewContext<LifeOSActivity>
     var body: some View {
         let st = ctx.state
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Image(systemName: icon(ctx.attributes.kind)).foregroundStyle(accent)
-                VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .center, spacing: 10) {
+                Image(systemName: icon(ctx.attributes.kind))
+                    .font(.title2.weight(.semibold)).foregroundStyle(accent)
+                    .frame(width: 36, height: 36)
+                    .background(accent.opacity(0.18), in: RoundedRectangle(cornerRadius: 10))
+                VStack(alignment: .leading, spacing: 1) {
                     Text(st.title).font(.headline).lineLimit(1)
-                    if !st.subtitle.isEmpty { Text(st.subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(1) }
+                    Text(st.subtitle.isEmpty ? st.info : st.subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(1)
                 }
-                Spacer()
+                Spacer(minLength: 4)
                 Text(timerInterval: st.start...st.end, countsDown: true)
-                    .font(.system(size: 28, weight: .semibold, design: .monospaced))
+                    .font(.system(size: 40, weight: .bold, design: .rounded).monospacedDigit())
                     .multilineTextAlignment(.trailing)
-                    .frame(width: 110, alignment: .trailing)
+                    .frame(width: 128, alignment: .trailing)
             }
             ProgressView(timerInterval: st.start...st.end, countsDown: false) { EmptyView() } currentValueLabel: { EmptyView() }
-                .tint(accent)
+                .tint(accent).scaleEffect(x: 1, y: 2.2, anchor: .center)
+            HStack {
+                if !st.next.isEmpty {
+                    Label(st.next, systemImage: "arrow.right.circle.fill").font(.subheadline.weight(.medium)).lineLimit(1)
+                }
+                Spacer()
+                Text("Ends \(st.end.formatted(date: .omitted, time: .shortened))").font(.caption).foregroundStyle(.secondary)
+            }
+            if !st.info.isEmpty && !st.subtitle.isEmpty {
+                Text(st.info).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+            }
         }
         .padding(16)
+        .activityBackgroundTint(Color.black.opacity(0.75))
+        .activitySystemActionForegroundColor(.white)
     }
 }
 
@@ -190,6 +205,7 @@ struct LifeOSLive: Widget {
                 DynamicIslandExpandedRegion(.bottom) {
                     VStack(alignment: .leading, spacing: 6) {
                         Text(ctx.state.title).font(.headline).lineLimit(1)
+                        if !ctx.state.next.isEmpty { Text(ctx.state.next).font(.caption).foregroundStyle(.secondary).lineLimit(1) }
                         ProgressView(timerInterval: ctx.state.start...ctx.state.end, countsDown: false) { EmptyView() } currentValueLabel: { EmptyView() }
                             .tint(accent)
                     }
@@ -207,10 +223,116 @@ struct LifeOSLive: Widget {
     }
 }
 
+// MARK: - Calendar
+
+struct CalEntry: TimelineEntry {
+    let date: Date
+    let events: [CalEvent]
+}
+
+struct CalProvider: TimelineProvider {
+    static var sample: [CalEvent] {
+        let n = Date()
+        return [CalEvent(t: "Gym: Push", s: n.addingTimeInterval(3600), e: n.addingTimeInterval(10800), h: 8, l: true, r: "plan"),
+                CalEvent(t: "Dinner", s: n.addingTimeInterval(11000), e: n.addingTimeInterval(14000), h: 130, l: true, r: "plan")]
+    }
+    func upcoming(_ at: Date) -> [CalEvent] { (TodaySummary.load()?.events ?? []).filter { $0.e > at } }
+    func placeholder(in context: Context) -> CalEntry { CalEntry(date: .now, events: Self.sample) }
+    func getSnapshot(in context: Context, completion: @escaping (CalEntry) -> Void) {
+        let u = upcoming(.now); completion(CalEntry(date: .now, events: u.isEmpty ? Self.sample : u))
+    }
+    func getTimeline(in context: Context, completion: @escaping (Timeline<CalEntry>) -> Void) {
+        let all = TodaySummary.load()?.events ?? []
+        var dates: [Date] = [.now] + all.map(\.e).filter { $0 > .now }.prefix(10)
+        dates = Array(Set(dates)).sorted()
+        let entries = dates.map { d in CalEntry(date: d, events: all.filter { $0.e > d }) }
+        completion(Timeline(entries: entries, policy: .after(.now.addingTimeInterval(3600))))
+    }
+}
+
+private func evURL(_ e: CalEvent) -> URL {
+    var c = URLComponents(); c.scheme = "lifeos"; c.host = "open"; c.queryItems = [URLQueryItem(name: "h", value: e.r)]
+    return c.url ?? URL(string: "lifeos://plan")!
+}
+private func hue(_ e: CalEvent) -> Color { Color(hue: e.h / 360, saturation: 0.6, brightness: 0.85) }
+private func tm(_ d: Date) -> String { d.formatted(date: .omitted, time: .shortened) }
+
+struct CalRow: View {
+    let e: CalEvent
+    var body: some View {
+        Link(destination: evURL(e)) {
+            HStack(spacing: 8) {
+                RoundedRectangle(cornerRadius: 2).fill(hue(e)).frame(width: 4)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(e.t).font(.caption.weight(.semibold)).lineLimit(1)
+                    Text("\(tm(e.s)) – \(tm(e.e))").font(.caption2).foregroundStyle(.secondary)
+                }
+                Spacer(minLength: 0)
+                if e.l { Image(systemName: "link").font(.caption2).foregroundStyle(.secondary) }
+            }
+            .padding(.vertical, 4).padding(.horizontal, 6)
+            .background(hue(e).opacity(0.14), in: RoundedRectangle(cornerRadius: 6))
+        }
+    }
+}
+
+struct CalView: View {
+    @Environment(\.widgetFamily) var family
+    let entry: CalEntry
+    var body: some View {
+        let evs = entry.events
+        switch family {
+        case .accessoryRectangular:
+            if let e = evs.first {
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(e.t).font(.headline).lineLimit(1)
+                    Text("\(tm(e.s)) – \(tm(e.e))").font(.caption)
+                    if evs.count > 1 { Text("Then \(evs[1].t)").font(.caption2).foregroundStyle(.secondary).lineLimit(1) }
+                }
+            } else { Text("No more events today") }
+        case .systemSmall:
+            VStack(alignment: .leading, spacing: 6) {
+                Text(entry.date.formatted(.dateTime.weekday(.abbreviated).day())).font(.caption.weight(.bold)).foregroundStyle(.red)
+                if let e = evs.first {
+                    CalRow(e: e)
+                    if evs.count > 1 { CalRow(e: evs[1]) }
+                } else { Text("Nothing planned").font(.caption).foregroundStyle(.secondary) }
+                Spacer(minLength: 0)
+            }
+        default:
+            let n = family == .systemLarge ? 7 : 3
+            VStack(alignment: .leading, spacing: 5) {
+                HStack {
+                    Text(entry.date.formatted(.dateTime.weekday(.wide).day().month())).font(.subheadline.weight(.bold))
+                    Spacer()
+                    Text("Life OS").font(.caption2).foregroundStyle(.secondary)
+                }
+                if evs.isEmpty { Text("Nothing planned").font(.caption).foregroundStyle(.secondary) }
+                ForEach(evs.prefix(n), id: \.self) { CalRow(e: $0) }
+                Spacer(minLength: 0)
+            }
+        }
+    }
+}
+
+struct CalendarWidget: Widget {
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: "Calendar", provider: CalProvider()) { entry in
+            CalView(entry: entry)
+                .containerBackground(.fill.tertiary, for: .widget)
+                .widgetURL(URL(string: "lifeos://plan"))
+        }
+        .configurationDisplayName("Calendar")
+        .description("Your next events. Tap one to open what it is linked to.")
+        .supportedFamilies([.systemSmall, .systemMedium, .systemLarge, .accessoryRectangular])
+    }
+}
+
 @main
 struct LifeOSWidgets: WidgetBundle {
     var body: some Widget {
         TodayWidget()
+        CalendarWidget()
         FlightWidget()
         LifeOSLive()
     }
