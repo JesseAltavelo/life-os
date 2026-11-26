@@ -1,5 +1,5 @@
 'use strict';
-const BUILD='1795734169';
+const BUILD='1795734285';
 const $=s=>document.querySelector(s);
 const D=(d=new Date())=>new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
 const dow=s=>new Date(s+'T12:00').getDay()||7;
@@ -875,7 +875,7 @@ function ftick(){const f=S.foc;if(!f)return;if(f.ph==='g'){const l=Math.ceil((f.
  else if(f.ph==='b'){const left=Math.ceil((f.bt0+f.brk*1e3-Date.now())/1e3),t=$('#ftm');if(t)t.textContent=left>0?fmt(left):'Layover over'}}
 setInterval(ftick,500);
 let NAT={};
-window.lifeosHealth=o=>{let ch=0;Object.entries((o&&o.steps)||{}).forEach(([d,n])=>{n=Math.round(+n||0);if(n>0&&S.steps[d]!==n){S.steps[d]=n;ch=1}});S.hsync=Date.now();save();if(ch&&/#\/(fuel|plan|week)/.test(location.hash||'#/plan')&&!document.activeElement.matches?.('input,textarea'))go()};
+window.lifeosHealth=o=>{let ch=0;Object.entries((o&&o.steps)||{}).forEach(([d,n])=>{n=Math.round(+n||0);if(n>(S.steps[d]||0)){S.steps[d]=n;ch=1}});S.hsync=Date.now();save();if(ch&&/#\/(fuel|plan|week)/.test(location.hash||'#/plan')&&!document.activeElement.matches?.('input,textarea'))go()};
 function natInfo(){if(R){const n=R.steps[R.i+1];return{next:n?'Next: '+n[0]:'Last step',info:'Step '+(R.i+1)+' of '+R.steps.length}}const a=S.active;if(a){let tot=0,dn=0,nx='';a.ex.forEach(e=>e.s.forEach((x,i)=>{tot++;if(x.d)dn++;else if(!nx)nx=e.n+' · set '+(i+1)+' of '+e.s.length}));return{next:nx?'Next: '+nx:'Last set done',info:dn+' of '+tot+' sets done'}}return{next:'',info:''}}
 function natRisk(){const it=todayItems(D()).map(x=>{let p=x.st==='f'?1:0;if(x.st!=='f'){const m=String(x.v).replace(/,/g,'').match(/[\d.]+/g);if(m&&m.length>=2&&+m[1]>0)p=Math.min(1,+m[0]/+m[1])}return{n:x.n.replace(/ ml$| %$| near target/g,''),v:String(x.v||'').replace(/ · min .*/,'').replace(/ steps$/,''),p:Math.round(p*100)/100,w:x.k==='focus'||x.k==='train'?0:1}});return it.sort((a,b)=>a.p-b.p||a.w-b.w).slice(0,4).map(({w,...r})=>r)}
 function natEvents(){const t=D(),out=[];[t,addD(t,1)].forEach(d=>extOn(d).forEach(e=>{if(e.ad||e.e<Date.now())return;const b=bndE(e),k=evKey(e);out.push({t:e.t,s:e.s,e:e.e,h:b?typeHue(catOf(b)):215,l:!!b,r:'x/'+encodeURIComponent(k)+'/'+d})}));return out.sort((a,b)=>a.s-b.s).filter((e,i,a)=>a.findIndex(x=>x.s===e.s&&x.t===e.t)===i).slice(0,8)}
