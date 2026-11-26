@@ -1,5 +1,5 @@
 'use strict';
-const BUILD='1795722502';
+const BUILD='1795722801';
 const $=s=>document.querySelector(s);
 const D=(d=new Date())=>new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
 const dow=s=>new Date(s+'T12:00').getDay()||7;
@@ -636,9 +636,18 @@ function vSet(k){if(k)setTimeout(()=>{const e=document.getElementById('cfg-'+k);
  +CF.map(([k,l,h])=>`<h3 id="cfg-${k}">${l}</h3><small>${esc(h)}</small><textarea data-c=cfg data-k=${k} rows=8>${esc(S.cfg[k])}</textarea><button class=btn data-a=cfgreset data-k=${k}>Reset to default</button>`).join('')
  +`<h3>Data</h3><button class=btn data-a=export>Export backup (JSON)</button><label class=btn>Import backup<input id=imp type=file accept=".json" hidden></label>`}
 
-function vMore(){const L=(r,i,t)=>`<a class=lr href="#/${r}"><span class=li>${ic(i)}${t}</span>${ic('chev')}</a>`;
- return`<h1>More</h1><h3>Track</h3>`+L('body','scale','Body: weight and photos')+L('focus','gem','Work focus')+L('train','dumbbell','Gym workouts')+L('fuel','utensils','Diet, water and steps')+L('money','wallet','Budget')+`<h3>Grow</h3>`+L('skill','book','Skill and money')+L('meaning','leaf','Reflect')+`<h3>Review and plan</h3>`+L('week','chart','Weeks')+L('todo','check','To-dos')+L('rtn','repeat','My routines')+L('types','layers','Event types')+L('flows','timer','Timed workouts')+`<h3>App</h3>`+L('links','calendar','Google Calendar sync')+L('set','sliders','Settings')+`<div class=row style="margin-top:8px"><span style="flex:1">Version<small style="font-family:var(--mono)">${BUILD}</small></span><button class=btn data-a=refresh>${ic('refresh')} Update app</button></div><small>Your data stays on the phone when you update</small>`}
-
+function vMore(){const L=(r,i,t)=>`<a class=lr href="#/${r}"><span class=li>${ic(i)}${t}</span>${ic('chev')}</a>`,t=D();
+ const tn=themeOf(t).train,did=S.log.some(l=>l.date===t)||(S.fl||[]).some(x=>x.d===t),bl=bwLast(),sm=wsum(weekStart(t)),refl=(S.nl.meaning||[]).some(e=>e.d===t),kt=+S.cfg.kcalT||0;
+ const T=(r,i,name,val,hue)=>`<a href="#/${r}" style="display:flex;flex-direction:column;gap:6px;padding:12px;border-radius:14px;background:var(--c);border:1px solid var(--hl);color:var(--t);text-decoration:none;min-width:0"><span style="display:flex;width:34px;height:34px;border-radius:10px;align-items:center;justify-content:center;background:hsl(${hue} 80% 94%);color:hsl(${hue} 60% 42%)">${ic(i,18)}</span><b style="font-weight:500;font-size:14px;line-height:1.2">${name}</b><small style="margin:0;font-family:var(--mono);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${val}</small></a>`;
+ return`<h1>More</h1><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0 20px">`
+ +T('focus','gem','Focus',(fmin(t)/60).toFixed(1)+' / 3 h',255)
+ +T('train','dumbbell','Train',did?'Done today':tn&&tn!=='Rest'?esc(tn):'Rest day',8)
+ +T('fuel','utensils','Diet',Math.round(dk(t).k).toLocaleString('en-GB')+' kcal',130)
+ +T('body','scale','Body',bl?bl.v+' kg':'No weigh-in',165)
+ +T('meaning','leaf','Reflect',refl?'Done today':'Not yet',170)
+ +T('week','chart','Weeks',sm.met+'/'+sm.n+' targets met',190)
+ +`</div><h3>Set up</h3>`+L('todo','check','To-dos')+L('rtn','repeat','Routines')+L('flows','timer','Timed workouts')+L('types','layers','Event types')+L('money','wallet','Budget')+L('skill','book','Skill and audio')+L('links','calendar','Google Calendar sync')+L('set','sliders','Settings')
+ +`<div class=row style="margin-top:8px"><span style="flex:1">Version<small style="font-family:var(--mono)">${BUILD}</small></span><button class=btn data-a=refresh>${ic('refresh')} Update app</button></div><small>Your data stays on the phone when you update</small>`}
 function vDay(d,w){const i=DN.map(x=>x.toLowerCase()).indexOf(String(d).toLowerCase());return w==='learn'?vSkill(i>0?i:d):w==='train'?vTrain():vPlan()}
 
 /* ---------- actions ---------- */
