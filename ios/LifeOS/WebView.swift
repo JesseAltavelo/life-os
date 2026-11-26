@@ -11,6 +11,13 @@ struct WebView: UIViewRepresentable {
 
     /// Set by makeUIView so deep links (lifeos://focus) can change the page.
     static weak var current: WKWebView?
+
+    /// Sends Apple Health step totals to the page.
+    static func pushSteps(_ steps: [String: Int]) {
+        guard let data = try? JSONSerialization.data(withJSONObject: ["steps": steps]),
+              let json = String(data: data, encoding: .utf8) else { return }
+        current?.evaluateJavaScript("window.lifeosHealth&&window.lifeosHealth(\(json))")
+    }
     static func open(route: String) {
         let allowed = Set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/_-:%.@")
         let safe = String(route.filter { allowed.contains($0) })
@@ -42,6 +49,7 @@ struct WebView: UIViewRepresentable {
 
     final class Coordinator: NSObject, WKScriptMessageHandler, WKNavigationDelegate, WKUIDelegate {
         var previewPlayer: AVAudioPlayer?
+        var observing = false
 
         // MARK: messages from the web app
         func userContentController(_ controller: WKUserContentController, didReceive message: WKScriptMessage) {
@@ -117,6 +125,16 @@ struct WebView: UIViewRepresentable {
                 present(UIActivityViewController(activityItems: [url], applicationActivities: nil))
             default:
                 break
+            }
+        }
+
+        // MARK: page loaded: start Apple Health sync
+        func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+            Health.shared.start { WebView.pushSteps($0) }
+            if !observing {
+                observing = true
+                NotificationCenter.default.addObserver(forName: UIApplication.didBecomeActiveNotification,
+                                                       object: nil, queue: .main) { _ in Health.shared.fetch() }
             }
         }
 

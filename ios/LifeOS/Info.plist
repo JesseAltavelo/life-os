@@ -6,6 +6,8 @@
 	<array>
 		<string>group.com.jroque.lifeos</string>
 	</array>
+	<key>NSHealthShareUsageDescription</key>
+	<string>Life OS reads your step count so your daily steps fill in by themselves.</string>
 	<key>NSSupportsLiveActivities</key>
 	<true/>
 	<key>NSAlarmKitUsageDescription</key>

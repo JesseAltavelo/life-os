@@ -20,6 +20,7 @@
 		A10000000000000000000010 /* chime.caf in Resources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000010 /* chime.caf */; };
 		A10000000000000000000011 /* bell.caf in Resources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000011 /* bell.caf */; };
 		A10000000000000000000012 /* digital.caf in Resources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000012 /* digital.caf */; };
+		A10000000000000000000020 /* Health.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000020 /* Health.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -64,6 +65,7 @@
 		A20000000000000000000010 /* chime.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Sounds/chime.caf; sourceTree = "<group>"; };
 		A20000000000000000000011 /* bell.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Sounds/bell.caf; sourceTree = "<group>"; };
 		A20000000000000000000012 /* digital.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Sounds/digital.caf; sourceTree = "<group>"; };
+		A20000000000000000000020 /* Health.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Health.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -104,6 +106,7 @@
 				A20000000000000000000005 /* Info.plist */,
 				A20000000000000000000007 /* Live.swift */,
 				A20000000000000000000008 /* Alarms.swift */,
+				A20000000000000000000020 /* Health.swift */,
 				A2000000000000000000000D /* LifeOS.entitlements */,
 				A20000000000000000000010 /* chime.caf */,
 				A20000000000000000000011 /* bell.caf */,
@@ -230,6 +233,7 @@
 				A10000000000000000000003 /* Notifier.swift in Sources */,
 				A10000000000000000000005 /* Live.swift in Sources */,
 				A10000000000000000000006 /* Alarms.swift in Sources */,
+				A10000000000000000000020 /* Health.swift in Sources */,
 				A10000000000000000000007 /* Shared.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
