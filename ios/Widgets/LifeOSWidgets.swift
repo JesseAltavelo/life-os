@@ -159,7 +159,7 @@ struct FlightWidget: Widget {
 // MARK: - Live Activity
 
 private func icon(_ kind: String) -> String {
-    kind == "focus" ? "airplane" : kind == "step" ? "figure.flexibility" : "timer"
+    kind == "focus" ? "airplane" : kind == "step" ? "figure.flexibility" : kind == "gym" ? "dumbbell.fill" : "timer"
 }
 
 struct LiveView: View {
@@ -177,19 +177,21 @@ struct LiveView: View {
                     Text(st.subtitle.isEmpty ? st.info : st.subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(1)
                 }
                 Spacer(minLength: 4)
-                Text(timerInterval: st.start...st.end, countsDown: true)
+                Text(timerInterval: st.start...st.end, countsDown: ctx.attributes.kind != "gym")
                     .font(.system(size: 40, weight: .bold, design: .rounded).monospacedDigit())
                     .multilineTextAlignment(.trailing)
                     .frame(width: 128, alignment: .trailing)
             }
-            ProgressView(timerInterval: st.start...st.end, countsDown: false) { EmptyView() } currentValueLabel: { EmptyView() }
-                .tint(accent).scaleEffect(x: 1, y: 2.2, anchor: .center)
+            if ctx.attributes.kind != "gym" {
+                ProgressView(timerInterval: st.start...st.end, countsDown: false) { EmptyView() } currentValueLabel: { EmptyView() }
+                    .tint(accent).scaleEffect(x: 1, y: 2.2, anchor: .center)
+            }
             HStack {
                 if !st.next.isEmpty {
                     Label(st.next, systemImage: "arrow.right.circle.fill").font(.subheadline.weight(.medium)).lineLimit(1)
                 }
                 Spacer()
-                Text("Ends \(st.end.formatted(date: .omitted, time: .shortened))").font(.caption).foregroundStyle(.secondary)
+                Text(ctx.attributes.kind == "gym" ? "Started \(st.start.formatted(date: .omitted, time: .shortened))" : "Ends \(st.end.formatted(date: .omitted, time: .shortened))").font(.caption).foregroundStyle(.secondary)
             }
             if !st.info.isEmpty && !st.subtitle.isEmpty {
                 Text(st.info).font(.caption).foregroundStyle(.secondary).lineLimit(1)
@@ -211,21 +213,23 @@ struct LifeOSLive: Widget {
                     Image(systemName: icon(ctx.attributes.kind)).font(.title2).foregroundStyle(accent)
                 }
                 DynamicIslandExpandedRegion(.trailing) {
-                    Text(timerInterval: ctx.state.start...ctx.state.end, countsDown: true)
+                    Text(timerInterval: ctx.state.start...ctx.state.end, countsDown: ctx.attributes.kind != "gym")
                         .font(.title2.monospacedDigit()).frame(width: 90, alignment: .trailing)
                 }
                 DynamicIslandExpandedRegion(.bottom) {
                     VStack(alignment: .leading, spacing: 6) {
                         Text(ctx.state.title).font(.headline).lineLimit(1)
                         if !ctx.state.next.isEmpty { Text(ctx.state.next).font(.caption).foregroundStyle(.secondary).lineLimit(1) }
-                        ProgressView(timerInterval: ctx.state.start...ctx.state.end, countsDown: false) { EmptyView() } currentValueLabel: { EmptyView() }
-                            .tint(accent)
+                        if ctx.attributes.kind != "gym" {
+                            ProgressView(timerInterval: ctx.state.start...ctx.state.end, countsDown: false) { EmptyView() } currentValueLabel: { EmptyView() }
+                                .tint(accent)
+                        }
                     }
                 }
             } compactLeading: {
                 Image(systemName: icon(ctx.attributes.kind)).foregroundStyle(accent)
             } compactTrailing: {
-                Text(timerInterval: ctx.state.start...ctx.state.end, countsDown: true)
+                Text(timerInterval: ctx.state.start...ctx.state.end, countsDown: ctx.attributes.kind != "gym")
                     .monospacedDigit().frame(width: 44)
             } minimal: {
                 Image(systemName: icon(ctx.attributes.kind)).foregroundStyle(accent)

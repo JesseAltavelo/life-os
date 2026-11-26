@@ -76,6 +76,14 @@ struct WebView: UIViewRepresentable {
                                     subtitle: (msg["sub"] as? String) ?? "", startMs: start, endMs: end,
                                     next: (msg["next"] as? String) ?? "", info: (msg["info"] as? String) ?? "")
                 }
+            case "workout":
+                let start = (msg["start"] as? NSNumber)?.doubleValue ?? 0
+                let title = (msg["title"] as? String) ?? "Workout"
+                Task { @MainActor in
+                    Live.shared.set(slot: "workout", kind: "gym", title: title, subtitle: "Workout running",
+                                    startMs: start, endMs: start > 0 ? start + 4 * 3600 * 1000 : 0,
+                                    next: "Tap to open the workout", info: "")
+                }
             case "focus":
                 let to = (msg["to"] as? String) ?? ""
                 let from = (msg["from"] as? String) ?? ""
