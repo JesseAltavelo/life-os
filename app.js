@@ -1,5 +1,5 @@
 'use strict';
-const BUILD='1795722801';
+const BUILD='1795722808';
 const $=s=>document.querySelector(s);
 const D=(d=new Date())=>new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
 const dow=s=>new Date(s+'T12:00').getDay()||7;
@@ -645,7 +645,7 @@ function vMore(){const L=(r,i,t)=>`<a class=lr href="#/${r}"><span class=li>${ic
  +T('fuel','utensils','Diet',Math.round(dk(t).k).toLocaleString('en-GB')+' kcal',130)
  +T('body','scale','Body',bl?bl.v+' kg':'No weigh-in',165)
  +T('meaning','leaf','Reflect',refl?'Done today':'Not yet',170)
- +T('week','chart','Weeks',sm.met+'/'+sm.n+' targets met',190)
+ +T('week','chart','Weeks',sm.met+'/'+sm.n+' met',190)
  +`</div><h3>Set up</h3>`+L('todo','check','To-dos')+L('rtn','repeat','Routines')+L('flows','timer','Timed workouts')+L('types','layers','Event types')+L('money','wallet','Budget')+L('skill','book','Skill and audio')+L('links','calendar','Google Calendar sync')+L('set','sliders','Settings')
  +`<div class=row style="margin-top:8px"><span style="flex:1">Version<small style="font-family:var(--mono)">${BUILD}</small></span><button class=btn data-a=refresh>${ic('refresh')} Update app</button></div><small>Your data stays on the phone when you update</small>`}
 function vDay(d,w){const i=DN.map(x=>x.toLowerCase()).indexOf(String(d).toLowerCase());return w==='learn'?vSkill(i>0?i:d):w==='train'?vTrain():vPlan()}
