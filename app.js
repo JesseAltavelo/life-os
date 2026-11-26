@@ -1,5 +1,5 @@
 'use strict';
-const BUILD='1795727191';
+const BUILD='1795727297';
 const $=s=>document.querySelector(s);
 const D=(d=new Date())=>new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
 const dow=s=>new Date(s+'T12:00').getDay()||7;
@@ -20,7 +20,7 @@ const base=()=>location.origin+location.pathname;
 const td=()=>D();
 
 /* ---------- defaults (everything is editable in Life > Settings) ---------- */
-const VER=16;
+const VER=17;
 const DEF={v:VER,soc:{},foods:[],fd:{},sets:[],fday:'',bw:{},bgoal:0,bp:[],foc:null,fs:[],fchain:null,gd:{w:8,h:6,it:[],bf:0,pend:[]},fsp:'daisy',fsel:null,fpick:null,fmv:null,gh:[],start:D(),mode:{},wmode:{},short:{},chk:{},water:{},steps:{},port:{},ing:{},z:.75,tcol:{},bname:{},bcol:{},nl:{},own:0,tdel:[],bind:{},notes:{},gcal:{url:'',proxy:'',key:'',tds:0,t:0,evs:[],err:''},supp:{},hab:{},jr:{},med:{},todo:[],log:[],active:null,tx:[],paid:{},rev:{},wx:{},timer:null,ctx:null,
 cfg:{
 kcalT:2400,protT:130,
@@ -232,6 +232,7 @@ Wrist and forearm stretch|60`}
   {const seen={};c.flows=c.flows.split(/\n(?=# )/).filter(b=>{const n=b.split('\n')[0];return seen[n]?0:(seen[n]=1)}).join('\n')}
   c.wk=c.wk.replace(/^Work focus blocks\|.*$/m,'Work focus hours|15|10|focush')}
  if((o.v||0)<16){s.cfg.themes=s.cfg.themes.split('\n').map(l=>{const p=l.split('|');if(+p[0]===4&&(p[2]||'').trim()==='Comedy, storytelling')p[2]='';return p.join('|')}).join('\n')}
+ if((o.v||0)<17){s.cfg.themes=s.cfg.themes.split('\n').map(l=>{const p=l.split('|');if(+p[0]===4)p[2]='Psychology and the mind';if(+p[0]===5)p[2]='Society and how the world works';return p.join('|')}).join('\n')}
  s.v=VER;return s}
 let S;try{S=load(JSON.parse(localStorage.lifeos1))}catch(e){S=load()}
 const save=()=>{try{localStorage.lifeos1=JSON.stringify(S)}catch(e){}};
