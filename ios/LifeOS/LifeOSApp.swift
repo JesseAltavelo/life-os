@@ -15,6 +15,7 @@ struct LifeOSApp: App {
         WindowGroup {
             WebView(url: lifeOSURL)
                 .ignoresSafeArea()
+                .onOpenURL { url in WebView.open(route: url.host ?? "plan") }
         }
     }
 }
@@ -24,6 +25,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
         UNUserNotificationCenter.current().delegate = self
         Notifier.shared.requestPermission()
+        Task { @MainActor in Live.shared.endAll() }
         return true
     }
 

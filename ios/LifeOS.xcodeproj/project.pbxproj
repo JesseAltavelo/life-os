@@ -11,7 +11,37 @@
 		A10000000000000000000002 /* WebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000002 /* WebView.swift */; };
 		A10000000000000000000003 /* Notifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000003 /* Notifier.swift */; };
 		A10000000000000000000004 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000004 /* Assets.xcassets */; };
+		A10000000000000000000005 /* Live.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000007 /* Live.swift */; };
+		A10000000000000000000006 /* Alarms.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000008 /* Alarms.swift */; };
+		A10000000000000000000007 /* Shared.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000009 /* Shared.swift */; };
+		A10000000000000000000008 /* Shared.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000009 /* Shared.swift */; };
+		A10000000000000000000009 /* LifeOSWidgets.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000A /* LifeOSWidgets.swift */; };
+		A1000000000000000000000A /* LifeOSWidgets.appex in Embed Extensions */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000B /* LifeOSWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		AB0000000000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A80000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A50000000000000000000002;
+			remoteInfo = LifeOSWidgets;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		AC0000000000000000000001 /* Embed Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				A1000000000000000000000A /* LifeOSWidgets.appex in Embed Extensions */,
+			);
+			name = "Embed Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		A20000000000000000000001 /* LifeOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifeOSApp.swift; sourceTree = "<group>"; };
@@ -20,9 +50,24 @@
 		A20000000000000000000004 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A20000000000000000000005 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A20000000000000000000006 /* LifeOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LifeOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A20000000000000000000007 /* Live.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Live.swift; sourceTree = "<group>"; };
+		A20000000000000000000008 /* Alarms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Alarms.swift; sourceTree = "<group>"; };
+		A20000000000000000000009 /* Shared.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared.swift; sourceTree = "<group>"; };
+		A2000000000000000000000A /* LifeOSWidgets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifeOSWidgets.swift; sourceTree = "<group>"; };
+		A2000000000000000000000B /* LifeOSWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = LifeOSWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		A2000000000000000000000C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A2000000000000000000000D /* LifeOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LifeOS.entitlements; sourceTree = "<group>"; };
+		A2000000000000000000000E /* Widgets.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Widgets.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		A30000000000000000000002 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		A30000000000000000000001 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -37,6 +82,8 @@
 			isa = PBXGroup;
 			children = (
 				A40000000000000000000002 /* LifeOS */,
+				A40000000000000000000004 /* Shared */,
+				A40000000000000000000005 /* Widgets */,
 				A40000000000000000000003 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -49,6 +96,9 @@
 				A20000000000000000000003 /* Notifier.swift */,
 				A20000000000000000000004 /* Assets.xcassets */,
 				A20000000000000000000005 /* Info.plist */,
+				A20000000000000000000007 /* Live.swift */,
+				A20000000000000000000008 /* Alarms.swift */,
+				A2000000000000000000000D /* LifeOS.entitlements */,
 			);
 			path = LifeOS;
 			sourceTree = "<group>";
@@ -57,8 +107,27 @@
 			isa = PBXGroup;
 			children = (
 				A20000000000000000000006 /* LifeOS.app */,
+				A2000000000000000000000B /* LifeOSWidgets.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000004 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000009 /* Shared.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000005 /* Widgets */ = {
+			isa = PBXGroup;
+			children = (
+				A2000000000000000000000A /* LifeOSWidgets.swift */,
+				A2000000000000000000000C /* Info.plist */,
+				A2000000000000000000000E /* Widgets.entitlements */,
+			);
+			path = Widgets;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -71,15 +140,33 @@
 				A60000000000000000000001 /* Sources */,
 				A30000000000000000000001 /* Frameworks */,
 				A70000000000000000000001 /* Resources */,
+				AC0000000000000000000001 /* Embed Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				AD0000000000000000000001 /* PBXTargetDependency */,
 			);
 			name = LifeOS;
 			productName = LifeOS;
 			productReference = A20000000000000000000006 /* LifeOS.app */;
 			productType = "com.apple.product-type.application";
+		};
+		A50000000000000000000002 /* LifeOSWidgets */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A90000000000000000000003 /* Build configuration list for PBXNativeTarget "LifeOSWidgets" */;
+			buildPhases = (
+				A60000000000000000000002 /* Sources */,
+				A30000000000000000000002 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = LifeOSWidgets;
+			productName = LifeOSWidgets;
+			productReference = A2000000000000000000000B /* LifeOSWidgets.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -105,6 +192,7 @@
 			projectRoot = "";
 			targets = (
 				A50000000000000000000001 /* LifeOS */,
+				A50000000000000000000002 /* LifeOSWidgets */,
 			);
 		};
 /* End PBXProject section */
@@ -128,10 +216,30 @@
 				A10000000000000000000001 /* LifeOSApp.swift in Sources */,
 				A10000000000000000000002 /* WebView.swift in Sources */,
 				A10000000000000000000003 /* Notifier.swift in Sources */,
+				A10000000000000000000005 /* Live.swift in Sources */,
+				A10000000000000000000006 /* Alarms.swift in Sources */,
+				A10000000000000000000007 /* Shared.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A60000000000000000000002 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000000000000000000008 /* Shared.swift in Sources */,
+				A10000000000000000000009 /* LifeOSWidgets.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		AD0000000000000000000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A50000000000000000000002 /* LifeOSWidgets */;
+			targetProxy = AB0000000000000000000001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		AA0000000000000000000001 /* Debug */ = {
@@ -143,7 +251,7 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_TESTABILITY = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
@@ -158,7 +266,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
@@ -213,6 +321,54 @@
 			};
 			name = Release;
 		};
+		AA0000000000000000000005 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Widgets/Widgets.entitlements;
+				DEVELOPMENT_TEAM = XF68874J25;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Widgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Life OS";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.jroque.lifeos.widgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		AA0000000000000000000006 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Widgets/Widgets.entitlements;
+				DEVELOPMENT_TEAM = XF68874J25;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Widgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Life OS";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.jroque.lifeos.widgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -230,6 +386,15 @@
 			buildConfigurations = (
 				AA0000000000000000000003 /* Debug */,
 				AA0000000000000000000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A90000000000000000000003 /* Build configuration list for PBXNativeTarget "LifeOSWidgets" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA0000000000000000000005 /* Debug */,
+				AA0000000000000000000006 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
