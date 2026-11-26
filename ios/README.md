@@ -12,19 +12,8 @@ local notifications now, Live Activities and widgets next. Free Apple ID, no pai
 ## One-time setup on the Mac
 1. Install **Xcode** from the Mac App Store (free, large download).
 2. Open Xcode once, accept the licence, and let it install the iOS components.
-3. In Terminal:
-   ```bash
-   sudo xcode-select -s /Applications/Xcode.app
-   ```
-4. Install XcodeGen (makes the Xcode project from `project.yml`):
-   ```bash
-   brew install xcodegen
-   ```
-5. Generate and open the project:
-   ```bash
-   cd ~/Desktop/Life-OS/ios && xcodegen && open LifeOS.xcodeproj
-   ```
-6. In Xcode: Settings › Accounts › add your Apple ID. Then click the LifeOS target › Signing & Capabilities › Team: your name (Personal Team). If the bundle id is taken, change `com.jroque.lifeos` to something unique.
+3. Open the project: double-click `ios/LifeOS.xcodeproj` (in the Life-OS folder).
+4. In Xcode: Settings › Accounts › add your Apple ID. Then click the LifeOS target › Signing & Capabilities › Team: your name (Personal Team). If the bundle id is taken, change `com.jroque.lifeos` to something unique.
 
 ## Put it on the iPhone
 1. Plug in the iPhone, unlock it, tap Trust.

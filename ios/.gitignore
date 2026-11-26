@@ -1,4 +1,4 @@
-LifeOS.xcodeproj/
 build/
 DerivedData/
+xcuserdata/
 *.xcuserstate
