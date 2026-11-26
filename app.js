@@ -1,5 +1,5 @@
 'use strict';
-const BUILD='1795712864';
+const BUILD='1795713942';
 const $=s=>document.querySelector(s);
 const D=(d=new Date())=>new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
 const dow=s=>new Date(s+'T12:00').getDay()||7;
@@ -305,16 +305,17 @@ function warns(){const w=[],t=D(),y=addD(t,-1),y2=addD(t,-2),ok=d=>d<S.start||mi
 let T=S.timer&&S.timer.end>Date.now()?{...S.timer}:null,R=null,RUN=null,B=null,WL=null,AC=null,bp='Box',bd=5,sel=D(),view='day';
 function unlock(){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC.state!=='running')AC.resume()}catch(e){}}
 const KA=(()=>{try{const n=8000,b=new Uint8Array(44+n),v=new DataView(b.buffer),w=(o,t)=>[...t].forEach((c,i)=>v.setUint8(o+i,c.charCodeAt(0)));w(0,'RIFF');v.setUint32(4,36+n,true);w(8,'WAVEfmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,8000,true);v.setUint32(28,8000,true);v.setUint16(32,1,true);v.setUint16(34,8,true);w(36,'data');v.setUint32(40,n,true);b.fill(128,44);const a=new Audio('data:audio/wav;base64,'+btoa(String.fromCharCode(...b)));a.loop=true;a.volume=.05;return a}catch(e){return null}})();
-const kaOn=()=>{try{KA&&KA.paused&&KA.play().catch(()=>{})}catch(e){}},kaOff=()=>{try{KA&&!KA.paused&&KA.pause()}catch(e){}};
+const NATIVE=!!(window.webkit&&window.webkit.messageHandlers&&window.webkit.messageHandlers.lifeos);
+const kaOn=()=>{if(NATIVE)return;try{KA&&KA.paused&&KA.play().catch(()=>{})}catch(e){}},kaOff=()=>{try{KA&&!KA.paused&&KA.pause()}catch(e){}};
 let SCH=[],SCHAT=0;
-function sched(){SCH.forEach(o=>{try{o.stop()}catch(e){}});SCH=[];if(!T||!AC)return;try{const d=Math.max(0,(T.end-Date.now())/1e3);SCHAT=T.end;for(let i=0;i<2;i++){const o=AC.createOscillator(),g=AC.createGain();o.connect(g);g.connect(AC.destination);o.frequency.value=880;g.gain.value=.3;o.start(AC.currentTime+d+i*.3);o.stop(AC.currentTime+d+i*.3+.18);SCH.push(o)}}catch(e){}}
+function sched(){SCH.forEach(o=>{try{o.stop()}catch(e){}});SCH=[];if(!T||!AC||NATIVE)return;try{const d=Math.max(0,(T.end-Date.now())/1e3);SCHAT=T.end;for(let i=0;i<2;i++){const o=AC.createOscillator(),g=AC.createGain();o.connect(g);g.connect(AC.destination);o.frequency.value=880;g.gain.value=.3;o.start(AC.currentTime+d+i*.3);o.stop(AC.currentTime+d+i*.3+.18);SCH.push(o)}}catch(e){}}
 function beep(n=2){try{for(let i=0;i<n;i++){const o=AC.createOscillator(),g=AC.createGain();o.connect(g);g.connect(AC.destination);o.frequency.value=880;g.gain.value=.25;o.start(AC.currentTime+i*.3);o.stop(AC.currentTime+i*.3+.15)}}catch(e){}try{navigator.vibrate?.([200,100,200])}catch(e){}}
 async function wake(on){try{if(on&&!WL){WL=await navigator.wakeLock.request('screen');WL.addEventListener('release',()=>WL=null)}else if(!on&&WL){WL.release();WL=null}}catch(e){}}
 function startTimer(sec,label,cb){T={end:Date.now()+sec*1e3,total:sec,label,cb};S.timer=cb?null:{end:T.end,total:sec,label};save();unlock();kaOn();sched();wake(true);tick()}
 function tick(){const b=$('#tb'),el=$('#el');if(el&&S.active)el.textContent=fmt(Math.floor((Date.now()-S.active.t0)/1e3));
  if(!T){b.style.display='none';if(SCH.length)sched();kaOff();return}
  const left=Math.ceil((T.end-Date.now())/1e3);
- if(left<=0){const t=T;T=null;S.timer=null;save();if(SCH.length&&SCHAT<=Date.now()+50&&AC&&AC.state==='running'){}else{SCH.forEach(o=>{try{o.stop()}catch(e){}});beep(2)}SCH=[];t.cb?.();if(!T){wake(false);kaOff();b.style.display='none'}return}
+ if(left<=0){const t=T;T=null;S.timer=null;save();if(SCH.length&&SCHAT<=Date.now()+50&&AC&&AC.state==='running'){}else{SCH.forEach(o=>{try{o.stop()}catch(e){}});if(!NATIVE||(!document.hidden&&Date.now()-t.end<1500))beep(2)}SCH=[];t.cb?.();if(!T){wake(false);kaOff();b.style.display='none'}return}
  b.style.display='flex';$('#tl').textContent=T.label;$('#tt').textContent=fmt(left);const big=$('#big');if(big)big.textContent=fmt(left)}
 const PAT={Box:[['Inhale',4],['Hold',4],['Exhale',4],['Hold',4]]};
 function breath(){if(!B)return;const el=(Date.now()-B.start)/1e3;
@@ -513,7 +514,7 @@ const wkComb=ws=>{const t=D();return`<div style="display:flex;gap:4px;margin:12p
 const srcLabel=x=>x.startsWith('gym:')?'Counts that gym workout when you finish it':x.startsWith('flow:')?'Counts that timed workout when it finishes':x==='weigh'?'Fills in by itself from days you log your weight':x==='focus'||x==='focusm'?'Fills in by itself from finished Work focus blocks':x==='lift'?'Fills in by itself from workouts you log':x==='steps'?'Fills in by itself from your steps':x==='water'?'Fills in by itself from water logged':x==='diet'?'Fills in by itself from calories logged close to your target':x==='med'?'Fills in by itself from box breathing':x==='jr'?'Fills in by itself from your journal':x==='rev'?'Ticks when you mark Review done':x.startsWith('r:')?'Counts days you finish the whole routine. The minimum counts the short version too':'Manual: use + and −';
 const wkStrip=(ws,fn,mk)=>`<div style="display:flex;gap:4px;margin:6px 0 10px">`+wdays(ws).map(d=>{const f=d>=S.start&&d<=D(),ok=f&&fn(d);return`<span style="flex:1;text-align:center;border-radius:8px;padding:6px 0;font-size:12px;background:${ok?'var(--ok)':f&&d<D()?'#fde8e8':'var(--c2)'};color:${ok?'#fff':'var(--t)'}">${DN[dow(d)]}<br>${ok?mk:f&&d<D()?'✗':'·'}</span>`}).join('')+`</div>`;
 function todayItems(d){const it=[],tp=tpls(),tn=themeOf(d).train,P=(n,st,v,h,k)=>it.push({n,st,v,h,k,d}),evs=extOn(d),bs=evs.map(bndE).filter(Boolean),hasEv=evs.length>0,rd={};occ(d).forEach(r=>stepsOf(r,d).forEach(x=>{if(x.link&&isDone(d,r,x))rd[x.link]=1}));
- dayRows().forEach(x=>{const v=dv(x.src,d),f=x.f||x.m,st=v>=f?'f':x.m&&v>=x.m?'m':'',h=x.src==='steps'||x.src==='water'||x.src==='diet'?'#/fuel':x.src==='jr'?'#/meaning':'#/plan',vs=x.src==='diet'?v+'% of plan':r0(v)+' / '+r0(f);P(x.n,st,vs+(x.m&&x.m<f?' · min '+(x.src==='diet'?x.m+'%':r0(x.m)):''),h,x.src==='steps'||x.src==='water'||x.src==='diet'?'fuel':x.src==='jr'?'refl':'')});
+ dayRows().forEach(x=>{const v=dv(x.src,d),f=x.f||x.m,st=v>=f?'f':x.m&&v>=x.m?'m':'',h=x.src==='steps'||x.src==='water'||x.src==='diet'?'#/fuel':x.src==='jr'?'#/meaning':'#/plan',vs=x.src==='diet'?r0(dk(d).k)+' / '+r0(+S.cfg.kcalT||0)+' kcal':r0(v)+' / '+r0(f);P(x.src==='diet'?'Calories':x.n,st,vs+(x.m&&x.m<f&&x.src!=='diet'?' · min '+r0(x.m):''),h,x.src==='steps'||x.src==='water'||x.src==='diet'?'fuel':x.src==='jr'?'refl':'')});
  if(tn&&tn!=='Rest'){const ok=S.log.some(l=>l.date===d)||(S.fl||[]).some(x=>x.d===d)||(tn==='Soccer match'&&(S.soc||{})[weekStart(d)]===2);P(tn,ok?'f':'',ok?'done':'planned','#/train','train');if(hasEv&&!bs.some(b=>/^(tr\/|f\/|gym:|flow:)/.test(b)||b==='train'||b==='flow'))it[it.length-1].np=1}
  const sn={};occ(d).forEach(r=>{if(sn[r.id])return;sn[r.id]=1;const st=stepsOf(r,d),n=st.filter(x=>isDone(d,r,x)).length;P(r.name,st.length>0&&n===st.length?'f':'',n+' / '+st.length+' steps','#/r/'+r.id+'/'+d)});
  P('Weigh in',(S.bw||{})[d]!=null||rd.body?'f':'',(S.bw||{})[d]!=null?S.bw[d]+' kg':'','#/body');
