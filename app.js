@@ -1,5 +1,5 @@
 'use strict';
-const BUILD='1795562910';
+const BUILD='1795700945';
 const $=s=>document.querySelector(s);
 const D=(d=new Date())=>new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
 const dow=s=>new Date(s+'T12:00').getDay()||7;
@@ -375,13 +375,18 @@ function minOkOld(ds){const d=dow(ds);return routines().filter(r=>r.ess&&r.days.
 function wsum(ws){const t=D(),ds=wdays(ws).filter(d=>d<=t&&d>=S.start),rows=lines(S.cfg.wk).map(l=>{const[n,c,m,src]=l.split('|').map(x=>x.trim());return{n,c:+c||0,m:+m||0,src:src||'x',v:cnt(src||'x',ws,n),vm:cnt(src||'x',ws,n,true)}});
  return{ds,ok:ds.filter(minOk).length,okF:ds.filter(fullOk).length,rows,met:rows.filter(r=>r.c&&r.v>=r.c).length,n:rows.filter(r=>r.c).length}}
 let CTA='';
+const dayDot=(d,t)=>{if(d>t||d<S.start)return'transparent';const n=todayItems(d).filter(x=>!x.st).length;return n===0?'var(--ok)':d===t?'#e8a33d':'#e05252'};
+const mlab=x=>x.k==='train'?'Workout: '+x.n:x.k==='focus'?(/^0\.0/.test(x.v)?'No focus time':'Focus time short · '+x.v.replace(' · min 2','')):x.n+(x.v&&x.v!=='planned'?' · '+x.v:'');
+function missBanner(d,t){if(d>t||d<S.start)return'';const m=todayItems(d).filter(x=>!x.st),isT=d===t,col=isT?'#e8a33d':'#e05252',tx=isT?'#8a5200':'#b42323',day=new Date(d+'T12:00').toLocaleDateString('en-GB',{weekday:'long'});
+ if(!m.length)return`<div class=card style="border:2px solid var(--ok);display:flex;gap:8px;align-items:center;margin:8px 0"><span style="color:var(--ok);display:flex">${ic('check',20)}</span><b style="font-weight:500">${isT?'Nothing left to do today':'Nothing missed on '+day}</b></div>`;
+ return`<div class=card style="background:${isT?'#fff4e5':'#fdecec'};border:2px solid ${col};margin:8px 0"><b style="color:${tx};font-size:16px">${isT?'Still to do today':'Missed on '+day} · ${m.length}</b><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">${m.map(x=>`<span data-a=wkgo data-h="${x.h}" data-d="${x.d}" data-k="${x.k||''}" style="background:#fff;border:1px solid ${col};color:${tx};border-radius:8px;padding:6px 10px;font-size:13px;font-weight:500;cursor:pointer">${esc(mlab(x))}</span>`).join('')}</div></div>`}
 function vPlan(){const t=D(),ws=weekStart(sel),g=S.gcal,gon=g.url&&g.proxy;
  let h=`<div class=stick><div class=top><h1>${new Date(sel+'T12:00').toLocaleDateString('en-GB',{month:'long',year:'numeric'})}</h1><div><button class="chip ${view==='day'?'on':''}" data-a=view data-v=day>Day</button> <button class="chip ${view==='week'?'on':''}" data-a=view data-v=week>Week</button> <button class=chip data-a=gotoday>Today</button></div></div>
- <div class=strip><button data-a=wk data-v=-7>‹</button>`+wdays(ws).map(d=>`<button class="dd ${d===sel?'on':''} ${d===t?'td':''}" data-a=sel data-v=${d}><small>${DN[dow(d)]}</small><b>${+d.slice(8)}</b></button>`).join('')+`<button data-a=wk data-v=7>›</button></div>
+ <div class=strip><button data-a=wk data-v=-7>‹</button>`+wdays(ws).map(d=>`<button class="dd ${d===sel?'on':''} ${d===t?'td':''}" data-a=sel data-v=${d}><small>${DN[dow(d)]}</small><b>${+d.slice(8)}</b><i style="display:block;width:7px;height:7px;border-radius:4px;margin:3px auto 0;background:${dayDot(d,t)}"></i></button>`).join('')+`<button data-a=wk data-v=7>›</button></div>
  <button class=chip data-a=zoom data-v=-1 aria-label="Zoom out">${ic('zout')}</button> <button class=chip data-a=zoom data-v=1 aria-label="Zoom in">${ic('zin')}</button> <small style="display:inline;font-size:12px">Pinch to zoom, swipe for next day</small> `+(gon?`<button class=chip data-a=gsync>${ic('refresh',14)} ${g.t?new Date(g.t).toTimeString().slice(0,5):'sync'}</button>`:'');
  const ad=extOn(sel).filter(e=>e.ad);if(ad.length)h+=`<div style="font-size:13px;color:var(--m);margin:4px 0">All day: ${ad.map(e=>esc(e.t)).join(', ')}</div>`;
  h+=todoBar(sel,t)+`</div>`;
- return h+grid(view==='week'?wdays(ws):[sel])}
+ return h+missBanner(sel,t)+grid(view==='week'?wdays(ws):[sel])}
 
 const linkLbl=k=>k.startsWith('flow:')?'Timed workout · '+k.slice(5):k.startsWith('gym:')?'Gym workout · '+k.slice(4):k==='spotify'?'Opens Spotify':'Opens '+(LBL[k]||k);
 const LBL={fuel:'Diet',train:'Gym workout',money:'Budget',mind:'Mind',skill:'Skill',rel:'Relationships',meaning:'Reflect',week:'Weeks',todo:'To-dos'};
@@ -507,10 +512,10 @@ const srcLabel=x=>x.startsWith('gym:')?'Counts that gym workout when you finish 
 const wkStrip=(ws,fn,mk)=>`<div style="display:flex;gap:4px;margin:6px 0 10px">`+wdays(ws).map(d=>{const f=d>=S.start&&d<=D(),ok=f&&fn(d);return`<span style="flex:1;text-align:center;border-radius:8px;padding:6px 0;font-size:12px;background:${ok?'var(--ok)':f&&d<D()?'#fde8e8':'var(--c2)'};color:${ok?'#fff':'var(--t)'}">${DN[dow(d)]}<br>${ok?mk:f&&d<D()?'✗':'·'}</span>`}).join('')+`</div>`;
 function todayItems(d){const it=[],tp=tpls(),tn=themeOf(d).train,P=(n,st,v,h,k)=>it.push({n,st,v,h,k,d});
  dayRows().forEach(x=>{const v=dv(x.src,d),f=x.f||x.m,st=v>=f?'f':x.m&&v>=x.m?'m':'',h=x.src==='steps'||x.src==='water'||x.src==='diet'?'#/fuel':x.src==='jr'?'#/meaning':'#/plan',vs=x.src==='diet'?v+'% of plan':r0(v)+' / '+r0(f);P(x.n,st,vs+(x.m&&x.m<f?' · min '+(x.src==='diet'?x.m+'%':r0(x.m)):''),h,x.src==='steps'||x.src==='water'||x.src==='diet'?'fuel':x.src==='jr'?'refl':'')});
- if(tn&&tn!=='Rest'){const ok=S.log.some(l=>l.date===d)||(S.fl||[]).some(x=>x.d===d)||(tn==='Soccer match'&&(S.soc||{})[weekStart(d)]===2);P(tn,ok?'f':'',ok?'done':'planned','#/train')}
+ if(tn&&tn!=='Rest'){const ok=S.log.some(l=>l.date===d)||(S.fl||[]).some(x=>x.d===d)||(tn==='Soccer match'&&(S.soc||{})[weekStart(d)]===2);P(tn,ok?'f':'',ok?'done':'planned','#/train','train')}
  const seen={};occ(d).forEach(q=>{if(!q.r||seen[q.r.id])return;seen[q.r.id]=1;const st=stepsOf(q.r,d),n=st.filter(x=>isDone(d,q.r,x)).length;P(q.r.name,st.length>0&&n===st.length?'f':'',n+' / '+st.length+' steps','#/r/'+q.r.id+'/'+d)});
  P('Weigh in',(S.bw||{})[d]!=null?'f':'',(S.bw||{})[d]!=null?S.bw[d]+' kg':'','#/body');
- if(dow(d)<6||fmin(d))P('Work focus',fmin(d)>=180?'f':fmin(d)>=120?'m':'',(fmin(d)/60).toFixed(1)+' / 3 h · min 2','#/focus');
+ if(dow(d)<6||fmin(d))P('Work focus',fmin(d)>=180?'f':fmin(d)>=120?'m':'',(fmin(d)/60).toFixed(1)+' / 3 h · min 2','#/focus','focus');
  P('Reflect',(S.nl.meaning||[]).some(e=>e.d===d)?'f':'','','#/meaning','refl');
  const td0=S.todo.filter(x=>x.due===d);if(td0.length)P('To-dos',td0.every(x=>x.done)?'f':'',td0.filter(x=>x.done).length+' / '+td0.length,'#/plan');
  return it}
