@@ -1,5 +1,5 @@
 'use strict';
-const BUILD='1795733776';
+const BUILD='1795734169';
 const $=s=>document.querySelector(s);
 const D=(d=new Date())=>new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
 const dow=s=>new Date(s+'T12:00').getDay()||7;
@@ -379,7 +379,8 @@ function grid(days){const t=D(),wk=days.length>1,nm=new Date(),nowM=nm.getHours(
 
 const dv=(src,ds)=>src==='steps'?(S.steps[ds]||0):src==='water'?(S.water[ds]||0):src==='diet'?Math.round(dietPct(ds)*100):src==='med'?(S.med[ds]||0):src==='jr'?(S.jr[ds]&&(S.jr[ds].g||S.jr[ds].w||S.jr[ds].t)?1:0):src==='lift'?S.log.filter(l=>l.date===ds).length:src==='focus'?fmin(ds):0;
 const dayRows=()=>lines(S.cfg.day).map(l=>{const[n,f,m,src]=l.split('|').map(x=>x.trim());return{n,f:+f||0,m:+m||0,src}});
-const minOk=ds=>{const r=dayRows().filter(x=>x.m);return r.length>0&&r.every(x=>dv(x.src,ds)>=x.m)},fullOk=ds=>{const r=dayRows().filter(x=>x.f);return r.length>0&&r.every(x=>dv(x.src,ds)>=x.f)};
+const _DI=new Map();let _DIt=0;const dayItems=ds=>{if(Date.now()-_DIt>1500){_DI.clear();_DIt=Date.now()}if(!_DI.has(ds))_DI.set(ds,todayItems(ds));return _DI.get(ds)};
+const minOk=ds=>{const it=dayItems(ds);return it.length>0&&it.every(x=>x.st)},fullOk=ds=>{const it=dayItems(ds);return it.length>0&&it.every(x=>x.st==='f')};
 function minOkOld(ds){const d=dow(ds);return routines().filter(r=>r.ess&&r.days.includes(d)).every(r=>r.steps.filter(s=>s.short).every(x=>S.chk[ds]?.[key(r,x)]))}
 function wsum(ws){const t=D(),ds=wdays(ws).filter(d=>d<=t&&d>=S.start),rows=lines(S.cfg.wk).map(l=>{const[n,c,m,src]=l.split('|').map(x=>x.trim());return{n,c:+c||0,m:+m||0,src:src||'x',v:cnt(src||'x',ws,n),vm:cnt(src||'x',ws,n,true)}});
  return{ds,ok:ds.filter(minOk).length,okF:ds.filter(fullOk).length,rows,met:rows.filter(r=>r.c&&r.v>=r.c).length,n:rows.filter(r=>r.c).length}}
@@ -570,7 +571,7 @@ function vWeek(w){const t=D(),cw=weekStart(t),ws=w||cw,sm=wsum(ws),r=S.rev[ws]||
  let h=`<div class=top><a class=btn href="#/week/${addD(ws,-7)}">‹</a><h2 style="margin:0">${cur?'This week':fd(ws)+' – '+fd(addD(ws,6))}</h2><a class=btn href="#/week/${addD(ws,7)}">›</a></div>`;
  const sel=WKD&&wdays(ws).includes(WKD)?WKD:(cur?t:'');
  const strip=wdays(ws).map(d=>{const f=d>=S.start&&d<=t,st=!f?'':fullOk(d)?'f':minOk(d)?'m':d<t?'x':'',bg=st==='f'?'var(--ok)':st==='m'?'var(--a)':st==='x'?'#fde8e8':'var(--c2)',fg=st==='f'||st==='m'?'#fff':st==='x'?'var(--r)':'var(--m)';return`<button data-a=wkday data-d="${d}" style="flex:1;text-align:center;border-radius:8px;padding:6px 0;font:inherit;font-size:12px;border:0;background:${bg};color:${fg};${d===sel?'box-shadow:0 0 0 2px var(--t)':''}">${DN[dow(d)]}<br><b style="font-weight:500">${st==='f'?'★':st==='m'?'✓':st==='x'?'✗':'·'}</b></button>`}).join('');
- h+=`<div class=card><div style="display:flex;gap:4px">${strip}</div><div style="display:flex;justify-content:space-between;margin-top:8px"><small style="margin:0">★ all full · ✓ all minimum</small><small style="margin:0;font-family:var(--mono)">${sm.okF} ★ · ${sm.ok} ✓</small></div></div>`;
+ h+=`<div class=card><div style="display:flex;gap:4px">${strip}</div><div style="display:flex;justify-content:space-between;margin-top:8px"><small style="margin:0">★ everything full · ✓ everything at least minimum</small><small style="margin:0;font-family:var(--mono)">${sm.okF} ★ · ${sm.ok} ✓</small></div></div>`;
  if(sel){const it=todayItems(sel),dn=it.filter(x=>x.st).length,ttl=sel===t?'Today':new Date(sel+'T12:00').toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'short'});
   const rowI=x=>`<div data-a=wkgo data-h="${x.h}" data-d="${x.d}" data-k="${x.k||''}" style="display:flex;gap:10px;align-items:center;padding:6px 0;cursor:pointer">${stb(x.st)}<span style="flex:1;min-width:0;font-size:15px;${x.st?'color:var(--t2)':''}">${esc(x.n)}</span><small style="margin:0;font-family:var(--mono);font-size:12px;text-align:right">${esc(x.v)}</small></div>`;
   h+=`<div class=card><div class=top><b>${ttl}</b><small style="font-family:var(--mono);margin:0">${dn} of ${it.length} done</small></div>${bar(dn,it.length)}`+['Physical','Mental','Other'].map(g=>{const a=it.filter(x=>itGrp(x)===g);return a.length?gh(g)+a.map(rowI).join(''):''}).join('')+`<div style="display:flex;gap:12px;margin-top:10px;align-items:center"><small style="margin:0;display:flex;align-items:center;gap:4px"><i style="width:10px;height:10px;border-radius:3px;background:var(--ok);display:block"></i>Full</small><small style="margin:0;display:flex;align-items:center;gap:4px"><i style="width:10px;height:10px;border-radius:3px;background:var(--a);display:block"></i>Minimum</small><small style="margin:0;display:flex;align-items:center;gap:4px"><i style="width:10px;height:10px;border-radius:3px;border:2px solid var(--hl);display:block;box-sizing:border-box"></i>To do</small><small style="margin:0 0 0 auto">Tap to open</small></div></div>`}
