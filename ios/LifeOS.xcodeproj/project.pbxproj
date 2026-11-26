@@ -302,6 +302,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				CODE_SIGN_ENTITLEMENTS = LifeOS/LifeOS.entitlements;
 				PRODUCT_BUNDLE_IDENTIFIER = com.jroque.lifeos;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
@@ -326,6 +327,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				CODE_SIGN_ENTITLEMENTS = LifeOS/LifeOS.entitlements;
 				PRODUCT_BUNDLE_IDENTIFIER = com.jroque.lifeos;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
