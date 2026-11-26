@@ -307,7 +307,7 @@ struct CalView: View {
                     Spacer()
                     Text("Life OS").font(.caption2).foregroundStyle(.secondary)
                 }
-                if evs.isEmpty { Text("Nothing planned").font(.caption).foregroundStyle(.secondary) }
+                if evs.isEmpty { Text(TodaySummary.load()?.events == nil ? "Open Life OS once to load your calendar" : "Nothing else planned today or tomorrow").font(.caption).foregroundStyle(.secondary) }
                 ForEach(evs.prefix(n), id: \.self) { CalRow(e: $0) }
                 Spacer(minLength: 0)
             }

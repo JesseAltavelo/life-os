@@ -1,6 +1,8 @@
 import SwiftUI
 import WebKit
 import WidgetKit
+import AVFoundation
+import AudioToolbox
 
 struct WebView: UIViewRepresentable {
     let url: URL
@@ -39,16 +41,17 @@ struct WebView: UIViewRepresentable {
     func updateUIView(_ uiView: WKWebView, context: Context) {}
 
     final class Coordinator: NSObject, WKScriptMessageHandler, WKNavigationDelegate, WKUIDelegate {
+        var previewPlayer: AVAudioPlayer?
 
         // MARK: messages from the web app
         func userContentController(_ controller: WKUserContentController, didReceive message: WKScriptMessage) {
             guard let msg = message.body as? [String: Any], let type = msg["t"] as? String else { return }
-            let end = (msg["end"] as? Double) ?? 0
+            let end = (msg["end"] as? NSNumber)?.doubleValue ?? 0
             switch type {
             case "timer":
                 let label = (msg["label"] as? String) ?? ""
                 let kind = (msg["kind"] as? String) ?? "rest"
-                let start = (msg["start"] as? Double) ?? Date().timeIntervalSince1970 * 1000
+                let start = (msg["start"] as? NSNumber)?.doubleValue ?? Date().timeIntervalSince1970 * 1000
                 let useAlarm = (msg["alarm"] as? Bool) ?? (kind == "rest")
                 if useAlarm {
                     // Rings like the Clock timer, also in silent mode
@@ -68,7 +71,7 @@ struct WebView: UIViewRepresentable {
             case "focus":
                 let to = (msg["to"] as? String) ?? ""
                 let from = (msg["from"] as? String) ?? ""
-                let start = (msg["start"] as? Double) ?? 0
+                let start = (msg["start"] as? NSNumber)?.doubleValue ?? 0
                 Notifier.shared.schedule(id: "focus", endMs: end, title: "You landed",
                                          body: to.isEmpty ? "Your focus flight is done." : "Welcome to \(to). Open Life OS to collect your stamp.")
                 Task { @MainActor in
@@ -78,16 +81,31 @@ struct WebView: UIViewRepresentable {
                 }
             case "summary":
                 if let d = msg["d"] as? [String: Any] {
-                    func n(_ k: String) -> Int { Int((d[k] as? Double) ?? 0) }
+                    func num(_ v: Any?) -> Double { (v as? NSNumber)?.doubleValue ?? Double((v as? String) ?? "") ?? 0 }
+                    func n(_ k: String) -> Int { Int(num(d[k])) }
                     let evs: [CalEvent] = ((d["ev"] as? [[String: Any]]) ?? []).compactMap { x in
-                        guard let t = x["t"] as? String, let s = x["s"] as? Double, let e = x["e"] as? Double else { return nil }
+                        guard let t = x["t"] as? String else { return nil }
+                        let s = num(x["s"]), e = num(x["e"])
+                        guard s > 0, e > 0 else { return nil }
                         return CalEvent(t: t, s: Date(timeIntervalSince1970: s / 1000), e: Date(timeIntervalSince1970: e / 1000),
-                                        h: (x["h"] as? Double) ?? 215, l: (x["l"] as? Bool) ?? false, r: (x["r"] as? String) ?? "plan")
+                                        h: x["h"] == nil ? 215 : num(x["h"]), l: (x["l"] as? NSNumber)?.boolValue ?? false,
+                                        r: (x["r"] as? String) ?? "plan")
                     }
                     TodaySummary(focusMin: n("fm"), focusGoal: n("fg"), steps: n("st"), stepsT: n("stT"),
                                  water: n("w"), waterT: n("wT"), kcal: n("k"), kcalT: n("kT"),
                                  streak: n("sk"), city: (d["city"] as? String) ?? "", updated: .now, events: evs).save()
                     WidgetCenter.shared.reloadAllTimelines()
+                }
+            case "preview":
+                let snd = (msg["snd"] as? String) ?? ""
+                if snd.isEmpty {
+                    AudioServicesPlayAlertSound(1005)
+                } else if let url = Bundle.main.url(forResource: snd, withExtension: "caf") {
+                    try? AVAudioSession.sharedInstance().setCategory(.playback, options: [.mixWithOthers])
+                    try? AVAudioSession.sharedInstance().setActive(true)
+                    previewPlayer = try? AVAudioPlayer(contentsOf: url)
+                    previewPlayer?.play()
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in self?.previewPlayer?.stop() }
                 }
             case "export":
                 guard let name = msg["name"] as? String, let data = msg["data"] as? String else { return }
