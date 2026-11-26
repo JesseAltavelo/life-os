@@ -34,7 +34,7 @@ struct Bar: View {
                 Spacer()
                 Text(value).font(.caption2.monospacedDigit()).bold()
             }
-            ProgressView(value: p).tint(p >= 1 ? .green : accent)
+            ProgressView(value: p).tint(p >= 1 ? .green : p < 0.34 ? .red : .orange)
         }
     }
 }
@@ -65,34 +65,46 @@ struct TodayView: View {
                 Text("\(s.kcal) / \(s.kcalT) kcal").foregroundStyle(.secondary)
             }
         case .systemSmall:
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 5) {
                 HStack {
-                    Image(systemName: "airplane").foregroundStyle(accent)
+                    Text("At risk").font(.caption.weight(.bold))
                     Spacer()
-                    if s.streak > 0 {
-                        Label("\(s.streak)", systemImage: "flame.fill").font(.caption).foregroundStyle(.orange)
+                    if s.streak > 0 { Label("\(s.streak)", systemImage: "flame.fill").font(.caption2).foregroundStyle(.orange) }
+                }
+                ForEach(risks(s).prefix(4), id: \.self) { r in
+                    VStack(alignment: .leading, spacing: 2) {
+                        HStack(spacing: 4) {
+                            Text(r.n).font(.system(size: 11, weight: .semibold)).lineLimit(1)
+                            Spacer(minLength: 2)
+                            Text(r.v).font(.system(size: 10).monospacedDigit()).foregroundStyle(.secondary).lineLimit(1)
+                        }
+                        ProgressView(value: r.p).tint(r.p >= 1 ? .green : r.p < 0.34 ? .red : .orange).scaleEffect(x: 1, y: 0.8)
                     }
                 }
-                Spacer()
-                Text("\(hrs(s.focusMin)) h").font(.system(size: 30, weight: .semibold, design: .monospaced))
-                Text(noData ? "Open Life OS once" : "of \(hrs(s.focusGoal)) h focus").font(.caption).foregroundStyle(.secondary)
-                ProgressView(value: frac(s.focusMin, s.focusGoal)).tint(accent)
+                Spacer(minLength: 0)
             }
         default:
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 7) {
                 HStack {
-                    Text("Today").font(.headline)
+                    Text("Today · most at risk").font(.headline)
                     Spacer()
                     if s.streak > 0 {
                         Label("\(s.streak)-day streak", systemImage: "flame.fill").font(.caption).foregroundStyle(.orange)
                     }
                 }
-                Bar(label: "Focus", value: "\(hrs(s.focusMin)) / \(hrs(s.focusGoal)) h", p: frac(s.focusMin, s.focusGoal))
-                Bar(label: "Steps", value: "\(s.steps) / \(s.stepsT)", p: frac(s.steps, s.stepsT))
-                Bar(label: "Water", value: "\(s.water) / \(s.waterT) ml", p: frac(s.water, s.waterT))
-                Bar(label: "Calories", value: "\(s.kcal) / \(s.kcalT)", p: frac(s.kcal, s.kcalT))
+                ForEach(risks(s).prefix(4), id: \.self) { r in Bar(label: r.n, value: r.v, p: r.p) }
+                Spacer(minLength: 0)
             }
         }
+    }
+
+    /// The 4 targets least likely to be made. Falls back to the basics before the app has sent them.
+    func risks(_ s: TodaySummary) -> [RiskItem] {
+        if let r = s.risk, !r.isEmpty { return r }
+        return [RiskItem(n: "Focus", v: "\(hrs(s.focusMin)) / \(hrs(s.focusGoal)) h", p: frac(s.focusMin, s.focusGoal)),
+                RiskItem(n: "Steps", v: "\(s.steps) / \(s.stepsT)", p: frac(s.steps, s.stepsT)),
+                RiskItem(n: "Water", v: "\(s.water) / \(s.waterT) ml", p: frac(s.water, s.waterT)),
+                RiskItem(n: "Calories", v: "\(s.kcal) / \(s.kcalT)", p: frac(s.kcal, s.kcalT))].sorted { $0.p < $1.p }
     }
 }
 
@@ -291,12 +303,23 @@ struct CalView: View {
                 }
             } else { Text("No more events today") }
         case .systemSmall:
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(entry.date.formatted(.dateTime.weekday(.abbreviated).day())).font(.caption.weight(.bold)).foregroundStyle(.red)
-                if let e = evs.first {
-                    CalRow(e: e)
-                    if evs.count > 1 { CalRow(e: evs[1]) }
-                } else { Text("Nothing planned").font(.caption).foregroundStyle(.secondary) }
+                if evs.isEmpty { Text("Nothing planned").font(.caption).foregroundStyle(.secondary) }
+                ForEach(evs.prefix(3), id: \.self) { e in
+                    Link(destination: evURL(e)) {
+                        HStack(spacing: 5) {
+                            RoundedRectangle(cornerRadius: 1.5).fill(hue(e)).frame(width: 3)
+                            VStack(alignment: .leading, spacing: 0) {
+                                Text(e.t).font(.system(size: 11, weight: .semibold)).lineLimit(1)
+                                Text(tm(e.s)).font(.system(size: 10)).foregroundStyle(.secondary)
+                            }
+                            Spacer(minLength: 0)
+                        }
+                        .padding(.vertical, 2).padding(.horizontal, 4)
+                        .background(hue(e).opacity(0.14), in: RoundedRectangle(cornerRadius: 5))
+                    }
+                }
                 Spacer(minLength: 0)
             }
         default:

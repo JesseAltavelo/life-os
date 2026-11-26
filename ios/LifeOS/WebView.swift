@@ -93,7 +93,10 @@ struct WebView: UIViewRepresentable {
                     }
                     TodaySummary(focusMin: n("fm"), focusGoal: n("fg"), steps: n("st"), stepsT: n("stT"),
                                  water: n("w"), waterT: n("wT"), kcal: n("k"), kcalT: n("kT"),
-                                 streak: n("sk"), city: (d["city"] as? String) ?? "", updated: .now, events: evs).save()
+                                 streak: n("sk"), city: (d["city"] as? String) ?? "", updated: .now, events: evs,
+                                 risk: ((d["risk"] as? [[String: Any]]) ?? []).map {
+                                     RiskItem(n: ($0["n"] as? String) ?? "", v: ($0["v"] as? String) ?? "", p: num($0["p"]))
+                                 }).save()
                     WidgetCenter.shared.reloadAllTimelines()
                 }
             case "preview":

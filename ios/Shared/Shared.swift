@@ -31,6 +31,13 @@ struct CalEvent: Codable, Hashable {
     var r: String
 }
 
+/// A daily target that is not done yet, most at risk first. p = progress 0...1.
+struct RiskItem: Codable, Hashable {
+    var n: String
+    var v: String
+    var p: Double
+}
+
 /// Today's numbers, sent by the web app and shown in the widgets.
 struct TodaySummary: Codable {
     var focusMin: Int
@@ -45,6 +52,7 @@ struct TodaySummary: Codable {
     var city: String
     var updated: Date
     var events: [CalEvent]? = nil
+    var risk: [RiskItem]? = nil
 
     static let sample = TodaySummary(focusMin: 80, focusGoal: 180, steps: 6200, stepsT: 10000,
                                      water: 1500, waterT: 2500, kcal: 1900, kcalT: 3300,
